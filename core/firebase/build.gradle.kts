@@ -38,6 +38,7 @@ android {
 
 dependencies {
 
+    implementation(project(":core"))
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
 
