@@ -37,7 +37,7 @@ android {
 }
 
 dependencies {
-    
+
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 
