@@ -48,6 +48,7 @@ firebase-database = { module = "com.google.firebase:firebase-database" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 compose-lint-checks = { module = "com.slack.lint.compose:compose-lint-checks", version.ref = "composeLintChecks" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 [bundles]
 compose = [

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.serialization)
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
@@ -38,6 +39,7 @@ android {
 
 dependencies {
 
+    implementation(project(":core"))
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 
