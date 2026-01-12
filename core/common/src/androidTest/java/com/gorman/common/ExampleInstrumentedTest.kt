@@ -1,4 +1,4 @@
-package com.gorman.localeventsmap
+package com.gorman.common
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.gorman.localeventsmap", appContext.packageName)
+        assertEquals("com.gorman.common.test", appContext.packageName)
     }
 }
