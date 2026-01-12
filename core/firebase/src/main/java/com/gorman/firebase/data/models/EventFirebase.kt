@@ -8,7 +8,6 @@ data class EventFirebase(
     val description: String = "",
     val date: String = "",
     val address: String = "",
-    val distance: Int = 0,
     val link: String = "",
     val photo: String = "",
     val category: String = "",
