@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "275529617174",
+    "project_id": "localeventsmap-394fb",
+    "storage_bucket": "localeventsmap-394fb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:275529617174:android:5a89be8856d5a6f5730a37",
+        "android_client_info": {
+          "package_name": "com.gorman.localeventsmap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDv9Ae_E27fPUyn3WgmRaAPi7lqmIYQnX8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
