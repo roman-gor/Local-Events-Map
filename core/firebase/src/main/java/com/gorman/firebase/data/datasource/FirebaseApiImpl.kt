@@ -36,15 +36,4 @@ class FirebaseApiImpl @Inject constructor(
             val eventSnapshot = database.child(id).get().await()
             eventSnapshot.getValue(EventFirebase::class.java)
         } ?: EventFirebase()
-
-    override suspend fun getEventsByCategory(category: String): List<EventFirebase> =
-        executeRequest("Get Events By Category") {
-            val eventsRef = database
-                .orderByChild("category")
-                .equalTo(category)
-            val eventsSnapshot = eventsRef.get().await()
-            eventsSnapshot.children.mapNotNull {
-                it.getValue(EventFirebase::class.java)
-            }
-        } ?: emptyList()
 }
