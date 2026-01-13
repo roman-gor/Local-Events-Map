@@ -1,0 +1,19 @@
+package com.gorman.database.data.model
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity("events")
+data class EventEntity (
+    @PrimaryKey val id: Int = 0,
+    val remoteId: String = "",
+    val name: String? = null,
+    val description: String? = null,
+    val address: String? = null,
+    val coordinates: String,
+    val ling: String? = null,
+    val photo: String? = null,
+    val category: String? = null,
+    val price: String? = null,
+    val isFavourite: Boolean = false
+)
