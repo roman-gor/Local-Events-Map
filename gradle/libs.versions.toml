@@ -20,6 +20,7 @@ playServicesAuth = "21.2.0"
 runtime = "1.10.0"
 appcompat = "1.6.1"
 material = "1.10.0"
+room = "2.7.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,6 +50,14 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 compose-lint-checks = { module = "com.slack.lint.compose:compose-lint-checks", version.ref = "composeLintChecks" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-rxjava2 = { group = "androidx.room", name = "room-rxjava2", version.ref = "room" }
+room-rxjava3 = { group = "androidx.room", name = "room-rxjava3", version.ref = "room" }
+room-guava = { group = "androidx.room", name = "room-guava", version.ref = "room" }
+room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
+room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 
 [bundles]
 compose = [
@@ -65,6 +74,16 @@ firebase = [
 hilt = [
     "hilt-android",
     "androidx-hilt-navigation-compose"
+]
+room = [
+    "room-runtime",
+    "room-compiler",
+    "room-testing",
+    "room-rxjava3",
+    "room-rxjava2",
+    "room-paging",
+    "room-ktx",
+    "room-guava"
 ]
 
 [plugins]
