@@ -1,3 +1,5 @@
+import java.util.Properties
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -16,3 +18,14 @@ buildscript {
         classpath(libs.hilt.android.gradle.plugin)
     }
 }
+
+fun getYandexApiKey(): String {
+    val properties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        properties.load(localPropertiesFile.inputStream())
+    }
+    return properties.getProperty("YANDEX_KEY", "")
+}
+
+extra["yandexApiKey"] = getYandexApiKey()
