@@ -7,7 +7,7 @@ data class Event (
     val description: String? = null,
     val address: String? = null,
     val coordinates: String,
-    val ling: String? = null,
+    val link: String? = null,
     val photo: String? = null,
     val category: String? = null,
     val price: String? = null,
