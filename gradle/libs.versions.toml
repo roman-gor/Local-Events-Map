@@ -21,6 +21,7 @@ runtime = "1.10.0"
 appcompat = "1.6.1"
 material = "1.10.0"
 room = "2.7.2"
+yandex = "4.19.0-lite"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -58,6 +59,7 @@ room-rxjava3 = { group = "androidx.room", name = "room-rxjava3", version.ref = "
 room-guava = { group = "androidx.room", name = "room-guava", version.ref = "room" }
 room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
+yandex-android = { module = "com.yandex.android:maps.mobile", version.ref = "yandex" }
 
 [bundles]
 compose = [

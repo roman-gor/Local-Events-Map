@@ -1,13 +1,10 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
 }
 
 android {
-    namespace = "com.gorman.ui"
+    namespace = "com.gorman.domain_model"
     compileSdk {
         version = release(36)
     }
@@ -38,13 +35,6 @@ android {
 }
 
 dependencies {
-
-    implementation(libs.bundles.hilt)
-    ksp(libs.hilt.compiler)
-
-    implementation(libs.bundles.compose)
-    implementation(platform(libs.androidx.compose.bom))
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

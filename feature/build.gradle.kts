@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.gorman.ui"
+    namespace = "com.gorman.feature_events"
     compileSdk {
         version = release(36)
     }
@@ -39,10 +39,16 @@ android {
 
 dependencies {
 
+    api(project(":core:common"))
+    api(project(":core:domain-model"))
+    api(project(":core:ui"))
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.bundles.compose)
+    api(libs.bundles.compose)
+    api(libs.androidx.core.ktx)
+    api(libs.androidx.lifecycle.runtime.ktx)
+    api(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.core.ktx)
