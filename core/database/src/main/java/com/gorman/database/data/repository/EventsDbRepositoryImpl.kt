@@ -1,11 +1,11 @@
 package com.gorman.database.data.repository
 
 import androidx.room.Transaction
-import com.gorman.common.Event
 import com.gorman.database.data.datasource.EventsDao
 import com.gorman.database.domain.repository.EventsDbRepository
 import com.gorman.database.toDomain
 import com.gorman.database.toEntity
+import com.gorman.domain_model.Event
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

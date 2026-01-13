@@ -20,6 +20,9 @@ class MapViewModel @Inject constructor(
     private val _eventsListState = MutableStateFlow<List<Event>>(emptyList())
     val eventsListState = _eventsListState.asStateFlow()
 
+    private val _selectedEventId = MutableStateFlow<Event?>(null)
+    val selectedEventId = _selectedEventId.asStateFlow()
+
     fun syncEvents() {
         viewModelScope.launch {
             Log.d("ViewModel", "Вызов syncEvents()")
@@ -32,6 +35,12 @@ class MapViewModel @Inject constructor(
             getAllEventsUseCase().collect { events ->
                 _eventsListState.value = events
             }
+        }
+    }
+
+    fun selectEvent(id: Int) {
+        viewModelScope.launch {
+            _selectedEventId.value = _eventsListState.value.first { it.localId == id }
         }
     }
 }

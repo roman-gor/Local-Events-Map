@@ -21,19 +21,21 @@ abstract class FirebaseModule {
     @Singleton
     abstract fun bindFirebaseApi(impl: FirebaseApiImpl): FirebaseApi
 
-    @Provides
-    @Singleton
-    fun provideFirebaseDatabase(): FirebaseDatabase {
-        return FirebaseDatabase.getInstance()
-    }
-
-    @Provides
-    @Singleton
-    fun provideDatabaseReference(database: FirebaseDatabase): DatabaseReference {
-        return database.getReference(FirebaseConstants.EVENTS_PATH.value)
-    }
-
     @Binds
     @Singleton
     abstract fun bindFirebaseRepository(impl: FirebaseRepositoryImpl): FirebaseRepository
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideFirebaseDatabase(): FirebaseDatabase {
+            return FirebaseDatabase.getInstance()
+        }
+
+        @Provides
+        @Singleton
+        fun provideDatabaseReference(database: FirebaseDatabase): DatabaseReference {
+            return database.getReference(FirebaseConstants.EVENTS_PATH.value)
+        }
+    }
 }

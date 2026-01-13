@@ -1,6 +1,6 @@
 package com.gorman.database.domain.repository
 
-import com.gorman.common.Event
+import com.gorman.domain_model.Event
 import kotlinx.coroutines.flow.Flow
 
 interface EventsDbRepository {

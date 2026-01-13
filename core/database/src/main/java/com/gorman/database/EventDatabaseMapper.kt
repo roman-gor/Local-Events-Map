@@ -1,7 +1,7 @@
 package com.gorman.database
 
-import com.gorman.common.Event
 import com.gorman.database.data.model.EventEntity
+import com.gorman.domain_model.Event
 
 fun EventEntity.toDomain(): Event =
     Event(

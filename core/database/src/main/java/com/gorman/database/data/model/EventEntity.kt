@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity("events")
 data class EventEntity (
-    @PrimaryKey val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val remoteId: String = "",
     val name: String? = null,
     val description: String? = null,
@@ -14,6 +14,6 @@ data class EventEntity (
     val link: String? = null,
     val photo: String? = null,
     val category: String? = null,
-    val price: String? = null,
+    val price: Int? = null,
     val isFavourite: Boolean = false
 )
