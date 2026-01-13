@@ -5,6 +5,8 @@ import com.google.firebase.database.FirebaseDatabase
 import com.gorman.firebase.data.datasource.FirebaseApi
 import com.gorman.firebase.data.datasource.FirebaseApiImpl
 import com.gorman.firebase.data.models.FirebaseConstants
+import com.gorman.firebase.data.repository.FirebaseRepositoryImpl
+import com.gorman.firebase.domain.repository.FirebaseRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -19,15 +21,21 @@ abstract class FirebaseModule {
     @Singleton
     abstract fun bindFirebaseApi(impl: FirebaseApiImpl): FirebaseApi
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideFirebaseDatabase(): FirebaseDatabase {
-        return FirebaseDatabase.getInstance()
-    }
+    abstract fun bindFirebaseRepository(impl: FirebaseRepositoryImpl): FirebaseRepository
 
-    @Provides
-    @Singleton
-    fun provideDatabaseReference(database: FirebaseDatabase): DatabaseReference {
-        return database.getReference(FirebaseConstants.EVENTS_PATH.value)
+    companion object {
+        @Provides
+        @Singleton
+        fun provideFirebaseDatabase(): FirebaseDatabase {
+            return FirebaseDatabase.getInstance()
+        }
+
+        @Provides
+        @Singleton
+        fun provideDatabaseReference(database: FirebaseDatabase): DatabaseReference {
+            return database.getReference(FirebaseConstants.EVENTS_PATH.value)
+        }
     }
 }

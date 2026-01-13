@@ -39,7 +39,9 @@ android {
 
 dependencies {
 
-    implementation(project(":core"))
+    implementation(project(":core:firebase"))
+    implementation(project(":core:database"))
+    implementation(project(":core:domain-model"))
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 

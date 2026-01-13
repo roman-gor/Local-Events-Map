@@ -17,12 +17,13 @@ android {
     }
 
     defaultConfig {
+        val yandexApiKey: String by rootProject.extra
         applicationId = "com.gorman.localeventsmap"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
+        buildConfigField("String", "YANDEX_KEY", "\"$yandexApiKey\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -44,10 +45,15 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
+
+    implementation(project(":feature"))
+    implementation(project(":feature:events"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -63,6 +69,9 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
+
+    implementation(libs.yandex.android)
 }
