@@ -1,6 +1,6 @@
 package com.gorman.firebase
 
-import com.gorman.common.Event
+import com.gorman.domain_model.Event
 import com.gorman.firebase.data.models.EventFirebase
 
 fun EventFirebase.toDomain(): Event =

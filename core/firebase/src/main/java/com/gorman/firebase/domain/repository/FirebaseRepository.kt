@@ -1,6 +1,6 @@
 package com.gorman.firebase.domain.repository
 
-import com.gorman.common.Event
+import com.gorman.domain_model.Event
 
 interface FirebaseRepository {
     suspend fun getAllEvents(): List<Event>
