@@ -2,12 +2,13 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.serialization)
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
 
 android {
-    namespace = "com.gorman.ui"
+    namespace = "com.gorman.events"
     compileSdk {
         version = release(36)
     }
@@ -38,12 +39,13 @@ android {
 }
 
 dependencies {
+    implementation(project(":feature"))
 
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.bundles.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.yandex.android)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
