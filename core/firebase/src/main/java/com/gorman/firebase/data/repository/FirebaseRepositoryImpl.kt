@@ -1,6 +1,6 @@
 package com.gorman.firebase.data.repository
 
-import com.gorman.common.Event
+import com.gorman.domain_model.Event
 import com.gorman.firebase.data.datasource.FirebaseApi
 import com.gorman.firebase.domain.repository.FirebaseRepository
 import com.gorman.firebase.toDomain

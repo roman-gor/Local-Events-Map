@@ -39,7 +39,7 @@ android {
 dependencies {
 
     implementation(project(":core"))
-    implementation(project(":core:common"))
+    implementation(project(":core:domain-model"))
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
 
