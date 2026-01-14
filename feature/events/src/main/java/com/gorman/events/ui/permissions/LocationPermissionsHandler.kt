@@ -15,8 +15,7 @@ fun LocationPermissionsHandler(
     val locationPermissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            Manifest.permission.ACCESS_COARSE_LOCATION
         )
     )
     when {
