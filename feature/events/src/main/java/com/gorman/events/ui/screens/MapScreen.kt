@@ -1,5 +1,6 @@
 package com.gorman.events.ui.screens
 
+import android.Manifest
 import android.content.Context
 import android.graphics.PointF
 import androidx.compose.animation.core.animateDpAsState
@@ -45,6 +46,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.domain_model.MapEvent
 import com.gorman.events.R
 import com.gorman.events.ui.components.BottomEventsListSheetDialog
@@ -65,6 +68,7 @@ import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
     val context = LocalContext.current
@@ -72,6 +76,13 @@ fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
         mapViewModel.syncEvents()
         mapViewModel.getEventsList()
     }
+    var shouldShowRationale by remember { mutableStateOf(false) }
+    val permissionsState = rememberMultiplePermissionsState(
+        permissions = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+    )
     val mapEventsState by mapViewModel.mapEventState.collectAsStateWithLifecycle()
     when (val state = mapEventsState) {
         is MapEventsState.Error -> ErrorDataScreen()
