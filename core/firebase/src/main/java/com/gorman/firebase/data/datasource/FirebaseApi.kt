@@ -1,8 +1,9 @@
 package com.gorman.firebase.data.datasource
 
-import com.gorman.firebase.data.models.EventFirebase
+import com.gorman.firebase.data.models.MapEventFirebase
+import kotlinx.coroutines.flow.Flow
 
 interface FirebaseApi {
-    suspend fun getAllEvents(): List<EventFirebase>
-    suspend fun getSingleEvent(id: String): EventFirebase
+    fun getAllEvents(): Flow<List<MapEventFirebase>>
+    suspend fun getSingleEvent(id: String): Result<MapEventFirebase>
 }

@@ -1,13 +1,10 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.serialization)
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
 }
 
 android {
-    namespace = "com.gorman.database"
+    namespace = "com.gorman.domain_model"
     compileSdk {
         version = release(36)
     }
@@ -36,15 +33,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":core:domain-model"))
-
-    ksp(libs.room.compiler)
-    implementation(libs.bundles.room)
-
-    implementation(libs.bundles.hilt)
-    ksp(libs.hilt.compiler)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
