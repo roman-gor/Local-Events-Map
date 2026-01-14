@@ -54,10 +54,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-room-rxjava2 = { group = "androidx.room", name = "room-rxjava2", version.ref = "room" }
-room-rxjava3 = { group = "androidx.room", name = "room-rxjava3", version.ref = "room" }
 room-guava = { group = "androidx.room", name = "room-guava", version.ref = "room" }
-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 yandex-android = { module = "com.yandex.android:maps.mobile", version.ref = "yandex" }
 
@@ -79,10 +76,6 @@ hilt = [
 ]
 room = [
     "room-runtime",
-    "room-compiler",
-    "room-testing",
-    "room-rxjava3",
-    "room-rxjava2",
     "room-paging",
     "room-ktx",
     "room-guava"
