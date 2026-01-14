@@ -8,6 +8,7 @@ import javax.inject.Inject
 class GetAllMapEventsUseCase @Inject constructor(
     private val mapEventsRepository: MapEventsRepository
 ) {
-    operator fun invoke(): Flow<List<MapEvent>> =
+    operator fun invoke(): Result<Flow<List<MapEvent>>> = runCatching {
         mapEventsRepository.getAllEvents()
+    }
 }

@@ -47,6 +47,8 @@ dependencies {
     api(libs.androidx.core.ktx)
     api(libs.androidx.lifecycle.runtime.ktx)
     api(libs.androidx.activity.compose)
+    api(libs.accompanist.permissions)
+    api(libs.androidx.compose.ui.tooling.preview)
     implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.core.ktx)
