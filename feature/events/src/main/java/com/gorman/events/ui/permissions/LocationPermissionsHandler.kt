@@ -1,29 +1,33 @@
 package com.gorman.events.ui.permissions
 
-import android.Manifest
 import androidx.compose.runtime.Composable
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.MultiplePermissionsState
+import com.google.accompanist.permissions.isGranted
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun LocationPermissionsHandler(
-    allPermissionsGranted: () -> Unit,
-    shouldShowRationale: () -> Unit,
-    requestPermissions: () -> Unit
+    locationPermissionsState: MultiplePermissionsState,
+    allPermissionsGranted: @Composable () -> Unit,
+    shouldShowRationale: @Composable () -> Unit,
+    isPermanentlyDeclined: @Composable () -> Unit,
+    requestPermissions: @Composable () -> Unit
 ) {
-    val locationPermissionsState = rememberMultiplePermissionsState(
-        permissions = listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-    )
     when {
         locationPermissionsState.allPermissionsGranted -> {
             allPermissionsGranted()
         }
         locationPermissionsState.shouldShowRationale -> {
             shouldShowRationale()
+        }
+        !locationPermissionsState.allPermissionsGranted && !locationPermissionsState.shouldShowRationale -> {
+            val isFirstRequest = locationPermissionsState.revokedPermissions.all { it.status.isGranted }
+            if (isFirstRequest) {
+                requestPermissions()
+            } else {
+                isPermanentlyDeclined()
+            }
         }
         else -> {
             requestPermissions()

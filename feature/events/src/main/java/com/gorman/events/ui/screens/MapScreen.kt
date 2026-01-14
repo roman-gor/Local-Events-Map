@@ -54,6 +54,7 @@ import com.gorman.events.ui.components.BottomEventsListSheetDialog
 import com.gorman.events.ui.components.BottomFiltersSheetDialog
 import com.gorman.events.ui.components.LoadingStub
 import com.gorman.events.ui.constants.categoriesList
+import com.gorman.events.ui.permissions.LocationPermissionsHandler
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.events.ui.states.MapEventsState
 import com.gorman.events.ui.viewmodels.MapViewModel
@@ -71,43 +72,71 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
-    val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        mapViewModel.syncEvents()
-        mapViewModel.getEventsList()
-    }
-    var shouldShowRationale by remember { mutableStateOf(false) }
+    val shouldShowRationale = remember { mutableStateOf(false) }
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
     )
-    val mapEventsState by mapViewModel.mapEventState.collectAsStateWithLifecycle()
-    when (val state = mapEventsState) {
-        is MapEventsState.Error -> ErrorDataScreen()
-        MapEventsState.Idle -> Box(Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background))
-        MapEventsState.Loading -> LoadingStub()
-        is MapEventsState.Success -> {
-            val selectedEvent by mapViewModel.selectedEventId.collectAsStateWithLifecycle()
-            val filters by mapViewModel.filterState.collectAsStateWithLifecycle()
-            val coordinatesList = state.eventsList.map { event ->
-                val (lat, lon) = event.coordinates.split(",").map { it.trim().toDouble() }
-                Pair(lat, lon)
+    LocationPermissionsHandler(
+        allPermissionsGranted = {
+            shouldShowRationale.value = false
+            val context = LocalContext.current
+            LaunchedEffect(Unit) {
+                mapViewModel.syncEvents()
+                mapViewModel.getEventsList()
             }
-            MapScreen(
-                context = context,
-                selectedMapEvent = selectedEvent,
-                filters = filters,
-                onCategoryChange = { mapViewModel.onCategoryChanged(it) },
-                onEventClick = { mapViewModel.selectEvent(it.localId) },
-                eventsList = state.eventsList,
-                coordinatesList = coordinatesList
+            val mapEventsState by mapViewModel.mapEventState.collectAsStateWithLifecycle()
+            when (val state = mapEventsState) {
+                is MapEventsState.Error -> ErrorDataScreen()
+                MapEventsState.Idle -> Box(Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background))
+                MapEventsState.Loading -> LoadingStub()
+                is MapEventsState.Success -> {
+                    val selectedEvent by mapViewModel.selectedEventId.collectAsStateWithLifecycle()
+                    val filters by mapViewModel.filterState.collectAsStateWithLifecycle()
+                    val coordinatesList = state.eventsList.map { event ->
+                        val (lat, lon) = event.coordinates.split(",").map { it.trim().toDouble() }
+                        Pair(lat, lon)
+                    }
+                    MapScreen(
+                        context = context,
+                        selectedMapEvent = selectedEvent,
+                        filters = filters,
+                        onCategoryChange = { mapViewModel.onCategoryChanged(it) },
+                        onEventClick = { mapViewModel.selectEvent(it.localId) },
+                        eventsList = state.eventsList,
+                        coordinatesList = coordinatesList
+                    )
+                }
+            }
+        },
+        shouldShowRationale = {
+            shouldShowRationale.value = true
+            PermissionRequestScreen(
+                shouldShowRationale = true,
+                requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
             )
+        },
+        requestPermissions = {
+            if (shouldShowRationale.value) {
+                PermissionRequestScreen(
+                    shouldShowRationale = true,
+                    requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+                )
+            } else {
+                PermissionRequestScreen(
+                    shouldShowRationale = false,
+                    requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+                )
+                LaunchedEffect(Unit) {
+                    permissionsState.launchMultiplePermissionRequest()
+                }
+            }
         }
-    }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
