@@ -24,7 +24,11 @@ abstract class FirebaseRepositoryModule {
     @Binds
     @Singleton
     abstract fun bindFirebaseRepository(impl: FirebaseRepositoryImpl): FirebaseRepository
+}
 
+@Module
+@InstallIn(SingletonComponent::class)
+object FirebaseMainModule {
     @Provides
     @Singleton
     fun provideFirebaseDatabase(): FirebaseDatabase {
