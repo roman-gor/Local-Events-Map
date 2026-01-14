@@ -18,7 +18,7 @@
             <option value="$PROJECT_DIR$/core/firebase" />
             <option value="$PROJECT_DIR$/core/ui" />
             <option value="$PROJECT_DIR$/feature" />
-            <option value="$PROJECT_DIR$/feature/events-map" />
+            <option value="$PROJECT_DIR$/feature/events" />
           </set>
         </option>
       </GradleProjectSettings>
