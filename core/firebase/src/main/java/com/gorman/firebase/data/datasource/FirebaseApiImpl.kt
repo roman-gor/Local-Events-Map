@@ -1,39 +1,44 @@
 package com.gorman.firebase.data.datasource
 
 import android.util.Log
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
-import com.gorman.firebase.data.models.EventFirebase
+import com.google.firebase.database.ValueEventListener
+import com.gorman.firebase.data.models.MapEventFirebase
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class FirebaseApiImpl @Inject constructor(
     private val database: DatabaseReference
 ): FirebaseApi {
+    private fun DatabaseReference.snapshotsFlow(): Flow<DataSnapshot> = callbackFlow {
+        val eventListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                trySend(snapshot)
+            }
 
-    private suspend fun <T> executeRequest(
-        operationName: String,
-        block: suspend () -> T
-    ): T? {
-        return try {
-            val result = block()
-            Log.d("FirebaseAPI", "$operationName успешно выполнено")
-            result
-        } catch (e: Exception) {
-            Log.e("FirebaseAPI", "Ошибка при выполнении $operationName: ${e.message}")
-            throw e
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+        }
+        addValueEventListener(eventListener)
+        awaitClose { removeEventListener(eventListener) }
+    }
+
+    override fun getAllEvents(): Flow<List<MapEventFirebase>> = database.snapshotsFlow().map { snapshot ->
+        snapshot.children.mapNotNull { child ->
+            child.getValue(MapEventFirebase::class.java)
         }
     }
 
-    override suspend fun getAllEvents(): List<EventFirebase> = executeRequest("Get All Events") {
-        val eventsSnapshot = database.get().await()
-        eventsSnapshot.children.mapNotNull {
-            it.getValue(EventFirebase::class.java)
-        }
-    } ?: emptyList()
-
-    override suspend fun getSingleEvent(id: String): EventFirebase =
-        executeRequest("Get Single Event") {
-            val eventSnapshot = database.child(id).get().await()
-            eventSnapshot.getValue(EventFirebase::class.java)
-        } ?: EventFirebase()
+    override suspend fun getSingleEvent(id: String): Result<MapEventFirebase> = runCatching {
+        database.child(id).get().await()
+    }.mapCatching { snapshot ->
+        snapshot.getValue(MapEventFirebase::class.java) ?: MapEventFirebase()
+    }
 }
