@@ -3,9 +3,9 @@ package com.gorman.events.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gorman.common.domain.usecases.GetAllEventsUseCase
-import com.gorman.common.domain.usecases.SyncEventsFromRemoteUseCase
-import com.gorman.domain_model.Event
+import com.gorman.common.domain.usecases.GetAllMapEventsUseCase
+import com.gorman.common.domain.usecases.SyncMapEventsFromRemoteUseCase
+import com.gorman.domain_model.MapEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,25 +14,25 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val syncEventsFromRemoteUseCase: SyncEventsFromRemoteUseCase,
-    private val getAllEventsUseCase: GetAllEventsUseCase
+    private val syncMapEventsFromRemoteUseCase: SyncMapEventsFromRemoteUseCase,
+    private val getAllMapEventsUseCase: GetAllMapEventsUseCase
 ): ViewModel() {
-    private val _eventsListState = MutableStateFlow<List<Event>>(emptyList())
+    private val _eventsListState = MutableStateFlow<List<MapEvent>>(emptyList())
     val eventsListState = _eventsListState.asStateFlow()
 
-    private val _selectedEventId = MutableStateFlow<Event?>(null)
-    val selectedEventId = _selectedEventId.asStateFlow()
+    private val _selectedMapEventId = MutableStateFlow<MapEvent?>(null)
+    val selectedEventId = _selectedMapEventId.asStateFlow()
 
     fun syncEvents() {
         viewModelScope.launch {
             Log.d("ViewModel", "Вызов syncEvents()")
-            syncEventsFromRemoteUseCase()
+            syncMapEventsFromRemoteUseCase()
         }
     }
 
     fun getEventsList() {
         viewModelScope.launch {
-            getAllEventsUseCase().collect { events ->
+            getAllMapEventsUseCase().collect { events ->
                 _eventsListState.value = events
             }
         }
@@ -40,7 +40,7 @@ class MapViewModel @Inject constructor(
 
     fun selectEvent(id: Int) {
         viewModelScope.launch {
-            _selectedEventId.value = _eventsListState.value.first { it.localId == id }
+            _selectedMapEventId.value = _eventsListState.value.first { it.localId == id }
         }
     }
 }

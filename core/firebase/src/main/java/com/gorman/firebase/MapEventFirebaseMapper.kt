@@ -1,10 +1,10 @@
 package com.gorman.firebase
 
-import com.gorman.domain_model.Event
-import com.gorman.firebase.data.models.EventFirebase
+import com.gorman.domain_model.MapEvent
+import com.gorman.firebase.data.models.MapEventFirebase
 
-fun EventFirebase.toDomain(): Event =
-    Event(
+fun MapEventFirebase.toDomain(): MapEvent =
+    MapEvent(
         remoteId = id,
         name = name,
         description = description,

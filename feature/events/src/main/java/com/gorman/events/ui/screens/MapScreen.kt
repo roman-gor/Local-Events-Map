@@ -55,7 +55,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gorman.domain_model.Event
+import com.gorman.domain_model.MapEvent
 import com.gorman.events.R
 import com.gorman.events.ui.viewmodels.MapViewModel
 import com.gorman.ui.theme.LocalEventsMapTheme
@@ -100,7 +100,7 @@ fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
 
     MapScreen(
         context = context,
-        selectedEvent = selectedEvent,
+        selectedMapEvent = selectedEvent,
         onEventClick = { mapViewModel.selectEvent(it.localId) },
         eventsList = eventsList,
         coordinatesList = coordinatesList
@@ -111,9 +111,9 @@ fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
 @Composable
 fun MapScreen(
     context: Context,
-    selectedEvent: Event?,
-    onEventClick: (Event) -> Unit,
-    eventsList: List<Event>,
+    selectedMapEvent: MapEvent?,
+    onEventClick: (MapEvent) -> Unit,
+    eventsList: List<MapEvent>,
     coordinatesList: List<Pair<Double, Double>>
 ) {
     var expandedMenu by remember { mutableStateOf(false) }
@@ -131,7 +131,7 @@ fun MapScreen(
     ) {
         YandexMapView(
             context = context,
-            selectedEvent = selectedEvent,
+            selectedMapEvent = selectedMapEvent,
             onMarkerTap = {},
             eventsList = eventsList,
             coordinates = coordinatesList
@@ -177,8 +177,8 @@ fun MapScreen(
 @Composable
 fun BottomSheetDialog(
     onDismiss: () -> Unit,
-    onEventClick: (Event) -> Unit,
-    eventsList: List<Event>,
+    onEventClick: (MapEvent) -> Unit,
+    eventsList: List<MapEvent>,
     sheetState: SheetState
 ) {
     val configuration = LocalConfiguration.current
@@ -210,8 +210,8 @@ fun BottomSheetDialog(
 
 @Composable
 fun EventItem(
-    event: Event,
-    onEventClick: (Event) -> Unit) {
+    mapEvent: MapEvent,
+    onEventClick: (MapEvent) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -219,11 +219,11 @@ fun EventItem(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        event.name?.let {
+        mapEvent.name?.let {
             Text(
                 text = it,
                 fontSize = 14.sp,
-                modifier = Modifier.clickable(onClick = { onEventClick(event) })
+                modifier = Modifier.clickable(onClick = { onEventClick(mapEvent) })
             )
         }
     }
@@ -233,8 +233,8 @@ fun EventItem(
 fun YandexMapView(
     context: Context,
     onMarkerTap: () -> Unit,
-    selectedEvent: Event?,
-    eventsList: List<Event>,
+    selectedMapEvent: MapEvent?,
+    eventsList: List<MapEvent>,
     coordinates: List<Pair<Double, Double>>
 ){
     val mapView = remember { MapView(context) }
@@ -249,8 +249,8 @@ fun YandexMapView(
     }
     val tapListener = remember {
         MapObjectTapListener { mapObject, _ ->
-            val event = mapObject.userData as? Event
-            if (event != null) {
+            val mapEvent = mapObject.userData as? MapEvent
+            if (mapEvent != null) {
                 onMarkerTap()
             }
             true
@@ -289,7 +289,7 @@ fun YandexMapView(
             val mapObjects = mapView.mapWindow.map.mapObjects
             mapObjects.clear()
             eventsList.forEachIndexed { index, event ->
-                val isSelected = event == selectedEvent
+                val isSelected = event == selectedMapEvent
                 mapView.mapWindow.map.mapObjects.addPlacemark().apply{
                     geometry = Point(coordinates[index].first, coordinates[index].second)
                     setIcon(if (isSelected) selectedIcon else normalIcon, iconStyle)
