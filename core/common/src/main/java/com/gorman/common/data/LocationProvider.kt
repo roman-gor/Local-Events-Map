@@ -3,6 +3,7 @@ package com.gorman.common.data
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.yandex.mapkit.geometry.Point
@@ -30,8 +31,11 @@ class LocationProvider @Inject constructor(
             ).await()
 
             currentLoc?.let { Point(it.latitude, it.longitude) }
-        } catch (e: Exception) {
-            Log.e("LocationProvider", "Location receive error ${e.message}")
+        } catch (e: ApiException) {
+            Log.e("LocationProvider", "GMS API error: ${e.statusCode} - ${e.message}")
+            null
+        } catch (e: SecurityException) {
+            Log.e("LocationProvider", "Permission denied: ${e.message}")
             null
         }
     }

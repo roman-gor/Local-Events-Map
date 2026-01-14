@@ -39,7 +39,7 @@ class MapViewModel @Inject constructor(
     private val syncMapEventsFromRemoteUseCase: SyncMapEventsFromRemoteUseCase,
     private val getAllMapEventsUseCase: GetAllMapEventsUseCase,
     private val locationProvider: LocationProvider
-): ViewModel() {
+) : ViewModel() {
     private val _mapEventsState = MutableStateFlow<MapEventsState>(MapEventsState.Idle)
     val mapEventState = _mapEventsState.asStateFlow()
 
@@ -52,7 +52,7 @@ class MapViewModel @Inject constructor(
     private val _cityCenterData = MutableStateFlow(CityData())
     val cityCenterData = _cityCenterData.asStateFlow()
 
-    private val _cityChanged = MutableStateFlow(true)
+    private val _cityChanged = MutableStateFlow(false)
     val cityChanged = _cityChanged.asStateFlow()
 
     private var searchManager: SearchManager? = null
@@ -69,9 +69,8 @@ class MapViewModel @Inject constructor(
             val location = locationProvider.getLastKnownLocation()
             if (location != null) {
                 reverseGeocodeAndSetCity(location)
-                Log.d("Location", "Find location: ${location.toString()}")
-            }
-            else {
+                Log.d("Location", "Find location: $location")
+            } else {
                 searchForCity(CityCoordinatesConstants.MINSK)
             }
         }
@@ -105,7 +104,7 @@ class MapViewModel @Inject constructor(
                     if (city != null) {
                         val currentCityName = _cityCenterData.value.city?.cityName
 
-                        if (currentCityName != city) {
+                        if (!currentCityName.equals(city, ignoreCase = true)) {
                             val cityEnum = CityCoordinatesConstants.fromCityName(city)
 
                             val newCityData = if (cityEnum != null) {
@@ -142,7 +141,8 @@ class MapViewModel @Inject constructor(
         }
         val boundingBox = BoundingBox(
             Point(49.0, 22.0),
-            Point(57.0, 33.0))
+            Point(57.0, 33.0)
+        )
         searchSession = searchManager?.submit(
             city.cityName,
             Geometry.fromBoundingBox(boundingBox),
@@ -193,11 +193,11 @@ class MapViewModel @Inject constructor(
                             }
                         }
                     }
-                    .collectLatest {
-                        it?.let {
-                            _mapEventsState.value = MapEventsState.Success(it)
+                        .collectLatest {
+                            it?.let {
+                                _mapEventsState.value = MapEventsState.Success(it)
+                            }
                         }
-                    }
                 }
                 .onFailure { exception ->
                     _mapEventsState.value = MapEventsState.Error(exception)

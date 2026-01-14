@@ -59,6 +59,8 @@ import com.gorman.events.ui.components.BottomFiltersSheetDialog
 import com.gorman.events.ui.components.CityNameDefinition
 import com.gorman.events.ui.components.LoadingStub
 import com.gorman.events.ui.states.CityData
+import com.gorman.events.ui.states.FilterActions
+import com.gorman.events.ui.states.FilterOptions
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.events.ui.states.MapEventsState
 import com.gorman.events.ui.viewmodels.MapViewModel
@@ -66,6 +68,7 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.map.CameraListener
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.CameraUpdateReason
 import com.yandex.mapkit.map.IconStyle
@@ -222,9 +225,10 @@ fun MapScreen(
                 color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = LocalEventsMapTheme.dimens.paddingExtraLarge))
+                    .padding(top = LocalEventsMapTheme.dimens.paddingExtraLarge)
+            )
         }
-        if (mapEventsListExpanded)
+        if (mapEventsListExpanded) {
             BottomEventsListSheetDialog(
                 onDismiss = { mapEventsListExpanded = !mapEventsListExpanded },
                 selectedMapEvent = selectedMapEvent,
@@ -238,19 +242,25 @@ fun MapScreen(
                 eventsList = eventsList,
                 sheetState = mapEventsListSheetState
             )
-        if (filtersExpanded)
+        }
+        if (filtersExpanded) {
             BottomFiltersSheetDialog(
                 onDismiss = { filtersExpanded = !filtersExpanded },
                 sheetState = filtersSheetState,
-                categoryItems = categoriesList,
                 filters = filters,
-                costItems = CostConstants.costList.map { it.value },
-                onCategoryChange = onCategoryChange,
-                onDateRangeChange = { },
-                onDistanceChange = {},
-                onCostChange = {},
-                onNameChange = { }
+                options = FilterOptions(
+                    categoryItems = categoriesList,
+                    costItems = CostConstants.costList.map { it.value }
+                ),
+                actions = FilterActions(
+                    onCategoryChange = onCategoryChange,
+                    onDateRangeChange = { },
+                    onDistanceChange = { },
+                    onCostChange = { },
+                    onNameChange = { }
+                )
             )
+        }
         Button(
             onClick = { mapEventsListExpanded = !mapEventsListExpanded },
             shape = CircleShape,
@@ -310,8 +320,11 @@ fun EventItem(
             .fillMaxWidth()
             .background(
                 color =
-                    if (mapEvent.localId == selectedMapEvent?.localId) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.background
+                if (mapEvent.localId == selectedMapEvent?.localId) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.background
+                }
             ),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
@@ -369,7 +382,7 @@ fun YandexMapView(
         }
     }
     DisposableEffect(mapView) {
-        val cameraListener = com.yandex.mapkit.map.CameraListener { _, _, reason, finished ->
+        val cameraListener = CameraListener { _, _, reason, finished ->
             if (finished && reason == CameraUpdateReason.GESTURES) {
                 onCameraIdle(mapView.mapWindow.map.cameraPosition.target)
             }

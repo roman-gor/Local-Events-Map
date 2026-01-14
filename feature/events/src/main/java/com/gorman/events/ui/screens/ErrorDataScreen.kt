@@ -1,6 +1,5 @@
 package com.gorman.events.ui.screens
 
-import android.graphics.fonts.Font
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
