@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">LocalEventsMap</string>
+    <string name="errorDataLoading">Ошибка при загрузке данных</string>
+    <string name="category">Категория</string>
+    <string name="music">Музыка</string>
+    <string name="sport">Спорт</string>
+    <string name="education">Образование</string>
+    <string name="art">Искусство</string>
+    <string name="food">Еда</string>
+    <string name="cinema">Кино</string>
+    <string name="forFree">Бесплатно</string>
+    <string name="paid">Платно</string>
 </resources>
