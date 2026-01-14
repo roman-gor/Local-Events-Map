@@ -1,10 +1,10 @@
 package com.gorman.database
 
-import com.gorman.database.data.model.EventEntity
-import com.gorman.domain_model.Event
+import com.gorman.database.data.model.MapEventEntity
+import com.gorman.domain_model.MapEvent
 
-fun EventEntity.toDomain(): Event =
-    Event(
+fun MapEventEntity.toDomain(): MapEvent =
+    MapEvent(
         localId = id,
         remoteId = remoteId,
         name = name,
@@ -18,8 +18,8 @@ fun EventEntity.toDomain(): Event =
         isFavourite = isFavourite
     )
 
-fun Event.toEntity(): EventEntity =
-    EventEntity(
+fun MapEvent.toEntity(): MapEventEntity =
+    MapEventEntity(
         remoteId = remoteId,
         name = name,
         description = description,

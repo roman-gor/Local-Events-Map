@@ -1,9 +1,10 @@
 package com.gorman.firebase.domain.repository
 
-import com.gorman.domain_model.Event
+import com.gorman.domain_model.MapEvent
+import kotlinx.coroutines.flow.Flow
 
 
 interface FirebaseRepository {
-    suspend fun getAllEvents(): List<Event>
-    suspend fun getSingleEvent(id: String): Event
+    fun getAllEvents(): Flow<List<MapEvent>>
+    suspend fun getSingleEvent(id: String): MapEvent
 }
