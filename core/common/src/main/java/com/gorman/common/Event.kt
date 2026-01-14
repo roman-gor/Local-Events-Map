@@ -1,6 +1,6 @@
 package com.gorman.common
 
-data class Event (
+data class Event(
     val localId: Int = 0,
     val remoteId: String = "",
     val name: String? = null,

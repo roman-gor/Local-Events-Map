@@ -15,4 +15,3 @@ interface RepositoryModule {
     @Singleton
     fun bindMapEventRepository(impl: MapEventsRepositoryImpl): MapEventsRepository
 }
-

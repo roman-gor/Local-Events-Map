@@ -4,14 +4,14 @@ import com.gorman.database.data.datasource.MapEventsDao
 import com.gorman.database.domain.repository.MapEventsRepository
 import com.gorman.database.toDomain
 import com.gorman.database.toEntity
-import com.gorman.domain_model.MapEvent
+import com.gorman.domainmodel.MapEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class MapEventsRepositoryImpl @Inject constructor(
     private val mapEventsDao: MapEventsDao
-): MapEventsRepository {
+) : MapEventsRepository {
     override fun getAllEvents(): Flow<List<MapEvent>> {
         return mapEventsDao.getAllEvents().map { list ->
             list.map { it.toDomain() }
@@ -29,7 +29,7 @@ class MapEventsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun insertEvent(mapEvents: List<MapEvent>) {
-        mapEventsDao.insertEvent(mapEvents.map { it.toEntity() } )
+        mapEventsDao.insertEvent(mapEvents.map { it.toEntity() })
     }
 
     override suspend fun clearTable() {

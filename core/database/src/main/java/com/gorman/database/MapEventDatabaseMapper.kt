@@ -1,7 +1,7 @@
 package com.gorman.database
 
 import com.gorman.database.data.model.MapEventEntity
-import com.gorman.domain_model.MapEvent
+import com.gorman.domainmodel.MapEvent
 
 fun MapEventEntity.toDomain(): MapEvent =
     MapEvent(

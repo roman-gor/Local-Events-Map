@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.gorman.domain_model"
+    namespace = "com.gorman.domainmodel"
     compileSdk {
         version = release(36)
     }

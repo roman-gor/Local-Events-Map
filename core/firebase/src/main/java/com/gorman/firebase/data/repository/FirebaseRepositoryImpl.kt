@@ -1,7 +1,7 @@
 package com.gorman.firebase.data.repository
 
 import android.util.Log
-import com.gorman.domain_model.MapEvent
+import com.gorman.domainmodel.MapEvent
 import com.gorman.firebase.data.datasource.FirebaseApi
 import com.gorman.firebase.domain.repository.FirebaseRepository
 import com.gorman.firebase.toDomain
@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 class FirebaseRepositoryImpl @Inject constructor(
     private val firebaseApi: FirebaseApi
-): FirebaseRepository {
+) : FirebaseRepository {
     override fun getAllEvents(): Flow<List<MapEvent>> {
         Log.d("FirebaseRepository", "Запуск метода")
         return firebaseApi.getAllEvents().map { events ->
