@@ -14,16 +14,5 @@ fun CityNameDefinition(city: CityCoordinatesConstants): String {
         CityCoordinatesConstants.GOMEL -> stringResource(R.string.gomel)
         CityCoordinatesConstants.MOGILEV -> stringResource(R.string.mogilev)
         CityCoordinatesConstants.VITEBSK -> stringResource(R.string.vitebsk)
-    }}
-
-@Composable
-fun CityNameDefinition(cityName: String): String {
-    return when (cityName) {
-        "minsk" -> stringResource(R.string.minsk)
-        "brest" -> stringResource(R.string.brest)
-        "grodno" -> stringResource(R.string.grodno)
-        "gomel" -> stringResource(R.string.gomel)
-        "mogilev" -> stringResource(R.string.mogilev)
-        "vitebsk" -> stringResource(R.string.vitebsk)
-        else -> stringResource(R.string.minsk)
-    }}
+    }
+}

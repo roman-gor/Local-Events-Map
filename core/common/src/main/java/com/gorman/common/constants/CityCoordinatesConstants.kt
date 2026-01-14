@@ -10,7 +10,12 @@ enum class CityCoordinatesConstants(val cityName: String) {
 
     companion object {
         val cityCoordinatesList = listOf(
-            MINSK, BREST, GRODNO, GOMEL, VITEBSK, MOGILEV
+            MINSK,
+            BREST,
+            GRODNO,
+            GOMEL,
+            VITEBSK,
+            MOGILEV
         )
         fun fromCityName(name: String?): CityCoordinatesConstants? {
             return entries.find { it.cityName.equals(name, ignoreCase = true) }
