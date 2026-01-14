@@ -2,8 +2,8 @@ package com.gorman.database.di
 
 import android.content.Context
 import androidx.room.Room
-import com.gorman.database.data.datasource.MapEventsDatabase
 import com.gorman.database.data.datasource.MapEventsDao
+import com.gorman.database.data.datasource.MapEventsDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,9 +17,11 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideEventDatabase(@ApplicationContext context: Context): MapEventsDatabase =
-        Room.databaseBuilder(context,
+        Room.databaseBuilder(
+            context,
             MapEventsDatabase::class.java,
-            "events_db")
+            "events_db"
+        )
             .fallbackToDestructiveMigration(true)
             .build()
 

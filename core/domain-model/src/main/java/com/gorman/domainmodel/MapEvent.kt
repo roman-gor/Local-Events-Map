@@ -1,4 +1,4 @@
-package com.gorman.domain_model
+package com.gorman.domainmodel
 
 data class MapEvent(
     val localId: Int = 0,
