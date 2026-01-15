@@ -10,4 +10,17 @@
     <string name="cinema">Кино</string>
     <string name="forFree">Бесплатно</string>
     <string name="paid">Платно</string>
+    <string name="declinedPermissions">Вы запретили доступ к геолокации. Введите город вручную, чтобы увидеть события.</string>
+    <string name="requestPermissions">Для отображения событий на карте и вашего местоположения необходим доступ к геолокации. Пожалуйста, предоставьте разрешение.</string>
+    <string name="defaultPermissionsText">Для работы приложения требуется доступ к вашему местоположению.</string>
+    <string name="labelCityText">Например, Минск</string>
+    <string name="findCityEventsText">Найти события</string>
+    <string name="providePermissions">Предоставить разрешение</string>
+    <string name="selectedCategoriesAmount">Выбрано</string>
+    <string name="minsk">Минск</string>
+    <string name="grodno">Гродно</string>
+    <string name="vitebsk">Витебск</string>
+    <string name="gomel">Гомель</string>
+    <string name="brest">Брест</string>
+    <string name="mogilev">Могилев</string>
 </resources>

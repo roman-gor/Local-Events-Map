@@ -10,5 +10,6 @@ class LocalEventsMapApp: Application() {
         super.onCreate()
         MapKitFactory.setApiKey(BuildConfig.YANDEX_KEY)
         MapKitFactory.initialize(this)
+        MapKitFactory.getInstance().onStart()
     }
 }
