@@ -1,5 +1,6 @@
 package com.gorman.events.ui.components
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -24,11 +26,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gorman.domain_model.MapEvent
 import com.gorman.events.R
-import com.gorman.events.ui.constants.CategoryConstants
+import com.gorman.common.constants.CategoryConstants
 import com.gorman.events.ui.screens.EventItem
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.ui.theme.LocalEventsMapTheme
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomEventsListSheetDialog(
@@ -43,7 +46,7 @@ fun BottomEventsListSheetDialog(
     ModalBottomSheet(
         onDismissRequest = {onDismiss()},
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.onSecondary,
+        containerColor = MaterialTheme.colorScheme.background,
         shape = RoundedCornerShape(topStart = LocalEventsMapTheme.dimens.cornerRadius,
             topEnd = LocalEventsMapTheme.dimens.cornerRadius),
         modifier = Modifier
@@ -66,6 +69,7 @@ fun BottomEventsListSheetDialog(
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomFiltersSheetDialog(
@@ -84,7 +88,7 @@ fun BottomFiltersSheetDialog(
     var categoryExpanded by remember { mutableStateOf(false) }
     val maxHeight = configuration.screenHeightDp.dp * 0.7f
     var dateRange by remember { mutableStateOf<Pair<Long, Long>>(Pair(0,0)) }
-    var distance by remember { mutableStateOf(0) }
+    var distance by remember { mutableIntStateOf(0) }
     var cost by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
 

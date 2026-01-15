@@ -7,19 +7,32 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import com.gorman.events.R
+import com.gorman.events.ui.components.CitySelectDropdownMenu
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun PermissionRequestScreen(
+    showManualInput: Boolean,
+    onCitySubmit: (String) -> Unit,
     shouldShowRationale: Boolean,
     requestPermissions: () -> Unit
 ) {
+    var city by rememberSaveable { mutableStateOf("") }
+    val cityDropdownMenuExpanded = rememberSaveable { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -31,19 +44,49 @@ fun PermissionRequestScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(LocalEventsMapTheme.dimens.paddingLarge)
         ) {
-            val text = if (shouldShowRationale) {
-                "Для отображения событий на карте и вашего местоположения необходим доступ к геолокации. Пожалуйста, предоставьте разрешение."
-            } else {
-                "Для работы приложения требуется доступ к вашему местоположению."
+            val text = when {
+                showManualInput -> stringResource(R.string.declinedPermissions)
+                shouldShowRationale -> stringResource(R.string.requestPermissions)
+                else -> stringResource(R.string.defaultPermissionsText)
             }
             Text(
                 text = text,
+                fontSize = 20.sp,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onSecondary
             )
-            Button(onClick = requestPermissions) {
-                Text("Предоставить разрешение")
+
+            if (showManualInput) {
+                CitySelectDropdownMenu(
+                    expanded = cityDropdownMenuExpanded.value,
+                    onExpandedChange = { cityDropdownMenuExpanded.value = !cityDropdownMenuExpanded.value },
+                    onCityCheck = { city = it }
+                )
+                Button(
+                    onClick = { onCitySubmit(city) },
+                    enabled = city.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onSecondary,
+                        disabledContainerColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.findCityEventsText),
+                        color = MaterialTheme.colorScheme.background,
+                        fontSize = 14.sp)
+                }
+            } else {
+                Button(
+                    onClick = requestPermissions,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.onSecondary
+                    )) {
+                    Text(
+                        text = stringResource(R.string.providePermissions),
+                        color = MaterialTheme.colorScheme.background,
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
     }
