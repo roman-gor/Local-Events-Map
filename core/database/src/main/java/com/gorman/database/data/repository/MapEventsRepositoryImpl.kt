@@ -28,7 +28,7 @@ class MapEventsRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun insertEvent(mapEvents: List<MapEvent>) {
+    override suspend fun insertEvents(mapEvents: List<MapEvent>) {
         mapEventsDao.insertEvent(mapEvents.map { it.toEntity() })
     }
 
