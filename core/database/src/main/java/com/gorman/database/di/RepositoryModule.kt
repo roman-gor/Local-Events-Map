@@ -13,6 +13,5 @@ import javax.inject.Singleton
 interface RepositoryModule {
     @Binds
     @Singleton
-    fun bindEventDbRepository(impl: MapEventsRepositoryImpl): MapEventsRepository
+    fun bindMapEventRepository(impl: MapEventsRepositoryImpl): MapEventsRepository
 }
-

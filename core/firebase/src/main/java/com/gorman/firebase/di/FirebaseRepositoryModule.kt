@@ -36,7 +36,6 @@ object FirebaseMainModule {
     }
 
     @Provides
-    @Singleton
     fun provideDatabaseReference(database: FirebaseDatabase): DatabaseReference {
         return database.getReference(FirebaseConstants.EVENTS_PATH.value)
     }

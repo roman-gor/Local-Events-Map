@@ -1,6 +1,5 @@
 package com.gorman.firebase.data.datasource
 
-import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -15,7 +14,7 @@ import javax.inject.Inject
 
 class FirebaseApiImpl @Inject constructor(
     private val database: DatabaseReference
-): FirebaseApi {
+) : FirebaseApi {
     private fun DatabaseReference.snapshotsFlow(): Flow<DataSnapshot> = callbackFlow {
         val eventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {

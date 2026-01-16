@@ -1,6 +1,6 @@
-package com.gorman.common
+package com.gorman.domainmodel
 
-data class Event(
+data class MapEvent(
     val localId: Int = 0,
     val remoteId: String = "",
     val name: String? = null,
