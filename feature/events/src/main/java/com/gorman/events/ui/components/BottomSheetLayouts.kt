@@ -35,7 +35,7 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomEventsListSheetDialog(
+fun MapEventsBottomSheet(
     onDismiss: () -> Unit,
     selectedMapEvent: MapEvent?,
     onEventClick: (MapEvent) -> Unit,
@@ -75,7 +75,7 @@ fun BottomEventsListSheetDialog(
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomFiltersSheetDialog(
+fun FiltersBottomSheet(
     onDismiss: () -> Unit,
     sheetState: SheetState,
     filters: FiltersState,

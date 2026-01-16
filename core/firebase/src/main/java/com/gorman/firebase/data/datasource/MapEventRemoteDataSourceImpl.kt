@@ -12,9 +12,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class FirebaseApiImpl @Inject constructor(
+class MapEventRemoteDataSourceImpl @Inject constructor(
     private val database: DatabaseReference
-) : FirebaseApi {
+) : MapEventRemoteDataSource {
     private fun DatabaseReference.snapshotsFlow(): Flow<DataSnapshot> = callbackFlow {
         val eventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {

@@ -48,8 +48,8 @@ import com.gorman.common.constants.CategoryConstants.Companion.categoriesList
 import com.gorman.common.constants.CostConstants
 import com.gorman.domainmodel.MapEvent
 import com.gorman.events.R
-import com.gorman.events.ui.components.BottomEventsListSheetDialog
-import com.gorman.events.ui.components.BottomFiltersSheetDialog
+import com.gorman.events.ui.components.MapEventsBottomSheet
+import com.gorman.events.ui.components.FiltersBottomSheet
 import com.gorman.events.ui.components.CityNameDefinition
 import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.LoadingStub
@@ -217,7 +217,7 @@ fun MapScreen(
             )
         }
         if (mapEventsListExpanded) {
-            BottomEventsListSheetDialog(
+            MapEventsBottomSheet(
                 onDismiss = { mapEventsListExpanded = !mapEventsListExpanded },
                 selectedMapEvent = mapUiState.selectedMapEvent,
                 onEventClick = {
@@ -232,7 +232,7 @@ fun MapScreen(
             )
         }
         if (filtersExpanded) {
-            BottomFiltersSheetDialog(
+            FiltersBottomSheet(
                 onDismiss = { filtersExpanded = !filtersExpanded },
                 sheetState = filtersSheetState,
                 filters = mapUiState.filters,
