@@ -12,10 +12,12 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoadingStub() {
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
         CircularProgressIndicator(
             color = MaterialTheme.colorScheme.onSurface,
             strokeWidth = 4.dp

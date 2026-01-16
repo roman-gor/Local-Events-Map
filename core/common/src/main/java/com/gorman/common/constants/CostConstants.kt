@@ -5,7 +5,8 @@ enum class CostConstants(val value: String) {
     PAID("paid");
     companion object {
         val costList = listOf(
-            FREE, PAID
+            FREE,
+            PAID
         )
     }
 }

@@ -24,17 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.gorman.domain_model.MapEvent
+import com.gorman.domainmodel.MapEvent
 import com.gorman.events.R
-import com.gorman.common.constants.CategoryConstants
 import com.gorman.events.ui.screens.EventItem
+import com.gorman.events.ui.states.FilterActions
+import com.gorman.events.ui.states.FilterOptions
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomEventsListSheetDialog(
+fun MapEventsBottomSheet(
     onDismiss: () -> Unit,
     selectedMapEvent: MapEvent?,
     onEventClick: (MapEvent) -> Unit,
@@ -44,11 +45,13 @@ fun BottomEventsListSheetDialog(
     val configuration = LocalConfiguration.current
     val maxHeight = configuration.screenHeightDp.dp * 0.7f
     ModalBottomSheet(
-        onDismissRequest = {onDismiss()},
+        onDismissRequest = { onDismiss() },
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.background,
-        shape = RoundedCornerShape(topStart = LocalEventsMapTheme.dimens.cornerRadius,
-            topEnd = LocalEventsMapTheme.dimens.cornerRadius),
+        shape = RoundedCornerShape(
+            topStart = LocalEventsMapTheme.dimens.cornerRadius,
+            topEnd = LocalEventsMapTheme.dimens.cornerRadius
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(maxHeight)
@@ -72,33 +75,30 @@ fun BottomEventsListSheetDialog(
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomFiltersSheetDialog(
+fun FiltersBottomSheet(
     onDismiss: () -> Unit,
     sheetState: SheetState,
-    categoryItems: List<CategoryConstants>,
     filters: FiltersState,
-    costItems: List<String>,
-    onCategoryChange: (String) -> Unit,
-    onDateRangeChange: () -> Unit,
-    onDistanceChange: () -> Unit,
-    onCostChange: () -> Unit,
-    onNameChange: () -> Unit
+    options: FilterOptions,
+    actions: FilterActions
 ) {
     val configuration = LocalConfiguration.current
     var categoryExpanded by remember { mutableStateOf(false) }
     val maxHeight = configuration.screenHeightDp.dp * 0.7f
-    var dateRange by remember { mutableStateOf<Pair<Long, Long>>(Pair(0,0)) }
+    var dateRange by remember { mutableStateOf<Pair<Long, Long>>(Pair(0, 0)) }
     var distance by remember { mutableIntStateOf(0) }
     var cost by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
 
-    Log.d("CategoriesList", categoryItems.toString())
+    Log.d("CategoriesList", options.categoryItems.toString())
     ModalBottomSheet(
-        onDismissRequest = {onDismiss()},
+        onDismissRequest = { onDismiss() },
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.background,
-        shape = RoundedCornerShape(topStart = LocalEventsMapTheme.dimens.cornerRadius,
-            topEnd = LocalEventsMapTheme.dimens.cornerRadius),
+        shape = RoundedCornerShape(
+            topStart = LocalEventsMapTheme.dimens.cornerRadius,
+            topEnd = LocalEventsMapTheme.dimens.cornerRadius
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(maxHeight),
@@ -108,13 +108,15 @@ fun BottomFiltersSheetDialog(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomDropdownMenu(
+            CategoriesDropdownMenu(
                 expanded = categoryExpanded,
                 header = stringResource(R.string.category),
                 onExpandedChange = { categoryExpanded = !categoryExpanded },
-                onItemClick = { onCategoryChange(it) },
-                items = categoryItems,
-                selectedItems = filters.categories
+                onItemClick = { actions.onCategoryChange(it) },
+                categoriesOptions = CategoriesOptions(
+                    items = options.categoryItems,
+                    selectedItems = filters.categories
+                )
             )
         }
     }
