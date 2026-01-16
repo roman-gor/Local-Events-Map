@@ -17,6 +17,7 @@ hiltNavigationCompose = "1.2.0"
 hiltAndroidGradlePlugin = "2.56.2"
 kotlinx-serialization = "1.7.3"
 kotlinCoroutines = "1.10.2"
+kotlinCoroutinesImmutable = "0.4.0"
 playServices = "21.3.0"
 runtime = "1.10.0"
 appcompat = "1.6.1"
@@ -24,6 +25,7 @@ material = "1.10.0"
 room = "2.7.2"
 yandex = "4.19.0-full"
 detekt-version = "1.23.8"
+datastoreCore = "1.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -63,7 +65,10 @@ accompanist-permissions = { module = "com.google.accompanist:accompanist-permiss
 detekt-formatting-plugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt-version" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinCoroutines" }
+kotlinx-coroutines-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinCoroutinesImmutable" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServices" }
+androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
+androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "datastoreCore" }
 
 [bundles]
 compose = [

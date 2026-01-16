@@ -3,14 +3,15 @@ package com.gorman.events.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.common.api.ApiException
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.LocationProvider
-import com.gorman.common.domain.usecases.GetAllMapEventsUseCase
-import com.gorman.common.domain.usecases.SyncMapEventsUseCase
-import com.gorman.domainmodel.MapEvent
+import com.gorman.data.repository.IMapEventsRepository
+import com.gorman.events.ui.mappers.toUiState
 import com.gorman.events.ui.states.CityData
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.events.ui.states.MapEventsState
+import com.gorman.events.ui.states.MapUiEvent
 import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.geometry.Point
@@ -37,8 +38,7 @@ import kotlin.collections.toMutableList
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val syncMapEventsUseCase: SyncMapEventsUseCase,
-    private val getAllMapEventsUseCase: GetAllMapEventsUseCase,
+    private val mapEventsRepository: IMapEventsRepository,
     private val locationProvider: LocationProvider
 ) : ViewModel() {
     private val _mapEventsState = MutableStateFlow<MapEventsState>(MapEventsState.Idle)
@@ -47,7 +47,7 @@ class MapViewModel @Inject constructor(
     private val _filterState = MutableStateFlow(FiltersState())
     val filterState = _filterState.asStateFlow()
 
-    private val _selectedMapEventId = MutableStateFlow<MapEvent?>(null)
+    private val _selectedMapEventId = MutableStateFlow<MapUiEvent?>(null)
     val selectedEventId = _selectedMapEventId.asStateFlow()
 
     private val _cityCenterData = MutableStateFlow(CityData())
@@ -170,44 +170,45 @@ class MapViewModel @Inject constructor(
     }
 
     fun syncEvents() {
+        _mapEventsState.value = MapEventsState.Loading
         viewModelScope.launch {
-            syncMapEventsUseCase()
+            try {
+                mapEventsRepository.syncMapEvents()
+                getEventsList()
+            } catch (e: ApiException) {
+                Log.e("ViewModel", "Error when sync events ${e.message}")
+            }
         }
     }
 
     fun getEventsList() {
         _mapEventsState.value = MapEventsState.Loading
         viewModelScope.launch {
-            getAllMapEventsUseCase()
-                .onSuccess { eventsFlow ->
-                    eventsFlow.combine(_filterState) { events, filters ->
-                        Pair(events, filters)
-                    }.combine(_cityCenterData) { (events, filters), cityData ->
-                        cityData.cityName?.let {
-                            val eventsInCity = if (it.isNotBlank()) {
-                                events.filter { event ->
-                                    event.city.equals(it, ignoreCase = true)
-                                }
-                            } else {
-                                events
+            mapEventsRepository.getAllLocalEvents()
+                .combine(_filterState) { events, filters ->
+                    Pair(events, filters)
+                }.combine(_cityCenterData) { (events, filters), cityData ->
+                    cityData.cityName?.let {
+                        val eventsInCity = if (it.isNotBlank()) {
+                            events.filter { event ->
+                                event.city.equals(it, ignoreCase = true)
                             }
-                            if (filters.categories.isEmpty()) {
-                                eventsInCity
-                            } else {
-                                eventsInCity.filter { event ->
-                                    event.category in filters.categories
-                                }
+                        } else {
+                            events
+                        }
+                        if (filters.categories.isEmpty()) {
+                            eventsInCity
+                        } else {
+                            eventsInCity.filter { event ->
+                                event.category in filters.categories
                             }
                         }
                     }
-                        .collectLatest {
-                            it?.let {
-                                _mapEventsState.value = MapEventsState.Success(it)
-                            }
-                        }
                 }
-                .onFailure { exception ->
-                    _mapEventsState.value = MapEventsState.Error(exception)
+                .collectLatest {
+                    it?.let {
+                        _mapEventsState.value = MapEventsState.Success(it.map { event -> event.toUiState() })
+                    }
                 }
         }
     }
@@ -226,7 +227,7 @@ class MapViewModel @Inject constructor(
     fun selectEvent(id: Int) {
         viewModelScope.launch {
             val state = _mapEventsState.value as MapEventsState.Success
-            _selectedMapEventId.value = state.eventsList.first { it.localId == id }
+            _selectedMapEventId.value = state.eventsList.first { it.id == id }
         }
     }
 }
