@@ -23,6 +23,8 @@ material = "1.10.0"
 room = "2.7.2"
 yandex = "4.19.0-full"
 detekt-version = "1.23.8"
+playServicesLocation = "21.3.0"
+kotlinCoroutines = "1.10.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -60,6 +62,9 @@ room-guava = { group = "androidx.room", name = "room-guava", version.ref = "room
 room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 yandex-android = { module = "com.yandex.android:maps.mobile", version.ref = "yandex" }
 detekt-formatting-plugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt-version" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinCoroutines" }
 
 [bundles]
 compose = [

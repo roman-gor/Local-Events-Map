@@ -35,7 +35,7 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 fun CitySelectDropdownMenu(
     expanded: Boolean,
     onExpandedChange: () -> Unit,
-    onCityCheck: (String) -> Unit
+    onCityCheck: (CityCoordinatesConstants) -> Unit
 ) {
     val selectedCity = rememberSaveable { mutableStateOf("") }
     Box(
@@ -85,14 +85,7 @@ fun CitySelectDropdownMenu(
                 containerColor = MaterialTheme.colorScheme.background
             ) {
                 CityCoordinatesConstants.cityCoordinatesList.forEach { city ->
-                    val cityName = when (city) {
-                        CityCoordinatesConstants.MINSK -> stringResource(R.string.minsk)
-                        CityCoordinatesConstants.BREST -> stringResource(R.string.brest)
-                        CityCoordinatesConstants.GRODNO -> stringResource(R.string.grodno)
-                        CityCoordinatesConstants.GOMEL -> stringResource(R.string.gomel)
-                        CityCoordinatesConstants.MOGILEV -> stringResource(R.string.mogilev)
-                        CityCoordinatesConstants.VITEBSK -> stringResource(R.string.vitebsk)
-                    }
+                val cityName = CityNameDefinition(city)
                     DropdownMenuItem(
                         text = {
                             Text(
@@ -106,7 +99,7 @@ fun CitySelectDropdownMenu(
                         onClick = {
                             selectedCity.value = cityName
                             onExpandedChange()
-                            onCityCheck(cityName)
+                            onCityCheck(city)
                         }
                     )
                 }

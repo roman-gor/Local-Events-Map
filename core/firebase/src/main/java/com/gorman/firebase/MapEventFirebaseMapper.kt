@@ -9,6 +9,7 @@ fun MapEventFirebase.toDomain(): MapEvent =
         name = name,
         description = description,
         address = address,
+        city = city,
         coordinates = coordinates,
         link = link,
         photo = photo,

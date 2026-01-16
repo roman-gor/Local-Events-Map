@@ -56,6 +56,7 @@ import com.gorman.domain_model.MapEvent
 import com.gorman.events.R
 import com.gorman.events.ui.components.BottomEventsListSheetDialog
 import com.gorman.events.ui.components.BottomFiltersSheetDialog
+import com.gorman.events.ui.components.CityNameDefinition
 import com.gorman.events.ui.components.LoadingStub
 import com.gorman.events.ui.states.CityData
 import com.gorman.events.ui.states.FiltersState
@@ -66,6 +67,7 @@ import com.yandex.mapkit.Animation
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
+import com.yandex.mapkit.map.CameraUpdateReason
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.mapview.MapView
@@ -82,14 +84,18 @@ fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
         )
     )
     val dataLoaded = rememberSaveable { mutableStateOf(false) }
-    val cityData by mapViewModel.cityCenterCoordinates.collectAsStateWithLifecycle()
+    val cityData by mapViewModel.cityCenterData.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        mapViewModel.syncEvents()
+    }
 
     when {
         permissionsState.allPermissionsGranted -> {
             if (!dataLoaded.value) {
                 LaunchedEffect(Unit) {
                     mapViewModel.syncEvents()
-                    mapViewModel.getEventsList()
+                    mapViewModel.fetchInitialLocation()
                     dataLoaded.value = true
                 }
             }
@@ -107,7 +113,7 @@ fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
             if (cityData.cityCoordinates == null) {
                 PermissionRequestScreen(
                     showManualInput = !permissionsState.shouldShowRationale && dataLoaded.value,
-                    onCitySubmit = { cityName -> mapViewModel.searchForCity(cityName) },
+                    onCitySubmit = { city -> mapViewModel.searchForCity(city) },
                     shouldShowRationale = false,
                     requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
                 )
@@ -147,20 +153,23 @@ fun MapContent(mapViewModel: MapViewModel) {
         is MapEventsState.Success -> {
             val selectedEvent by mapViewModel.selectedEventId.collectAsStateWithLifecycle()
             val filters by mapViewModel.filterState.collectAsStateWithLifecycle()
-            val cityData by mapViewModel.cityCenterCoordinates.collectAsStateWithLifecycle()
+            val cityData by mapViewModel.cityCenterData.collectAsStateWithLifecycle()
+            val cityChanged by mapViewModel.cityChanged.collectAsStateWithLifecycle(initialValue = true)
             val coordinatesList = state.eventsList.map { event ->
                 val (lat, lon) = event.coordinates.split(",").map { it.trim().toDouble() }
                 Pair(lat, lon)
             }
             MapScreen(
                 context = context,
+                onCameraIdle = { location -> location?.let { mapViewModel.onCameraIdle(it) } },
                 selectedMapEvent = selectedEvent,
                 filters = filters,
                 onCategoryChange = { mapViewModel.onCategoryChanged(it) },
                 onEventClick = { mapViewModel.selectEvent(it.localId) },
                 eventsList = state.eventsList,
                 coordinatesList = coordinatesList,
-                cityData = cityData
+                cityData = cityData,
+                cityChanged = cityChanged
             )
         }
     }
@@ -170,13 +179,15 @@ fun MapContent(mapViewModel: MapViewModel) {
 @Composable
 fun MapScreen(
     context: Context,
+    onCameraIdle: (Point?) -> Unit,
     selectedMapEvent: MapEvent?,
     filters: FiltersState,
     onCategoryChange: (String) -> Unit,
     onEventClick: (MapEvent) -> Unit,
     eventsList: List<MapEvent>,
     coordinatesList: List<Pair<Double, Double>>,
-    cityData: CityData
+    cityData: CityData,
+    cityChanged: Boolean
 ) {
     var mapEventsListExpanded by remember { mutableStateOf(false) }
     var filtersExpanded by remember { mutableStateOf(false) }
@@ -195,20 +206,24 @@ fun MapScreen(
     ) {
         YandexMapView(
             context = context,
+            onCameraIdle = onCameraIdle,
             selectedMapEvent = selectedMapEvent,
             onEventClick = onEventClick,
             eventsList = eventsList,
             coordinates = coordinatesList,
-            cityCenter = cityData.cityCoordinates
+            cityCenter = cityData.cityCoordinates,
+            cityChanged = cityChanged
         )
-        Text(
-            text = cityData.cityName,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSecondary,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = LocalEventsMapTheme.dimens.paddingExtraLarge))
+        cityData.city?.let {
+            Text(
+                text = CityNameDefinition(it),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSecondary,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = LocalEventsMapTheme.dimens.paddingExtraLarge))
+        }
         if (mapEventsListExpanded)
             BottomEventsListSheetDialog(
                 onDismiss = { mapEventsListExpanded = !mapEventsListExpanded },
@@ -316,6 +331,8 @@ fun EventItem(
 @Composable
 fun YandexMapView(
     context: Context,
+    cityChanged: Boolean,
+    onCameraIdle: (Point?) -> Unit,
     onEventClick: (MapEvent) -> Unit,
     selectedMapEvent: MapEvent?,
     eventsList: List<MapEvent>,
@@ -334,12 +351,32 @@ fun YandexMapView(
             )
         }
     }
+    LaunchedEffect(cityCenter, cityChanged) {
+        if (cityCenter != null && cityChanged) {
+            mapView.mapWindow.map.move(
+                CameraPosition(cityCenter, 11.0f, 0.0f, 0.0f),
+                Animation(Animation.Type.SMOOTH, 1f),
+                null
+            )
+        }
+    }
     DisposableEffect(Unit) {
         mapView.onStart()
 
         onDispose {
             mapView.onStop()
             MapKitFactory.getInstance().onStop()
+        }
+    }
+    DisposableEffect(mapView) {
+        val cameraListener = com.yandex.mapkit.map.CameraListener { _, _, reason, finished ->
+            if (finished && reason == CameraUpdateReason.GESTURES) {
+                onCameraIdle(mapView.mapWindow.map.cameraPosition.target)
+            }
+        }
+        mapView.mapWindow.map.addCameraListener(cameraListener)
+        onDispose {
+            mapView.mapWindow.map.removeCameraListener(cameraListener)
         }
     }
     val tapListener = remember {
@@ -359,14 +396,16 @@ fun YandexMapView(
     coordinates.forEach { coordinate ->
         points.add(Point(coordinate.first, coordinate.second))
     }
-    mapView.mapWindow.map.move(
-        CameraPosition(
-            cameraPosition,
-            10.5f,
-            0.0f,
-            0.0f
+    if (cityChanged) {
+        mapView.mapWindow.map.move(
+            CameraPosition(
+                cameraPosition,
+                10.5f,
+                0.0f,
+                0.0f
+            )
         )
-    )
+    }
     val iconStyle = IconStyle().apply {
         anchor = PointF(0.5f, 1.0f)
         zIndex = 10f
