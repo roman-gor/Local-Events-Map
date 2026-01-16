@@ -7,10 +7,11 @@ import com.google.android.gms.common.api.ApiException
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.LocationProvider
 import com.gorman.data.repository.IMapEventsRepository
-import com.gorman.domainmodel.MapEvent
+import com.gorman.events.ui.mappers.toUiState
 import com.gorman.events.ui.states.CityData
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.events.ui.states.MapEventsState
+import com.gorman.events.ui.states.MapUiEvent
 import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.geometry.Point
@@ -46,7 +47,7 @@ class MapViewModel @Inject constructor(
     private val _filterState = MutableStateFlow(FiltersState())
     val filterState = _filterState.asStateFlow()
 
-    private val _selectedMapEventId = MutableStateFlow<MapEvent?>(null)
+    private val _selectedMapEventId = MutableStateFlow<MapUiEvent?>(null)
     val selectedEventId = _selectedMapEventId.asStateFlow()
 
     private val _cityCenterData = MutableStateFlow(CityData())
@@ -206,7 +207,7 @@ class MapViewModel @Inject constructor(
                 }
                 .collectLatest {
                     it?.let {
-                        _mapEventsState.value = MapEventsState.Success(it)
+                        _mapEventsState.value = MapEventsState.Success(it.map { event -> event.toUiState() })
                     }
                 }
         }
@@ -226,7 +227,7 @@ class MapViewModel @Inject constructor(
     fun selectEvent(id: Int) {
         viewModelScope.launch {
             val state = _mapEventsState.value as MapEventsState.Success
-            _selectedMapEventId.value = state.eventsList.first { it.localId == id }
+            _selectedMapEventId.value = state.eventsList.first { it.id == id }
         }
     }
 }
