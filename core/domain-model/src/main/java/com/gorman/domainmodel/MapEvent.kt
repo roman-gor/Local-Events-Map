@@ -1,11 +1,7 @@
-package com.gorman.database.data.model
+package com.gorman.domainmodel
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity("events")
-data class MapEventEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+data class MapEvent(
+    val localId: Int = 0,
     val remoteId: String = "",
     val name: String? = null,
     val description: String? = null,

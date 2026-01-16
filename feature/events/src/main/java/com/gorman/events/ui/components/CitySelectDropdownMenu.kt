@@ -1,9 +1,7 @@
 package com.gorman.events.ui.components
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -35,7 +33,7 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 fun CitySelectDropdownMenu(
     expanded: Boolean,
     onExpandedChange: () -> Unit,
-    onCityCheck: (String) -> Unit
+    onCityCheck: (CityCoordinatesConstants) -> Unit
 ) {
     val selectedCity = rememberSaveable { mutableStateOf("") }
     Box(
@@ -49,30 +47,12 @@ fun CitySelectDropdownMenu(
                 .fillMaxWidth()
                 .padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
         ) {
-            OutlinedTextField(
-                value = selectedCity.value,
-                onValueChange = {},
-                placeholder = {
-                    Text(
-                        text = stringResource(R.string.labelCityText),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.surface)
-                },
-                readOnly = true,
+            CityTextField(
                 modifier = Modifier
                     .menuAnchor(MenuAnchorType.PrimaryEditable, true)
                     .fillMaxWidth(),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                    focusedBorderColor = MaterialTheme.colorScheme.onSecondary,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.onSecondary
-                ),
-                shape = RoundedCornerShape(12.dp)
+                selectedCity = selectedCity.value,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -85,14 +65,7 @@ fun CitySelectDropdownMenu(
                 containerColor = MaterialTheme.colorScheme.background
             ) {
                 CityCoordinatesConstants.cityCoordinatesList.forEach { city ->
-                    val cityName = when (city) {
-                        CityCoordinatesConstants.MINSK -> stringResource(R.string.minsk)
-                        CityCoordinatesConstants.BREST -> stringResource(R.string.brest)
-                        CityCoordinatesConstants.GRODNO -> stringResource(R.string.grodno)
-                        CityCoordinatesConstants.GOMEL -> stringResource(R.string.gomel)
-                        CityCoordinatesConstants.MOGILEV -> stringResource(R.string.mogilev)
-                        CityCoordinatesConstants.VITEBSK -> stringResource(R.string.vitebsk)
-                    }
+                    val cityName = CityNameDefinition(city)
                     DropdownMenuItem(
                         text = {
                             Text(
@@ -106,11 +79,41 @@ fun CitySelectDropdownMenu(
                         onClick = {
                             selectedCity.value = cityName
                             onExpandedChange()
-                            onCityCheck(cityName)
+                            onCityCheck(city)
                         }
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+fun CityTextField(
+    modifier: Modifier,
+    selectedCity: String,
+    trailingIcon: @Composable () -> Unit
+) {
+    OutlinedTextField(
+        value = selectedCity,
+        onValueChange = {},
+        placeholder = {
+            Text(
+                text = stringResource(R.string.labelCityText),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.surface
+            )
+        },
+        readOnly = true,
+        modifier = modifier,
+        trailingIcon = { trailingIcon() },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.onSecondary,
+            focusedBorderColor = MaterialTheme.colorScheme.onSecondary,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondary
+        ),
+        shape = RoundedCornerShape(12.dp)
+    )
 }

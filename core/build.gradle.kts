@@ -20,7 +20,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt")
             )
@@ -38,6 +38,8 @@ android {
 dependencies {
 
     api(libs.kotlinx.serialization.json)
+    api(libs.kotlinx.coroutines)
+    api(libs.kotlinx.coroutines.play.services)
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 

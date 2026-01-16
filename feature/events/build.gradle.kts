@@ -21,7 +21,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt")
             )
@@ -38,7 +38,6 @@ android {
 
 dependencies {
     implementation(project(":feature"))
-
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 

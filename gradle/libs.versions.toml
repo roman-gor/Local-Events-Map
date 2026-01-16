@@ -16,7 +16,8 @@ hiltAndroid = "2.56.2"
 hiltNavigationCompose = "1.2.0"
 hiltAndroidGradlePlugin = "2.56.2"
 kotlinx-serialization = "1.7.3"
-playServicesAuth = "21.2.0"
+kotlinCoroutines = "1.10.2"
+playServices = "21.3.0"
 runtime = "1.10.0"
 appcompat = "1.6.1"
 material = "1.10.0"
@@ -51,7 +52,6 @@ firebase-database = { module = "com.google.firebase:firebase-database" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 compose-lint-checks = { module = "com.slack.lint.compose:compose-lint-checks", version.ref = "composeLintChecks" }
-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
@@ -59,7 +59,11 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-guava = { group = "androidx.room", name = "room-guava", version.ref = "room" }
 room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 yandex-android = { module = "com.yandex.android:maps.mobile", version.ref = "yandex" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 detekt-formatting-plugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt-version" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinCoroutines" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServices" }
 
 [bundles]
 compose = [

@@ -1,5 +1,5 @@
 @Composable
-fun YandexMapView(){
+fun YandexMapView() {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
     DisposableEffect(Unit) {
@@ -12,14 +12,16 @@ fun YandexMapView(){
         }
     }
     val locationPoint = Point(53.908775, 27.586246)
-    mapView.mapWindow.map.move(CameraPosition(
-        locationPoint,
-        15.0f,
-        0.0f,
-        0.0f
-    ))
+    mapView.mapWindow.map.move(
+        CameraPosition(
+            locationPoint,
+            15.0f,
+            0.0f,
+            0.0f
+        )
+    )
     val imageProvider = ImageProvider.fromResource(context, R.drawable.ic_marker)
-    mapView.mapWindow.map.mapObjects.addPlacemark().apply{
+    mapView.mapWindow.map.mapObjects.addPlacemark().apply {
         geometry = locationPoint
         setIcon(imageProvider)
     }
@@ -33,15 +35,16 @@ fun YandexMapView(){
 }
 
 @Composable
-fun Images(onClick: () -> Unit){
+fun Images(onClick: () -> Unit) {
     LazyHorizontalGrid(
         rows = GridCells.Fixed(1),
         modifier = Modifier
             .height(220.dp)
-            .padding(top = 8.dp, start = 16.dp, end = 16.dp)) {
-        items(imagesList){
-            img->
-            ImageItem(image = img, onClick = {onClick})
+            .padding(top = 8.dp, start = 16.dp, end = 16.dp)
+    ) {
+        items(imagesList) {
+                img ->
+            ImageItem(image = img, onClick = { onClick })
         }
     }
 }
