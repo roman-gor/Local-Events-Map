@@ -1,12 +1,13 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.serialization)
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
 
 android {
-    namespace = "com.gorman.firebase"
+    namespace = "com.gorman.database"
     compileSdk {
         version = release(36)
     }
@@ -35,12 +36,11 @@ android {
 }
 
 dependencies {
-
     implementation(project(":core"))
     implementation(project(":core:domain-model"))
 
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
+    ksp(libs.room.compiler)
+    implementation(libs.bundles.room)
 
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
