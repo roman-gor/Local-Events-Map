@@ -3,6 +3,7 @@ package com.gorman.ui.theme
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -34,6 +35,9 @@ object LocalEventsMapTheme {
     val dimens: Dimens
         @Composable
         get() = LocalDimens.current
+    val shapes: Shapes
+        @Composable
+        get() = LocalShapes.current
 }
 
 @Composable
@@ -52,7 +56,8 @@ fun LocalEventsMapTheme(
     }
 
     CompositionLocalProvider(
-        LocalDimens provides dimens
+        LocalDimens provides dimens,
+        LocalShapes provides Shapes
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
