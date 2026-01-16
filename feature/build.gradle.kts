@@ -39,7 +39,7 @@ dependencies {
 
     api(project(":core:common"))
     api(project(":core:domain-model"))
-    api(project(":core:database"))
+    api(project(":core:data"))
     api(project(":core:ui"))
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)

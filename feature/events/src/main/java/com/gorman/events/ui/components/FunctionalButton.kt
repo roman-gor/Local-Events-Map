@@ -11,11 +11,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun FunctionalButton(
     onClick: () -> Unit,
+    iconSize: Dp,
     imageVector: ImageVector,
     modifier: Modifier
 ) {
@@ -34,7 +36,7 @@ fun FunctionalButton(
         Icon(
             imageVector = imageVector,
             contentDescription = "list_button",
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(iconSize),
             tint = MaterialTheme.colorScheme.secondary
         )
     }
@@ -43,6 +45,7 @@ fun FunctionalButton(
 @Composable
 fun FunctionalButton(
     onClick: () -> Unit,
+    iconSize: Dp,
     painter: Painter,
     modifier: Modifier
 ) {
@@ -61,7 +64,7 @@ fun FunctionalButton(
         Icon(
             painter = painter,
             contentDescription = "list_button",
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(iconSize),
             tint = MaterialTheme.colorScheme.secondary
         )
     }

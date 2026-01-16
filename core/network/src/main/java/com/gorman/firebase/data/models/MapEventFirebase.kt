@@ -4,15 +4,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MapEventFirebase(
-    val id: String = "",
-    val name: String = "",
-    val description: String = "",
-    val date: String = "",
-    val city: String = "",
-    val address: String = "",
-    val coordinates: String = "",
-    val link: String = "",
-    val photo: String = "",
-    val category: String = "",
-    val price: Int = 0
+    val id: String? = null,
+    val name: String? = null,
+    val description: String? = null,
+    val date: String? = null,
+    val city: String? = null,
+    val address: String? = null,
+    val coordinates: String? = null,
+    val link: String? = null,
+    val photo: String? = null,
+    val category: String? = null,
+    val price: Int? = null
 )
