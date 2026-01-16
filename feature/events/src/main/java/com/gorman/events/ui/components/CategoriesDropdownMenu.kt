@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -26,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gorman.common.constants.CategoryConstants
 import com.gorman.events.R
@@ -66,7 +64,7 @@ fun CategoriesDropdownMenu(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { onExpandedChange() },
-                shape = RoundedCornerShape(20.dp),
+                shape = LocalEventsMapTheme.shapes.large,
                 modifier = Modifier
                     .wrapContentHeight()
                     .exposedDropdownSize(),
@@ -119,7 +117,7 @@ fun CategoriesTextField(
             unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
             unfocusedBorderColor = MaterialTheme.colorScheme.onSecondary
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = LocalEventsMapTheme.shapes.medium
     )
 }
 

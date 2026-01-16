@@ -1,13 +1,13 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.serialization)
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
 
 android {
-    namespace = "com.gorman.feature_events"
+    namespace = "com.gorman.cache"
     compileSdk {
         version = release(36)
     }
@@ -20,7 +20,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt")
             )
@@ -37,21 +37,10 @@ android {
 
 dependencies {
 
-    api(project(":core:common"))
-    api(project(":core:domain-model"))
-    api(project(":core:data"))
-    api(project(":core:ui"))
     implementation(libs.bundles.hilt)
+    implementation(libs.androidx.datastore.core)
+    implementation(libs.androidx.datastore)
     ksp(libs.hilt.compiler)
-
-    api(libs.bundles.compose)
-    api(libs.androidx.core.ktx)
-    api(libs.androidx.lifecycle.runtime.ktx)
-    api(libs.androidx.activity.compose)
-    api(libs.accompanist.permissions)
-    api(libs.androidx.compose.ui.tooling.preview)
-    api(libs.kotlinx.coroutines.immutable)
-    implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

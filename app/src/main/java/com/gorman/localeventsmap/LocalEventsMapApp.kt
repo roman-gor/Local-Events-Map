@@ -3,7 +3,6 @@ package com.gorman.localeventsmap
 import android.app.Application
 import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.HiltAndroidApp
-import kotlin.apply
 
 @HiltAndroidApp
 class LocalEventsMapApp : Application() {
