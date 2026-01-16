@@ -1,7 +1,7 @@
 package com.gorman.database
 
 import com.gorman.database.data.model.MapEventEntity
-import com.gorman.domain_model.MapEvent
+import com.gorman.domainmodel.MapEvent
 
 fun MapEventEntity.toDomain(): MapEvent =
     MapEvent(
@@ -9,7 +9,6 @@ fun MapEventEntity.toDomain(): MapEvent =
         remoteId = remoteId,
         name = name,
         description = description,
-        city = city,
         address = address,
         coordinates = coordinates,
         link = link,
@@ -24,7 +23,6 @@ fun MapEvent.toEntity(): MapEventEntity =
         remoteId = remoteId,
         name = name,
         description = description,
-        city = city,
         address = address,
         coordinates = coordinates,
         link = link,

@@ -1,6 +1,6 @@
 package com.gorman.firebase
 
-import com.gorman.domain_model.MapEvent
+import com.gorman.domainmodel.MapEvent
 import com.gorman.firebase.data.models.MapEventFirebase
 
 fun MapEventFirebase.toDomain(): MapEvent =
@@ -9,7 +9,6 @@ fun MapEventFirebase.toDomain(): MapEvent =
         name = name,
         description = description,
         address = address,
-        city = city,
         coordinates = coordinates,
         link = link,
         photo = photo,

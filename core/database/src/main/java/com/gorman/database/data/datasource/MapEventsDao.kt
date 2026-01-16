@@ -12,16 +12,22 @@ import kotlinx.coroutines.flow.Flow
 interface MapEventsDao {
     @Query("SELECT * FROM events")
     fun getAllEvents(): Flow<List<MapEventEntity>>
+
     @Insert(onConflict = REPLACE)
     suspend fun insertEvent(events: List<MapEventEntity>)
+
     @Query("SELECT * FROM events WHERE id=:id")
     fun getEventById(id: Long): Flow<MapEventEntity>
+
     @Query("SELECT * FROM events WHERE name LIKE '%' || :name || '%'")
     fun getEventsByName(name: String): Flow<List<MapEventEntity>>
+
     @Query("DELETE FROM events")
     suspend fun deleteAll()
+
     @Query("DELETE FROM sqlite_sequence WHERE name = 'events'")
     suspend fun resetTableSequence()
+
     @Transaction
     suspend fun clearTable() {
         deleteAll()
