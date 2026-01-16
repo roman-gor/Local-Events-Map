@@ -23,7 +23,7 @@ rootProject.name = "LocalEventsMap"
 include(":app")
 include(":core")
 include(":core:common")
-include(":core:firebase")
+include(":core:network")
 include(":core:ui")
 include(":core:database")
 include(":core:domain-model")

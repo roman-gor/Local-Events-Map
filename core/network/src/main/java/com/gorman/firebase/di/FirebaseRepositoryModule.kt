@@ -5,8 +5,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.gorman.firebase.data.datasource.MapEventRemoteDataSource
 import com.gorman.firebase.data.datasource.MapEventRemoteDataSourceImpl
 import com.gorman.firebase.data.models.FirebaseConstants
-import com.gorman.firebase.data.repository.FirebaseRepositoryImpl
-import com.gorman.firebase.domain.repository.FirebaseRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -20,10 +18,6 @@ abstract class FirebaseRepositoryModule {
     @Binds
     @Singleton
     abstract fun bindFirebaseApi(impl: MapEventRemoteDataSourceImpl): MapEventRemoteDataSource
-
-    @Binds
-    @Singleton
-    abstract fun bindFirebaseRepository(impl: FirebaseRepositoryImpl): FirebaseRepository
 }
 
 @Module
