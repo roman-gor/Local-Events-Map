@@ -4,9 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.gorman.events.ui.screens.MapScreenEntry
 import com.gorman.ui.theme.LocalEventsMapTheme
@@ -19,9 +19,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LocalEventsMapTheme {
-                Surface(
-                    modifier = Modifier.systemBarsPadding(),
-                    color = MaterialTheme.colorScheme.background
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 ) {
                     MapScreenEntry()
                 }

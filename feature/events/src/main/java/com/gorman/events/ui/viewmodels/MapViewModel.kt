@@ -3,10 +3,10 @@ package com.gorman.events.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.common.api.ApiException
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.LocationProvider
-import com.gorman.common.domain.usecases.GetAllMapEventsUseCase
-import com.gorman.common.domain.usecases.SyncMapEventsUseCase
+import com.gorman.data.repository.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.events.ui.states.CityData
 import com.gorman.events.ui.states.FiltersState
@@ -37,8 +37,7 @@ import kotlin.collections.toMutableList
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val syncMapEventsUseCase: SyncMapEventsUseCase,
-    private val getAllMapEventsUseCase: GetAllMapEventsUseCase,
+    private val mapEventsRepository: IMapEventsRepository,
     private val locationProvider: LocationProvider
 ) : ViewModel() {
     private val _mapEventsState = MutableStateFlow<MapEventsState>(MapEventsState.Idle)
@@ -170,15 +169,21 @@ class MapViewModel @Inject constructor(
     }
 
     fun syncEvents() {
+        _mapEventsState.value = MapEventsState.Loading
         viewModelScope.launch {
-            syncMapEventsUseCase()
+            try {
+                mapEventsRepository.syncMapEvents()
+                getEventsList()
+            } catch (e: ApiException) {
+                Log.e("ViewModel", "Error when sync events ${e.message}")
+            }
         }
     }
 
     fun getEventsList() {
         _mapEventsState.value = MapEventsState.Loading
         viewModelScope.launch {
-            getAllMapEventsUseCase()
+            mapEventsRepository.getAllLocalEvents()
                 .combine(_filterState) { events, filters ->
                     Pair(events, filters)
                 }.combine(_cityCenterData) { (events, filters), cityData ->
