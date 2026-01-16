@@ -59,10 +59,15 @@ dependencies {
 fun getYandexApiKey(): String {
     val properties = Properties()
     val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        properties.load(localPropertiesFile.inputStream())
+    if (!localPropertiesFile.exists()) {
+        error("Local.propeties file was not found. Create it and add the YANDEX_KEY API key")
     }
-    return properties.getProperty("YANDEX_KEY", "")
+    properties.load(localPropertiesFile.inputStream())
+    val key = properties.getProperty("YANDEX_KEY")
+    if (key.isNullOrEmpty()) {
+        error("YANDEX_KEY was not found in local.properties. Check README.md")
+    }
+    return key
 }
 
 extra["yandexApiKey"] = getYandexApiKey()

@@ -2,8 +2,8 @@ package com.gorman.firebase.di
 
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.gorman.firebase.data.datasource.FirebaseApi
-import com.gorman.firebase.data.datasource.FirebaseApiImpl
+import com.gorman.firebase.data.datasource.MapEventRemoteDataSource
+import com.gorman.firebase.data.datasource.MapEventRemoteDataSourceImpl
 import com.gorman.firebase.data.models.FirebaseConstants
 import com.gorman.firebase.data.repository.FirebaseRepositoryImpl
 import com.gorman.firebase.domain.repository.FirebaseRepository
@@ -19,7 +19,7 @@ import javax.inject.Singleton
 abstract class FirebaseRepositoryModule {
     @Binds
     @Singleton
-    abstract fun bindFirebaseApi(impl: FirebaseApiImpl): FirebaseApi
+    abstract fun bindFirebaseApi(impl: MapEventRemoteDataSourceImpl): MapEventRemoteDataSource
 
     @Binds
     @Singleton

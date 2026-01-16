@@ -10,12 +10,6 @@ plugins {
     id("io.gitlab.arturbosch.detekt")
 }
 
-detekt {
-    toolVersion = "1.23.8"
-    config.setFrom(file("config/detekt/detekt.yml"))
-    buildUponDefaultConfig = true
-}
-
 android {
     namespace = "com.gorman.localeventsmap"
     compileSdk {
@@ -35,7 +29,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
