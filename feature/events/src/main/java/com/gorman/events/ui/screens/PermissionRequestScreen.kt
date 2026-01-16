@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.events.R
 import com.gorman.events.ui.components.CitySelectDropdownMenu
 import com.gorman.ui.theme.LocalEventsMapTheme
@@ -27,11 +28,11 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 @Composable
 fun PermissionRequestScreen(
     showManualInput: Boolean,
-    onCitySubmit: (String) -> Unit,
+    onCitySubmit: (CityCoordinatesConstants) -> Unit,
     shouldShowRationale: Boolean,
     requestPermissions: () -> Unit
 ) {
-    var city by rememberSaveable { mutableStateOf("") }
+    var city by rememberSaveable { mutableStateOf<CityCoordinatesConstants?>(null) }
     val cityDropdownMenuExpanded = rememberSaveable { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -63,8 +64,8 @@ fun PermissionRequestScreen(
                     onCityCheck = { city = it }
                 )
                 Button(
-                    onClick = { onCitySubmit(city) },
-                    enabled = city.isNotBlank(),
+                    onClick = { city?.let { onCitySubmit(it) } },
+                    enabled = city != null,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.onSecondary,
                         disabledContainerColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.5f)

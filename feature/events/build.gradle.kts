@@ -38,7 +38,6 @@ android {
 
 dependencies {
     implementation(project(":feature"))
-
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 
