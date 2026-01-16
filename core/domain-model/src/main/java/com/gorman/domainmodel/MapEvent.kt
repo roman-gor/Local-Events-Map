@@ -12,6 +12,6 @@ data class MapEvent(
     val photo: String? = null,
     val category: String? = null,
     val price: Int? = null,
-    val isFavourite: Boolean = false,
-    val isSelected: Boolean = false
+    val isFavourite: Boolean? = null,
+    val isSelected: Boolean? = null
 )
