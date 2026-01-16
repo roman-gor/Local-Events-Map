@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.LocationProvider
 import com.gorman.common.domain.usecases.GetAllMapEventsUseCase
-import com.gorman.common.domain.usecases.SyncMapEventsFromRemoteUseCase
-import com.gorman.domain_model.MapEvent
+import com.gorman.common.domain.usecases.SyncMapEventsUseCase
+import com.gorman.domainmodel.MapEvent
 import com.gorman.events.ui.states.CityData
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.events.ui.states.MapEventsState
@@ -32,11 +32,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.collections.filter
 import kotlin.collections.toMutableList
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val syncMapEventsFromRemoteUseCase: SyncMapEventsFromRemoteUseCase,
+    private val syncMapEventsUseCase: SyncMapEventsUseCase,
     private val getAllMapEventsUseCase: GetAllMapEventsUseCase,
     private val locationProvider: LocationProvider
 ) : ViewModel() {
@@ -98,8 +99,14 @@ class MapViewModel @Inject constructor(
                     val geoObject = p0.collection.children.firstOrNull()?.obj
                         ?.metadataContainer
                         ?.getItem(ToponymObjectMetadata::class.java)
-                    val city = geoObject?.address?.components?.firstOrNull { it.kinds.contains(Address.Component.Kind.LOCALITY) }?.name
-                        ?: geoObject?.address?.components?.firstOrNull { it.kinds.contains(Address.Component.Kind.AREA) }?.name
+                    val city = geoObject?.address?.components
+                        ?.firstOrNull {
+                            it.kinds.contains(Address.Component.Kind.LOCALITY)
+                        }?.name
+                        ?: geoObject?.address?.components
+                            ?.firstOrNull {
+                                it.kinds.contains(Address.Component.Kind.AREA)
+                            }?.name
                     Log.d("YandexGeoCoding", city.toString())
                     if (city != null) {
                         val currentCityName = _cityCenterData.value.city?.cityName
@@ -164,7 +171,7 @@ class MapViewModel @Inject constructor(
 
     fun syncEvents() {
         viewModelScope.launch {
-            syncMapEventsFromRemoteUseCase()
+            syncMapEventsUseCase()
         }
     }
 

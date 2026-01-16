@@ -15,7 +15,7 @@ class SyncMapEventsUseCase @Inject constructor(
                 mapEventsRepository.clearTable()
             }
             .collect { events ->
-                mapEventsRepository.insertEvent(events)
+                mapEventsRepository.insertEvents(events)
             }
     }
 }

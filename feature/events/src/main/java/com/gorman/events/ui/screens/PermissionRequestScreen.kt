@@ -33,7 +33,7 @@ fun PermissionRequestScreen(
     requestPermissions: () -> Unit
 ) {
     var city by rememberSaveable { mutableStateOf<CityCoordinatesConstants?>(null) }
-    val cityMenuExpanded = rememberSaveable { mutableStateOf(false) }
+    val menuExpanded = rememberSaveable { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -50,17 +50,11 @@ fun PermissionRequestScreen(
                 shouldShowRationale -> stringResource(R.string.requestPermissions)
                 else -> stringResource(R.string.defaultPermissionsText)
             }
-            Text(
-                text = text,
-                fontSize = 20.sp,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSecondary
-            )
-
+            Header(text)
             if (showManualInput) {
                 CitySelectDropdownMenu(
-                    expanded = cityMenuExpanded.value,
-                    onExpandedChange = { cityMenuExpanded.value = !cityMenuExpanded.value },
+                    expanded = menuExpanded.value,
+                    onExpandedChange = { menuExpanded.value = !menuExpanded.value },
                     onCityCheck = { city = it }
                 )
                 Button(
@@ -93,4 +87,14 @@ fun PermissionRequestScreen(
             }
         }
     }
+}
+
+@Composable
+private fun Header(text: String) {
+    Text(
+        text = text,
+        fontSize = 20.sp,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSecondary
+    )
 }

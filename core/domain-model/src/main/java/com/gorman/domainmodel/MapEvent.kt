@@ -5,6 +5,7 @@ data class MapEvent(
     val remoteId: String = "",
     val name: String? = null,
     val description: String? = null,
+    val city: String? = null,
     val address: String? = null,
     val coordinates: String,
     val link: String? = null,
