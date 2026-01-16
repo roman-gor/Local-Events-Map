@@ -179,35 +179,30 @@ class MapViewModel @Inject constructor(
         _mapEventsState.value = MapEventsState.Loading
         viewModelScope.launch {
             getAllMapEventsUseCase()
-                .onSuccess { eventsFlow ->
-                    eventsFlow.combine(_filterState) { events, filters ->
-                        Pair(events, filters)
-                    }.combine(_cityCenterData) { (events, filters), cityData ->
-                        cityData.cityName?.let {
-                            val eventsInCity = if (it.isNotBlank()) {
-                                events.filter { event ->
-                                    event.city.equals(it, ignoreCase = true)
-                                }
-                            } else {
-                                events
+                .combine(_filterState) { events, filters ->
+                    Pair(events, filters)
+                }.combine(_cityCenterData) { (events, filters), cityData ->
+                    cityData.cityName?.let {
+                        val eventsInCity = if (it.isNotBlank()) {
+                            events.filter { event ->
+                                event.city.equals(it, ignoreCase = true)
                             }
-                            if (filters.categories.isEmpty()) {
-                                eventsInCity
-                            } else {
-                                eventsInCity.filter { event ->
-                                    event.category in filters.categories
-                                }
+                        } else {
+                            events
+                        }
+                        if (filters.categories.isEmpty()) {
+                            eventsInCity
+                        } else {
+                            eventsInCity.filter { event ->
+                                event.category in filters.categories
                             }
                         }
                     }
-                        .collectLatest {
-                            it?.let {
-                                _mapEventsState.value = MapEventsState.Success(it)
-                            }
-                        }
                 }
-                .onFailure { exception ->
-                    _mapEventsState.value = MapEventsState.Error(exception)
+                .collectLatest {
+                    it?.let {
+                        _mapEventsState.value = MapEventsState.Success(it)
+                    }
                 }
         }
     }
