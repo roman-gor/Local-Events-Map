@@ -1,7 +1,6 @@
 package com.gorman.events.ui.screens
 
 import android.Manifest
-import android.content.Context
 import android.graphics.PointF
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -9,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,15 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -42,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,17 +46,17 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CategoryConstants.Companion.categoriesList
 import com.gorman.common.constants.CostConstants
-import com.gorman.domain_model.MapEvent
+import com.gorman.domainmodel.MapEvent
 import com.gorman.events.R
 import com.gorman.events.ui.components.BottomEventsListSheetDialog
 import com.gorman.events.ui.components.BottomFiltersSheetDialog
 import com.gorman.events.ui.components.CityNameDefinition
+import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.LoadingStub
-import com.gorman.events.ui.states.CityData
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
-import com.gorman.events.ui.states.FiltersState
 import com.gorman.events.ui.states.MapEventsState
+import com.gorman.events.ui.states.MapUiState
 import com.gorman.events.ui.viewmodels.MapViewModel
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.Animation
@@ -76,6 +70,7 @@ import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.coroutines.launch
+import kotlin.collections.map
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -142,7 +137,6 @@ fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
 
 @Composable
 fun MapContent(mapViewModel: MapViewModel) {
-    val context = LocalContext.current
     val mapEventsState by mapViewModel.mapEventState.collectAsStateWithLifecycle()
     when (val state = mapEventsState) {
         is MapEventsState.Error -> ErrorDataScreen()
@@ -163,16 +157,17 @@ fun MapContent(mapViewModel: MapViewModel) {
                 Pair(lat, lon)
             }
             MapScreen(
-                context = context,
                 onCameraIdle = { location -> location?.let { mapViewModel.onCameraIdle(it) } },
-                selectedMapEvent = selectedEvent,
-                filters = filters,
                 onCategoryChange = { mapViewModel.onCategoryChanged(it) },
                 onEventClick = { mapViewModel.selectEvent(it.localId) },
-                eventsList = state.eventsList,
-                coordinatesList = coordinatesList,
-                cityData = cityData,
-                cityChanged = cityChanged
+                mapUiState = MapUiState(
+                    selectedMapEvent = selectedEvent,
+                    filters = filters,
+                    eventsList = state.eventsList,
+                    coordinatesList = coordinatesList,
+                    cityData = cityData,
+                    cityChanged = cityChanged
+                )
             )
         }
     }
@@ -181,16 +176,10 @@ fun MapContent(mapViewModel: MapViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
-    context: Context,
     onCameraIdle: (Point?) -> Unit,
-    selectedMapEvent: MapEvent?,
-    filters: FiltersState,
     onCategoryChange: (String) -> Unit,
     onEventClick: (MapEvent) -> Unit,
-    eventsList: List<MapEvent>,
-    coordinatesList: List<Pair<Double, Double>>,
-    cityData: CityData,
-    cityChanged: Boolean
+    mapUiState: MapUiState
 ) {
     var mapEventsListExpanded by remember { mutableStateOf(false) }
     var filtersExpanded by remember { mutableStateOf(false) }
@@ -208,16 +197,15 @@ fun MapScreen(
             .background(color = MaterialTheme.colorScheme.background)
     ) {
         YandexMapView(
-            context = context,
             onCameraIdle = onCameraIdle,
-            selectedMapEvent = selectedMapEvent,
+            selectedMapEvent = mapUiState.selectedMapEvent,
             onEventClick = onEventClick,
-            eventsList = eventsList,
-            coordinates = coordinatesList,
-            cityCenter = cityData.cityCoordinates,
-            cityChanged = cityChanged
+            eventsList = mapUiState.eventsList,
+            coordinates = mapUiState.coordinatesList,
+            cityCenter = mapUiState.cityData.cityCoordinates,
+            cityChanged = mapUiState.cityChanged
         )
-        cityData.city?.let {
+        mapUiState.cityData.city?.let {
             Text(
                 text = CityNameDefinition(it),
                 fontSize = 20.sp,
@@ -231,7 +219,7 @@ fun MapScreen(
         if (mapEventsListExpanded) {
             BottomEventsListSheetDialog(
                 onDismiss = { mapEventsListExpanded = !mapEventsListExpanded },
-                selectedMapEvent = selectedMapEvent,
+                selectedMapEvent = mapUiState.selectedMapEvent,
                 onEventClick = {
                     onEventClick(it)
                     scope.launch {
@@ -239,7 +227,7 @@ fun MapScreen(
                         mapEventsListExpanded = false
                     }
                 },
-                eventsList = eventsList,
+                eventsList = mapUiState.eventsList,
                 sheetState = mapEventsListSheetState
             )
         }
@@ -247,7 +235,7 @@ fun MapScreen(
             BottomFiltersSheetDialog(
                 onDismiss = { filtersExpanded = !filtersExpanded },
                 sheetState = filtersSheetState,
-                filters = filters,
+                filters = mapUiState.filters,
                 options = FilterOptions(
                     categoryItems = categoriesList,
                     costItems = CostConstants.costList.map { it.value }
@@ -261,51 +249,23 @@ fun MapScreen(
                 )
             )
         }
-        Button(
+        FunctionalButton(
             onClick = { mapEventsListExpanded = !mapEventsListExpanded },
-            shape = CircleShape,
+            imageVector = Icons.Outlined.Menu,
             modifier = Modifier
                 .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
                 .size(48.dp)
                 .align(alignment = Alignment.BottomStart)
-                .offset(y = verticalOffset),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 12.dp
-            ),
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Menu,
-                contentDescription = "list_button",
-                modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.secondary
-            )
-        }
-        Button(
+                .offset(y = verticalOffset)
+        )
+        FunctionalButton(
             onClick = { filtersExpanded = !filtersExpanded },
-            shape = CircleShape,
+            painter = painterResource(R.drawable.filter_alt),
             modifier = Modifier
                 .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
                 .size(48.dp)
-                .align(alignment = Alignment.BottomEnd),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 12.dp
-            ),
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Edit,
-                contentDescription = "list_button",
-                modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.secondary
-            )
-        }
+                .align(alignment = Alignment.BottomEnd)
+        )
     }
 }
 
@@ -343,7 +303,6 @@ fun EventItem(
 
 @Composable
 fun YandexMapView(
-    context: Context,
     cityChanged: Boolean,
     onCameraIdle: (Point?) -> Unit,
     onEventClick: (MapEvent) -> Unit,
@@ -352,6 +311,7 @@ fun YandexMapView(
     coordinates: List<Pair<Double, Double>>,
     cityCenter: Point?
 ) {
+    val context = LocalContext.current
     val mapView = remember { MapView(context) }
     LaunchedEffect(selectedMapEvent) {
         selectedMapEvent?.let { event ->
