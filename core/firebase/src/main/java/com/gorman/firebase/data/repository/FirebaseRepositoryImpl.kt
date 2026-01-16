@@ -13,7 +13,7 @@ class FirebaseRepositoryImpl @Inject constructor(
     private val firebaseApi: FirebaseApi
 ) : FirebaseRepository {
     override fun getAllEvents(): Flow<List<MapEvent>> {
-        Log.d("FirebaseRepository", "Запуск метода")
+        Log.d("FirebaseRepository", "Starting method")
         return firebaseApi.getAllEvents().map { events ->
             events.map { it.toDomain() }
         }
