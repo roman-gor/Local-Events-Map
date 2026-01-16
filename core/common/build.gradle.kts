@@ -38,7 +38,8 @@ android {
 dependencies {
 
     implementation(project(":core"))
-    implementation(project(":core:firebase"))
+    implementation(project(":core:network"))
+    implementation(project(":core:data"))
     implementation(project(":core:database"))
     implementation(project(":core:domain-model"))
     implementation(libs.bundles.hilt)

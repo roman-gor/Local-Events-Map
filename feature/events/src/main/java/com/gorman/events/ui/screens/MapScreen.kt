@@ -11,13 +11,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,11 +48,11 @@ import com.gorman.common.constants.CategoryConstants.Companion.categoriesList
 import com.gorman.common.constants.CostConstants
 import com.gorman.domainmodel.MapEvent
 import com.gorman.events.R
-import com.gorman.events.ui.components.MapEventsBottomSheet
-import com.gorman.events.ui.components.FiltersBottomSheet
 import com.gorman.events.ui.components.CityNameDefinition
+import com.gorman.events.ui.components.FiltersBottomSheet
 import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.LoadingStub
+import com.gorman.events.ui.components.MapEventsBottomSheet
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
 import com.gorman.events.ui.states.MapEventsState
@@ -74,7 +74,9 @@ import kotlin.collections.map
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
+fun MapScreenEntry(
+    mapViewModel: MapViewModel = hiltViewModel()
+) {
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -84,15 +86,11 @@ fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
     val dataLoaded = rememberSaveable { mutableStateOf(false) }
     val cityData by mapViewModel.cityCenterData.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        mapViewModel.syncEvents()
-    }
-
     when {
         permissionsState.allPermissionsGranted -> {
             if (!dataLoaded.value) {
                 LaunchedEffect(Unit) {
-                    mapViewModel.syncEvents()
+                    mapViewModel.getEventsList()
                     mapViewModel.fetchInitialLocation()
                     dataLoaded.value = true
                 }
@@ -124,7 +122,6 @@ fun MapScreenEntry(mapViewModel: MapViewModel = hiltViewModel()) {
             } else {
                 if (!dataLoaded.value) {
                     LaunchedEffect(Unit) {
-                        mapViewModel.syncEvents()
                         mapViewModel.getEventsList()
                         dataLoaded.value = true
                     }
@@ -153,12 +150,16 @@ fun MapContent(mapViewModel: MapViewModel) {
             val cityData by mapViewModel.cityCenterData.collectAsStateWithLifecycle()
             val cityChanged by mapViewModel.cityChanged.collectAsStateWithLifecycle(initialValue = true)
             val coordinatesList = state.eventsList.map { event ->
-                val (lat, lon) = event.coordinates.split(",").map { it.trim().toDouble() }
+                val coordinates = event.coordinates?.split(",")
+                    ?.mapNotNull { it.trim().toDoubleOrNull() } ?: emptyList()
+                val lat = coordinates.getOrNull(0) ?: 0.0
+                val lon = coordinates.getOrNull(1) ?: 0.0
                 Pair(lat, lon)
             }
             MapScreen(
                 onCameraIdle = { location -> location?.let { mapViewModel.onCameraIdle(it) } },
                 onCategoryChange = { mapViewModel.onCategoryChanged(it) },
+                onSyncClick = { mapViewModel.syncEvents() },
                 onEventClick = { mapViewModel.selectEvent(it.localId) },
                 mapUiState = MapUiState(
                     selectedMapEvent = selectedEvent,
@@ -178,6 +179,7 @@ fun MapContent(mapViewModel: MapViewModel) {
 fun MapScreen(
     onCameraIdle: (Point?) -> Unit,
     onCategoryChange: (String) -> Unit,
+    onSyncClick: () -> Unit,
     onEventClick: (MapEvent) -> Unit,
     mapUiState: MapUiState
 ) {
@@ -186,7 +188,12 @@ fun MapScreen(
     val scope = rememberCoroutineScope()
     val mapEventsListSheetState = rememberModalBottomSheetState()
     val filtersSheetState = rememberModalBottomSheetState()
-    val verticalOffset by animateDpAsState(
+    val filtersButtonVerticalOffset by animateDpAsState(
+        targetValue = if (filtersExpanded) (-600).dp else 0.dp,
+        animationSpec = tween(durationMillis = 500),
+        label = "verticalOffsetAnimation"
+    )
+    val listEventsButtonVerticalOffset by animateDpAsState(
         targetValue = if (mapEventsListExpanded) (-600).dp else 0.dp,
         animationSpec = tween(durationMillis = 500),
         label = "verticalOffsetAnimation"
@@ -212,8 +219,8 @@ fun MapScreen(
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier
+                    .systemBarsPadding()
                     .align(Alignment.TopCenter)
-                    .padding(top = LocalEventsMapTheme.dimens.paddingExtraLarge)
             )
         }
         if (mapEventsListExpanded) {
@@ -250,21 +257,33 @@ fun MapScreen(
             )
         }
         FunctionalButton(
+            onClick = { onSyncClick() },
+            iconSize = 32.dp,
+            imageVector = Icons.Outlined.Refresh,
+            modifier = Modifier
+                .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
+                .size(48.dp)
+                .align(alignment = Alignment.CenterEnd)
+        )
+        FunctionalButton(
             onClick = { mapEventsListExpanded = !mapEventsListExpanded },
+            iconSize = 32.dp,
             imageVector = Icons.Outlined.Menu,
             modifier = Modifier
                 .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
                 .size(48.dp)
                 .align(alignment = Alignment.BottomStart)
-                .offset(y = verticalOffset)
+                .offset(y = listEventsButtonVerticalOffset)
         )
         FunctionalButton(
             onClick = { filtersExpanded = !filtersExpanded },
+            iconSize = 32.dp,
             painter = painterResource(R.drawable.filter_alt),
             modifier = Modifier
                 .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
                 .size(48.dp)
                 .align(alignment = Alignment.BottomEnd)
+                .offset(y = filtersButtonVerticalOffset)
         )
     }
 }
@@ -315,7 +334,9 @@ fun YandexMapView(
     val mapView = remember { MapView(context) }
     LaunchedEffect(selectedMapEvent) {
         selectedMapEvent?.let { event ->
-            val (lat, lon) = event.coordinates.split(",").map { it.trim().toDouble() }
+            val coordinates = event.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() } ?: emptyList()
+            val lat = coordinates.getOrNull(0) ?: 0.0
+            val lon = coordinates.getOrNull(1) ?: 0.0
             val selectedPoint = Point(lat, lon)
             mapView.mapWindow.map.move(
                 CameraPosition(selectedPoint, 15.0f, 0.0f, 0.0f),
@@ -387,12 +408,7 @@ fun YandexMapView(
         factory = { mapView },
         modifier = Modifier
             .fillMaxSize()
-            .padding(
-                horizontal = LocalEventsMapTheme.dimens.paddingMedium,
-                vertical = LocalEventsMapTheme.dimens.paddingLarge
-            )
-            .height(200.dp)
-            .clip(RoundedCornerShape(LocalEventsMapTheme.dimens.cornerRadius)),
+            .clip(LocalEventsMapTheme.shapes.medium),
         update = {
             val mapObjects = mapView.mapWindow.map.mapObjects
             mapObjects.clear()
