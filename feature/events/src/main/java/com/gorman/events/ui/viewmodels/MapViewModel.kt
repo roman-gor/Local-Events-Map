@@ -11,7 +11,6 @@ import com.gorman.events.ui.mappers.toUiState
 import com.gorman.events.ui.states.CityData
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.events.ui.states.MapEventsState
-import com.gorman.events.ui.states.MapUiEvent
 import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.geometry.Point
@@ -25,6 +24,7 @@ import com.yandex.mapkit.search.SearchType
 import com.yandex.mapkit.search.Session
 import com.yandex.mapkit.search.ToponymObjectMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,8 +47,7 @@ class MapViewModel @Inject constructor(
     private val _filterState = MutableStateFlow(FiltersState())
     val filterState = _filterState.asStateFlow()
 
-    private val _selectedMapEventId = MutableStateFlow<MapUiEvent?>(null)
-    val selectedEventId = _selectedMapEventId.asStateFlow()
+    private val _selectedMapEventId = MutableStateFlow<Int?>(null)
 
     private val _cityCenterData = MutableStateFlow(CityData())
     val cityCenterData = _cityCenterData.asStateFlow()
@@ -62,7 +61,8 @@ class MapViewModel @Inject constructor(
     private var lastCityEnum = CityCoordinatesConstants.MINSK
 
     init {
-        searchManager = SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
+        searchManager = SearchFactory.getInstance()
+            .createSearchManager(SearchManagerType.COMBINED)
     }
 
     fun fetchInitialLocation() {
@@ -205,9 +205,16 @@ class MapViewModel @Inject constructor(
                         }
                     }
                 }
-                .collectLatest {
-                    it?.let {
-                        _mapEventsState.value = MapEventsState.Success(it.map { event -> event.toUiState() })
+                .combine(_selectedMapEventId) { events, selectedId ->
+                    events?.map { domainEvent ->
+                        domainEvent.toUiState().copy(
+                            isSelected = (domainEvent.localId == selectedId)
+                        )
+                    }
+                }
+                .collectLatest { uiEvents ->
+                    if (uiEvents != null) {
+                        _mapEventsState.value = MapEventsState.Success(uiEvents.toImmutableList())
                     }
                 }
         }
@@ -226,8 +233,8 @@ class MapViewModel @Inject constructor(
 
     fun selectEvent(id: Int) {
         viewModelScope.launch {
-            val state = _mapEventsState.value as MapEventsState.Success
-            _selectedMapEventId.value = state.eventsList.first { it.id == id }
+            val currentId = _selectedMapEventId.value
+            _selectedMapEventId.value = if (currentId == id) null else id
         }
     }
 }

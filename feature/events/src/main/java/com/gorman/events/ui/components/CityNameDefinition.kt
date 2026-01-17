@@ -6,7 +6,7 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.events.R
 
 @Composable
-fun CityNameDefinition(city: CityCoordinatesConstants): String {
+fun cityNameDefinition(city: CityCoordinatesConstants): String {
     return when (city) {
         CityCoordinatesConstants.MINSK -> stringResource(R.string.minsk)
         CityCoordinatesConstants.BREST -> stringResource(R.string.brest)

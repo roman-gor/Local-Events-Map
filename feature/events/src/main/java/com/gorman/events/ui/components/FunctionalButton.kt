@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
@@ -25,9 +24,6 @@ fun FunctionalButton(
         onClick = { onClick() },
         shape = CircleShape,
         modifier = modifier,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 12.dp
         ),
@@ -36,8 +32,7 @@ fun FunctionalButton(
         Icon(
             imageVector = imageVector,
             contentDescription = "list_button",
-            modifier = Modifier.size(iconSize),
-            tint = MaterialTheme.colorScheme.secondary
+            modifier = Modifier.size(iconSize)
         )
     }
 }
@@ -53,9 +48,6 @@ fun FunctionalButton(
         onClick = { onClick() },
         shape = CircleShape,
         modifier = modifier,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 12.dp
         ),
@@ -64,8 +56,7 @@ fun FunctionalButton(
         Icon(
             painter = painter,
             contentDescription = "list_button",
-            modifier = Modifier.size(iconSize),
-            tint = MaterialTheme.colorScheme.secondary
+            modifier = Modifier.size(iconSize)
         )
     }
 }
