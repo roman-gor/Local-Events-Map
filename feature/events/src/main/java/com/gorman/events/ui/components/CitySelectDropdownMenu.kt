@@ -12,7 +12,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -63,12 +62,11 @@ fun CitySelectDropdownMenu(
                 containerColor = MaterialTheme.colorScheme.background
             ) {
                 CityCoordinatesConstants.cityCoordinatesList.forEach { city ->
-                    val cityName = CityNameDefinition(city)
+                    val cityName = cityNameDefinition(city)
                     DropdownMenuItem(
                         text = {
                             Text(
                                 text = cityName,
-                                color = MaterialTheme.colorScheme.onSecondary,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = LocalEventsMapTheme.dimens.paddingMedium)
@@ -99,19 +97,12 @@ fun CityTextField(
             Text(
                 text = stringResource(R.string.labelCityText),
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.surface
+                fontWeight = FontWeight.Medium
             )
         },
         readOnly = true,
         modifier = modifier,
         trailingIcon = { trailingIcon() },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-            focusedBorderColor = MaterialTheme.colorScheme.onSecondary,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondary
-        ),
         shape = LocalEventsMapTheme.shapes.medium
     )
 }

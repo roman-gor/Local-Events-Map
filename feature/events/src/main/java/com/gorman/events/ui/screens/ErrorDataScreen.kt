@@ -21,8 +21,7 @@ fun ErrorDataScreen() {
     ) {
         Text(
             text = stringResource(R.string.errorDataLoading),
-            fontSize = 18.sp,
-            color = MaterialTheme.colorScheme.surface
+            fontSize = 18.sp
         )
     }
 }

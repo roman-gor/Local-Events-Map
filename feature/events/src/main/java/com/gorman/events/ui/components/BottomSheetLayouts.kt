@@ -23,22 +23,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gorman.domainmodel.MapEvent
 import com.gorman.events.R
 import com.gorman.events.ui.screens.EventItem
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
 import com.gorman.events.ui.states.FiltersState
+import com.gorman.events.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
+import kotlinx.collections.immutable.ImmutableList
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapEventsBottomSheet(
     onDismiss: () -> Unit,
-    selectedMapEvent: MapEvent?,
-    onEventClick: (MapEvent) -> Unit,
-    eventsList: List<MapEvent>,
+    onEventClick: (MapUiEvent) -> Unit,
+    eventsList: ImmutableList<MapUiEvent>,
     sheetState: SheetState
 ) {
     ModalBottomSheet(
@@ -60,7 +60,6 @@ fun MapEventsBottomSheet(
             items(eventsList) { event ->
                 EventItem(
                     mapEvent = event,
-                    selectedMapEvent = selectedMapEvent,
                     onEventClick = onEventClick
                 )
             }
