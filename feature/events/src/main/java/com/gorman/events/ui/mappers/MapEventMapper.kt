@@ -8,8 +8,8 @@ fun MapEvent.toUiState(): MapUiEvent =
         id = localId,
         name = name,
         category = category,
+        coordinates = coordinates,
         photoUrl = photo,
-        isSelected = isSelected,
         isFavourite = isFavourite
     )
 
@@ -18,7 +18,7 @@ fun MapUiEvent.toDomain(): MapEvent =
         localId = id,
         name = name,
         category = category,
+        coordinates = coordinates,
         photo = photoUrl,
-        isSelected = isSelected,
         isFavourite = isFavourite
     )

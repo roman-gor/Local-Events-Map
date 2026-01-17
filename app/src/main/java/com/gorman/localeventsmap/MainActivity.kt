@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.gorman.events.ui.screens.MapScreenEntry
 import com.gorman.ui.theme.LocalEventsMapTheme
+import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -18,6 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            MapKitFactory.getInstance().onStart()
             LocalEventsMapTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
