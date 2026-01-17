@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -15,14 +14,12 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -71,7 +68,7 @@ fun CategoriesDropdownMenu(
                 containerColor = MaterialTheme.colorScheme.background
             ) {
                 categoriesOptions.items.forEach { category ->
-                    val title = CategoryNameDefinition(category)
+                    val title = categoryNameDefinition(category)
                     CategoryMenuItem(
                         checked = category.value in categoriesOptions.selectedItems,
                         onCheckedChange = { onItemClick(category.value) },
@@ -104,19 +101,12 @@ fun CategoriesTextField(
             Text(
                 text = header,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.surface
+                fontWeight = FontWeight.Medium
             )
         },
         readOnly = true,
         modifier = modifier,
         trailingIcon = { trailingIcon() },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.onSecondary,
-            focusedBorderColor = MaterialTheme.colorScheme.onSecondary,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSecondary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondary
-        ),
         shape = LocalEventsMapTheme.shapes.medium
     )
 }
@@ -137,16 +127,10 @@ fun CategoryMenuItem(
             ) {
                 Checkbox(
                     checked = checked,
-                    onCheckedChange = { onCheckedChange() },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.primary,
-                        uncheckedColor = MaterialTheme.colorScheme.onSecondary,
-                        checkmarkColor = Color.White
-                    )
+                    onCheckedChange = { onCheckedChange() }
                 )
                 Text(
                     text = title,
-                    color = MaterialTheme.colorScheme.onSecondary,
                     modifier = Modifier.padding(horizontal = LocalEventsMapTheme.dimens.paddingMedium)
                 )
             }
@@ -164,7 +148,7 @@ data class CategoriesOptions(
 )
 
 @Composable
-fun CategoryNameDefinition(category: CategoryConstants): String {
+fun categoryNameDefinition(category: CategoryConstants): String {
     return when (category) {
         CategoryConstants.EDUCATION -> stringResource(R.string.education)
         CategoryConstants.MUSIC -> stringResource(R.string.music)

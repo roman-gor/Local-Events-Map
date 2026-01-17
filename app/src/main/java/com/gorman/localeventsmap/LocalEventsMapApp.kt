@@ -1,6 +1,7 @@
 package com.gorman.localeventsmap
 
 import android.app.Application
+import android.content.Context
 import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.HiltAndroidApp
 
@@ -8,8 +9,16 @@ import dagger.hilt.android.HiltAndroidApp
 class LocalEventsMapApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        initYandexMapKit(this)
+    }
+}
+
+private fun initYandexMapKit(context: Context) {
+    try {
         MapKitFactory.setApiKey(BuildConfig.YANDEX_KEY)
-        MapKitFactory.initialize(this)
-        MapKitFactory.getInstance().onStart()
+        MapKitFactory.setLocale("en_US")
+        MapKitFactory.initialize(context)
+    } catch (e: Exception) {
+        error("${e.message}")
     }
 }

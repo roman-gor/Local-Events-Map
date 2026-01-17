@@ -19,7 +19,6 @@ fun LoadingStub() {
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
-            color = MaterialTheme.colorScheme.onSurface,
             strokeWidth = 4.dp
         )
     }

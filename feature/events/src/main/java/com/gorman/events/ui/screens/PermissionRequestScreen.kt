@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,28 +58,19 @@ fun PermissionRequestScreen(
                 )
                 Button(
                     onClick = { city?.let { onCitySubmit(it) } },
-                    enabled = city != null,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onSecondary,
-                        disabledContainerColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.5f)
-                    )
+                    enabled = city != null
                 ) {
                     Text(
                         text = stringResource(R.string.findCityEventsText),
-                        color = MaterialTheme.colorScheme.background,
                         fontSize = 14.sp
                     )
                 }
             } else {
                 Button(
-                    onClick = requestPermissions,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onSecondary
-                    )
+                    onClick = requestPermissions
                 ) {
                     Text(
                         text = stringResource(R.string.providePermissions),
-                        color = MaterialTheme.colorScheme.background,
                         fontSize = 14.sp
                     )
                 }
@@ -94,7 +84,6 @@ private fun Header(text: String) {
     Text(
         text = text,
         fontSize = 20.sp,
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colorScheme.onSecondary
+        textAlign = TextAlign.Center
     )
 }
