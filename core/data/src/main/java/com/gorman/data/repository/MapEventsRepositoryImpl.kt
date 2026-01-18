@@ -16,7 +16,7 @@ internal class MapEventsRepositoryImpl @Inject constructor(
     private val mapEventRemoteDataSource: MapEventRemoteDataSource
 ) : IMapEventsRepository {
 
-    override fun getAllLocalEvents(): Flow<List<MapEvent>> {
+    override fun getAllEvents(): Flow<List<MapEvent>> {
         return mapEventsDao.getAllEvents().map { list ->
             list.map { it.toDomain() }
         }
@@ -46,7 +46,7 @@ internal class MapEventsRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun syncMapEvents() {
+    override suspend fun syncWith() {
         getAllRemoteEvents()
             .onStart {
                 clearTable()
