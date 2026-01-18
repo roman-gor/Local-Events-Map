@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MapEventFirebase(
-    val id: String? = null,
+    val id: String = "",
     val name: String? = null,
     val description: String? = null,
     val date: String? = null,

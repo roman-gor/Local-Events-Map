@@ -2,6 +2,7 @@ package com.gorman.events.ui.screens
 
 import android.Manifest
 import android.graphics.PointF
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -312,7 +313,7 @@ fun EventItem(
 fun YandexMapView(
     cityChanged: Boolean,
     onCameraIdle: (Point?) -> Unit,
-    onMarkerClick: (Int) -> Unit,
+    onMarkerClick: (String) -> Unit,
     eventsList: ImmutableList<MapUiEvent>,
     cityCenter: Point?
 ) {
@@ -324,9 +325,10 @@ fun YandexMapView(
         ImageProvider.fromResource(context, R.drawable.ic_marker_selected)
     }
 
-    val tapListener = remember {
+    val tapListener = remember(onMarkerClick) {
         MapObjectTapListener { mapObject, _ ->
-            val eventId = mapObject.userData as? Int
+            val eventId = mapObject.userData as? String
+            Log.d("MapDebug", "Marker clicked: $eventId")
             if (eventId != null) {
                 onMarkerClick(eventId)
             }

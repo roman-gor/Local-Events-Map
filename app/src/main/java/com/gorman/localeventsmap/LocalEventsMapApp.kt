@@ -2,6 +2,7 @@ package com.gorman.localeventsmap
 
 import android.app.Application
 import android.content.Context
+import com.google.android.gms.common.api.ApiException
 import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.HiltAndroidApp
 
@@ -18,7 +19,7 @@ private fun initYandexMapKit(context: Context) {
         MapKitFactory.setApiKey(BuildConfig.YANDEX_KEY)
         MapKitFactory.setLocale("en_US")
         MapKitFactory.initialize(context)
-    } catch (e: Exception) {
+    } catch (e: ApiException) {
         error("${e.message}")
     }
 }

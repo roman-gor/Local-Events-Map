@@ -47,7 +47,7 @@ class MapViewModel @Inject constructor(
     private val _filterState = MutableStateFlow(FiltersState())
     val filterState = _filterState.asStateFlow()
 
-    private val _selectedMapEventId = MutableStateFlow<Int?>(null)
+    private val _selectedMapEventId = MutableStateFlow<String?>(null)
 
     private val _cityCenterData = MutableStateFlow(CityData())
     val cityCenterData = _cityCenterData.asStateFlow()
@@ -141,7 +141,7 @@ class MapViewModel @Inject constructor(
     }
 
     fun searchForCity(city: CityCoordinatesConstants) {
-        Log.d("Coordinates", "Запуск метода ${city.cityName}")
+        Log.d("Coordinates", "Starting method ${city.cityName}")
         val searchOptions = SearchOptions().apply {
             searchTypes = SearchType.GEO.value
             resultPageSize = 1
@@ -159,6 +159,7 @@ class MapViewModel @Inject constructor(
                     val firstGeoObject = response.collection.children.firstOrNull()?.obj
                     val point = firstGeoObject?.geometry?.first()?.point
                     _cityCenterData.value = CityData(city = city, cityCoordinates = point)
+                    Log.d("Coordinates", "${_cityCenterData.value}")
                     getEventsList()
                 }
 
@@ -173,7 +174,7 @@ class MapViewModel @Inject constructor(
         _mapEventsState.value = MapEventsState.Loading
         viewModelScope.launch {
             try {
-                mapEventsRepository.syncMapEvents()
+                mapEventsRepository.syncWith()
                 getEventsList()
             } catch (e: ApiException) {
                 Log.e("ViewModel", "Error when sync events ${e.message}")
@@ -184,7 +185,7 @@ class MapViewModel @Inject constructor(
     fun getEventsList() {
         _mapEventsState.value = MapEventsState.Loading
         viewModelScope.launch {
-            mapEventsRepository.getAllLocalEvents()
+            mapEventsRepository.getAllEvents()
                 .combine(_filterState) { events, filters ->
                     Pair(events, filters)
                 }.combine(_cityCenterData) { (events, filters), cityData ->
@@ -208,7 +209,7 @@ class MapViewModel @Inject constructor(
                 .combine(_selectedMapEventId) { events, selectedId ->
                     events?.map { domainEvent ->
                         domainEvent.toUiState().copy(
-                            isSelected = (domainEvent.localId == selectedId)
+                            isSelected = (domainEvent.id == selectedId)
                         )
                     }
                 }
@@ -231,7 +232,7 @@ class MapViewModel @Inject constructor(
         _filterState.value = _filterState.value.copy(categories = currentCategories)
     }
 
-    fun selectEvent(id: Int) {
+    fun selectEvent(id: String) {
         viewModelScope.launch {
             val currentId = _selectedMapEventId.value
             _selectedMapEventId.value = if (currentId == id) null else id

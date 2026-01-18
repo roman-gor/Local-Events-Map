@@ -25,12 +25,8 @@ interface MapEventsDao {
     @Query("DELETE FROM events")
     suspend fun deleteAll()
 
-    @Query("DELETE FROM sqlite_sequence WHERE name = 'events'")
-    suspend fun resetTableSequence()
-
     @Transaction
     suspend fun clearTable() {
         deleteAll()
-        resetTableSequence()
     }
 }

@@ -5,7 +5,7 @@ import com.gorman.events.ui.states.MapUiEvent
 
 fun MapEvent.toUiState(): MapUiEvent =
     MapUiEvent(
-        id = localId,
+        id = id,
         name = name,
         category = category,
         coordinates = coordinates,
@@ -15,7 +15,7 @@ fun MapEvent.toUiState(): MapUiEvent =
 
 fun MapUiEvent.toDomain(): MapEvent =
     MapEvent(
-        localId = id,
+        id = id,
         name = name,
         category = category,
         coordinates = coordinates,
