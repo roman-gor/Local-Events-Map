@@ -5,7 +5,7 @@ import com.gorman.firebase.data.models.MapEventFirebase
 
 fun MapEventFirebase.toDomain(): MapEvent =
     MapEvent(
-        remoteId = id,
+        id = id,
         name = name,
         description = description,
         city = city,
