@@ -2,7 +2,6 @@ package com.gorman.events.ui.screens
 
 import android.Manifest
 import android.graphics.PointF
-import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -43,6 +42,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CategoryConstants.Companion.categoriesList
 import com.gorman.common.constants.CostConstants
@@ -54,9 +54,12 @@ import com.gorman.events.ui.components.MapEventsBottomSheet
 import com.gorman.events.ui.components.cityNameDefinition
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
+import com.gorman.events.ui.states.MapSideEffect
 import com.gorman.events.ui.states.MapUiEvent
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
+import com.gorman.events.ui.utils.MapController
+import com.gorman.events.ui.utils.rememberMapController
 import com.gorman.events.ui.viewmodels.MapViewModel
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.Animation
@@ -78,6 +81,7 @@ import kotlin.collections.map
 fun MapScreenEntry(
     mapViewModel: MapViewModel = hiltViewModel()
 ) {
+
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -85,19 +89,32 @@ fun MapScreenEntry(
         )
     )
 
-    LaunchedEffect(permissionsState) {
-        if (permissionsState.allPermissionsGranted) {
-            mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted)
+    val mapController = rememberMapController()
+
+    LaunchedEffect(Unit) {
+        mapViewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is MapSideEffect.MoveCamera -> {
+                    mapController.moveCamera(effect.point, effect.zoom)
+                }
+            }
         }
     }
+
+    BindPermissionLogic(
+        permissionsState = permissionsState,
+        onPermissionsGranted = { mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted) }
+    )
 
     val uiState by mapViewModel.uiState.collectAsStateWithLifecycle()
 
     when (permissionsState.allPermissionsGranted) {
         true -> {
+            mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted)
             MapContent(
                 uiState = uiState,
-                onUiEvent = mapViewModel::onUiEvent
+                onUiEvent = mapViewModel::onUiEvent,
+                mapController = mapController
             )
         }
         false -> {
@@ -123,7 +140,8 @@ fun MapScreenEntry(
                 } else {
                     MapContent(
                         uiState = uiState,
-                        onUiEvent = mapViewModel::onUiEvent
+                        onUiEvent = mapViewModel::onUiEvent,
+                        mapController = mapController
                     )
                 }
             }
@@ -134,7 +152,8 @@ fun MapScreenEntry(
 @Composable
 fun MapContent(
     uiState: ScreenState,
-    onUiEvent: (ScreenUiEvent) -> Unit
+    onUiEvent: (ScreenUiEvent) -> Unit,
+    mapController: MapController
 ) {
     when (uiState) {
         is ScreenState.Error -> ErrorDataScreen()
@@ -145,7 +164,8 @@ fun MapContent(
                 onCategoryChange = { category -> onUiEvent(ScreenUiEvent.OnCategoryChanged(category)) },
                 onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
                 onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
-                uiState = uiState
+                uiState = uiState,
+                mapController = mapController
             )
         }
     }
@@ -158,7 +178,8 @@ fun MapScreen(
     onCategoryChange: (String) -> Unit,
     onSyncClick: () -> Unit,
     onEventClick: (MapUiEvent) -> Unit,
-    uiState: ScreenState.Success
+    uiState: ScreenState.Success,
+    mapController: MapController
 ) {
     var mapEventsListExpanded by remember { mutableStateOf(false) }
     var filtersExpanded by remember { mutableStateOf(false) }
@@ -181,15 +202,14 @@ fun MapScreen(
             .background(color = MaterialTheme.colorScheme.background)
     ) {
         YandexMapView(
+            mapController = mapController,
             onCameraIdle = onCameraIdle,
             onMarkerClick = { eventId ->
                 uiState.eventsList.find { it.id == eventId }?.let {
                     onEventClick(it)
                 }
             },
-            eventsList = uiState.eventsList,
-            cityCenter = uiState.cityCenterData.cityCoordinates,
-            cityChanged = uiState.isCityChanged
+            eventsList = uiState.eventsList
         )
         uiState.cityCenterData.city?.let {
             Text(
@@ -298,11 +318,10 @@ fun EventItem(
 
 @Composable
 fun YandexMapView(
-    cityChanged: Boolean,
+    mapController: MapController,
     onCameraIdle: (Point?) -> Unit,
     onMarkerClick: (String) -> Unit,
-    eventsList: ImmutableList<MapUiEvent>,
-    cityCenter: Point?
+    eventsList: ImmutableList<MapUiEvent>
 ) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
@@ -315,19 +334,20 @@ fun YandexMapView(
     val tapListener = remember(onMarkerClick) {
         MapObjectTapListener { mapObject, _ ->
             val eventId = mapObject.userData as? String
-            Log.d("MapDebug", "Marker clicked: $eventId")
-            if (eventId != null) {
-                onMarkerClick(eventId)
-            }
+            if (eventId != null) onMarkerClick(eventId)
             true
         }
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(mapView) {
+        mapController.attach(mapView)
         mapView.onStart()
+        MapKitFactory.getInstance().onStart()
+
         onDispose {
             mapView.onStop()
             MapKitFactory.getInstance().onStop()
+            mapController.detach()
         }
     }
     DisposableEffect(mapView) {
@@ -342,17 +362,6 @@ fun YandexMapView(
         }
     }
 
-    val cameraPosition = cityCenter ?: Point(53.886944, 27.566667)
-    if (cityChanged) {
-        mapView.mapWindow.map.move(
-            CameraPosition(
-                cameraPosition,
-                10.5f,
-                0.0f,
-                0.0f
-            )
-        )
-    }
     val iconStyle = IconStyle().apply {
         anchor = PointF(0.5f, 1.0f)
         zIndex = 10f
@@ -389,13 +398,26 @@ fun YandexMapView(
                         null
                     )
                 }
-            } else if (cityChanged && cityCenter != null) {
-                mapView.mapWindow.map.move(
-                    CameraPosition(cityCenter, 11.0f, 0.0f, 0.0f),
-                    Animation(Animation.Type.SMOOTH, 1f),
-                    null
-                )
             }
         }
     )
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+private fun BindPermissionLogic(
+    permissionsState: MultiplePermissionsState,
+    onPermissionsGranted: () -> Unit
+) {
+    LaunchedEffect(permissionsState.allPermissionsGranted) {
+        if (permissionsState.allPermissionsGranted) {
+            onPermissionsGranted()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (!permissionsState.allPermissionsGranted && !permissionsState.shouldShowRationale) {
+            permissionsState.launchMultiplePermissionRequest()
+        }
+    }
 }

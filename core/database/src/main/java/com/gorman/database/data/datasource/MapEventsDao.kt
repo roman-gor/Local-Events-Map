@@ -11,7 +11,7 @@ interface MapEventsDao {
     @Query("SELECT * FROM events")
     fun getAllEvents(): Flow<List<MapEventEntity>>
     @Upsert
-    suspend fun insertEvent(events: List<MapEventEntity>)
+    suspend fun upsertEvent(events: List<MapEventEntity>)
     @Query("SELECT * FROM events WHERE id=:id")
     fun getEventById(id: Long): Flow<MapEventEntity>
     @Query("SELECT * FROM events WHERE name LIKE '%' || :name || '%'")

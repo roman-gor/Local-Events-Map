@@ -50,7 +50,7 @@ internal class MapEventsRepositoryImpl @Inject constructor(
                     database.withTransaction {
                         if (remoteIds.isNotEmpty()) {
                             mapEventsDao.deleteEventsNotIn(remoteIds)
-                            mapEventsDao.insertEvent(entities)
+                            mapEventsDao.upsertEvent(entities)
                         }
                         else {
                             mapEventsDao.clearAll()

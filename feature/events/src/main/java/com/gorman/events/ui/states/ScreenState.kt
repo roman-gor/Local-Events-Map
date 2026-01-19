@@ -13,8 +13,7 @@ sealed interface ScreenState {
         val eventsList: ImmutableList<MapUiEvent> = persistentListOf(),
         val filterState: FiltersState = FiltersState(),
         val selectedMapEventId: String? = null,
-        val cityCenterData: CityData = CityData(),
-        val isCityChanged: Boolean = false
+        val cityCenterData: CityData = CityData()
     ) : ScreenState
 }
 

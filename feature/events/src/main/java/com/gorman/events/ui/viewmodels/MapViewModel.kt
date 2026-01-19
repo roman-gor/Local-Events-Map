@@ -10,6 +10,7 @@ import com.gorman.data.repository.IGeoRepository
 import com.gorman.data.repository.IMapEventsRepository
 import com.gorman.events.ui.mappers.toUiState
 import com.gorman.events.ui.states.FiltersState
+import com.gorman.events.ui.states.MapSideEffect
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
 import com.yandex.mapkit.geometry.Point
@@ -17,12 +18,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,16 +41,19 @@ class MapViewModel @Inject constructor(
     private val _filters = MutableStateFlow(FiltersState())
     private val _cityData = MutableStateFlow(CityData())
     private val _selectedEventId = MutableStateFlow<String?>(null)
-    private val _isCityChanged = MutableStateFlow(false)
+    private var isInitialLocationFetched = false
+
+    private val _sideEffect = Channel<MapSideEffect>(Channel.BUFFERED)
+    val sideEffect = _sideEffect.receiveAsFlow()
+
     private var cameraMoveJob: Job? = null
 
     val uiState: StateFlow<ScreenState> = combine(
         mapEventsRepository.getAllEvents(),
         _filters,
         _cityData,
-        _selectedEventId,
-        _isCityChanged
-    ) { events, filters, cityData, selectedEventId, isCityChanged ->
+        _selectedEventId
+    ) { events, filters, cityData, selectedEventId ->
         val filteredEvents = events.filter { event ->
             val matchesCity = cityData.cityName?.let {
                 it.isBlank() || event.city.equals(it, ignoreCase = true)
@@ -63,8 +69,7 @@ class MapViewModel @Inject constructor(
             eventsList = filteredEvents,
             filterState = filters,
             selectedMapEventId = selectedEventId,
-            cityCenterData = cityData,
-            isCityChanged = isCityChanged
+            cityCenterData = cityData
         ) as ScreenState
     }.catch { e ->
         emit(ScreenState.Error(e))
@@ -82,16 +87,20 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnEventSelected -> selectEvent(event.id)
             ScreenUiEvent.OnSyncClicked -> syncEvents()
             is ScreenUiEvent.PermissionsDenied -> TODO()
-            ScreenUiEvent.PermissionsGranted -> TODO()
+            ScreenUiEvent.PermissionsGranted -> fetchInitialLocation()
         }
     }
 
-    fun fetchInitialLocation() {
+    private fun fetchInitialLocation() {
+        if (isInitialLocationFetched) return
+        isInitialLocationFetched = true
+
         viewModelScope.launch {
             val location = geoRepository.getUserLocation()
             if (location != null) {
-                geoRepository.getCityByPoint(location)
-                Log.d("Location", "Find location: $location")
+                val userCityData = geoRepository.getCityByPoint(location)
+                userCityData?.let { _cityData.value = it }
+                _sideEffect.send(MapSideEffect.MoveCamera(location))
             } else {
                 searchForCity(CityCoordinatesConstants.MINSK)
             }
@@ -101,7 +110,7 @@ class MapViewModel @Inject constructor(
     fun onCameraIdle(cameraPosition: Point) {
         cameraMoveJob?.cancel()
         cameraMoveJob = viewModelScope.launch {
-            delay(2000L)
+            delay(100L)
             val resultCityData = geoRepository.getCityByPoint(cameraPosition)
             resultCityData?.let {
                 updateCityIfChanged(it)
@@ -114,10 +123,8 @@ class MapViewModel @Inject constructor(
             val resultCityData = geoRepository.getPointByCity(city)
             resultCityData?.let {
                 _cityData.value = it
-                _isCityChanged.value = true
-                launch {
-                    delay(100)
-                    _isCityChanged.value = false
+                it.cityCoordinates?.let { point ->
+                    _sideEffect.send(MapSideEffect.MoveCamera(point))
                 }
             }
         }
@@ -157,11 +164,6 @@ class MapViewModel @Inject constructor(
 
         if (currentName != newName && newName != null) {
             _cityData.value = newData
-            _isCityChanged.value = true
-            viewModelScope.launch {
-                delay(100)
-                _isCityChanged.value = false
-            }
         }
     }
 }
