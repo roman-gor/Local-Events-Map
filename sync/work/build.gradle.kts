@@ -11,10 +11,14 @@ android {
 
 dependencies {
     implementation(project(":sync"))
-
+    implementation(project(":core:data"))
+    ksp(libs.androidx.hilt.compiler)
+    implementation(libs.androidx.work.ktx)
+    implementation(libs.hilt.ext.work)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.hilt.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

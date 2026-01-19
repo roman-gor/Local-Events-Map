@@ -1,6 +1,9 @@
 package com.gorman.data.repository
 
+import android.util.Log
+import androidx.room.withTransaction
 import com.gorman.database.data.datasource.MapEventsDao
+import com.gorman.database.data.datasource.MapEventsDatabase
 import com.gorman.database.toDomain
 import com.gorman.database.toEntity
 import com.gorman.domainmodel.MapEvent
@@ -8,12 +11,12 @@ import com.gorman.firebase.data.datasource.MapEventRemoteDataSource
 import com.gorman.firebase.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
 internal class MapEventsRepositoryImpl @Inject constructor(
     private val mapEventsDao: MapEventsDao,
-    private val mapEventRemoteDataSource: MapEventRemoteDataSource
+    private val mapEventRemoteDataSource: MapEventRemoteDataSource,
+    private val database: MapEventsDatabase
 ) : IMapEventsRepository {
 
     override fun getAllEvents(): Flow<List<MapEvent>> {
@@ -22,7 +25,7 @@ internal class MapEventsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getEventsById(id: Long): Flow<MapEvent> {
+    override fun getEventById(id: Long): Flow<MapEvent> {
         return mapEventsDao.getEventById(id).map { it.toDomain() }
     }
 
@@ -32,27 +35,31 @@ internal class MapEventsRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun insertEvents(mapEvents: List<MapEvent>) {
-        mapEventsDao.insertEvent(mapEvents.map { it.toEntity() })
-    }
-
-    override suspend fun clearTable() {
-        mapEventsDao.clearTable()
-    }
-
-    override fun getAllRemoteEvents(): Flow<List<MapEvent>> {
+    private fun getAllRemoteEvents(): Flow<List<MapEvent>> {
         return mapEventRemoteDataSource.getAllEvents().map { events ->
             events.map { it.toDomain() }
         }
     }
 
     override suspend fun syncWith() {
-        getAllRemoteEvents()
-            .onStart {
-                clearTable()
-            }
-            .collect { events ->
-                insertEvents(events)
-            }
+        try {
+            getAllRemoteEvents()
+                .collect { remoteEvents ->
+                    val entities = remoteEvents.map { it.toEntity() }
+                    val remoteIds = entities.map { it.id }
+                    database.withTransaction {
+                        if (remoteIds.isNotEmpty()) {
+                            mapEventsDao.deleteEventsNotIn(remoteIds)
+                            mapEventsDao.insertEvent(entities)
+                        }
+                        else {
+                            mapEventsDao.clearAll()
+                        }
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e("Repository", "Sync failed ${e.message}")
+        }
+
     }
 }
