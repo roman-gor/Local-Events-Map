@@ -14,6 +14,7 @@ dependencies {
     api(libs.kotlinx.serialization.json)
     api(libs.kotlinx.coroutines)
     api(libs.kotlinx.coroutines.play.services)
+    api(libs.bundles.hilt)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

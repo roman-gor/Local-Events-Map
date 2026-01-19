@@ -5,32 +5,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.common.api.ApiException
 import com.gorman.common.constants.CityCoordinatesConstants
-import com.gorman.common.data.LocationProvider
+import com.gorman.common.models.CityData
+import com.gorman.data.repository.IGeoRepository
 import com.gorman.data.repository.IMapEventsRepository
 import com.gorman.events.ui.mappers.toUiState
-import com.gorman.events.ui.states.CityData
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.events.ui.states.ScreenState
-import com.yandex.mapkit.geometry.BoundingBox
-import com.yandex.mapkit.geometry.Geometry
+import com.gorman.events.ui.states.ScreenUiEvent
 import com.yandex.mapkit.geometry.Point
-import com.yandex.mapkit.search.Address
-import com.yandex.mapkit.search.Response
-import com.yandex.mapkit.search.SearchFactory
-import com.yandex.mapkit.search.SearchManager
-import com.yandex.mapkit.search.SearchManagerType
-import com.yandex.mapkit.search.SearchOptions
-import com.yandex.mapkit.search.SearchType
-import com.yandex.mapkit.search.Session
-import com.yandex.mapkit.search.ToponymObjectMetadata
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.filter
@@ -39,37 +32,65 @@ import kotlin.collections.toMutableList
 @HiltViewModel
 class MapViewModel @Inject constructor(
     private val mapEventsRepository: IMapEventsRepository,
-    private val locationProvider: LocationProvider
+    private val geoRepository: IGeoRepository
 ) : ViewModel() {
-    private val _screenState = MutableStateFlow<ScreenState>(ScreenState.Idle)
-    val mapEventState = _screenState.asStateFlow()
 
-    private val _filterState = MutableStateFlow(FiltersState())
-    val filterState = _filterState.asStateFlow()
-
-    private val _selectedMapEventId = MutableStateFlow<String?>(null)
-
-    private val _cityCenterData = MutableStateFlow(CityData())
-    val cityCenterData = _cityCenterData.asStateFlow()
-
-    private val _cityChanged = MutableStateFlow(false)
-    val cityChanged = _cityChanged.asStateFlow()
-
-    private var searchManager: SearchManager? = null
-    private var searchSession: Session? = null
+    private val _filters = MutableStateFlow(FiltersState())
+    private val _cityData = MutableStateFlow(CityData())
+    private val _selectedEventId = MutableStateFlow<String?>(null)
+    private val _isCityChanged = MutableStateFlow(false)
     private var cameraMoveJob: Job? = null
-    private var lastCityEnum = CityCoordinatesConstants.MINSK
 
-    init {
-        searchManager = SearchFactory.getInstance()
-            .createSearchManager(SearchManagerType.COMBINED)
+    val uiState: StateFlow<ScreenState> = combine(
+        mapEventsRepository.getAllEvents(),
+        _filters,
+        _cityData,
+        _selectedEventId,
+        _isCityChanged
+    ) { events, filters, cityData, selectedEventId, isCityChanged ->
+        val filteredEvents = events.filter { event ->
+            val matchesCity = cityData.cityName?.let {
+                it.isBlank() || event.city.equals(it, ignoreCase = true)
+            } ?: true
+
+            val matchesCategory = filters.categories.isEmpty() || event.category in filters.categories
+
+            matchesCity && matchesCategory
+        }.map { domainEvent ->
+            domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
+        }.toImmutableList()
+        ScreenState.Success(
+            eventsList = filteredEvents,
+            filterState = filters,
+            selectedMapEventId = selectedEventId,
+            cityCenterData = cityData,
+            isCityChanged = isCityChanged
+        ) as ScreenState
+    }.catch { e ->
+        emit(ScreenState.Error(e))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ScreenState.Loading
+    )
+
+    fun onUiEvent(event: ScreenUiEvent) {
+        when (event) {
+            is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
+            is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
+            is ScreenUiEvent.OnCitySearch -> searchForCity(event.city)
+            is ScreenUiEvent.OnEventSelected -> selectEvent(event.id)
+            ScreenUiEvent.OnSyncClicked -> syncEvents()
+            is ScreenUiEvent.PermissionsDenied -> TODO()
+            ScreenUiEvent.PermissionsGranted -> TODO()
+        }
     }
 
     fun fetchInitialLocation() {
         viewModelScope.launch {
-            val location = locationProvider.getLastKnownLocation()
+            val location = geoRepository.getUserLocation()
             if (location != null) {
-                reverseGeocodeAndSetCity(location)
+                geoRepository.getCityByPoint(location)
                 Log.d("Location", "Find location: $location")
             } else {
                 searchForCity(CityCoordinatesConstants.MINSK)
@@ -81,163 +102,66 @@ class MapViewModel @Inject constructor(
         cameraMoveJob?.cancel()
         cameraMoveJob = viewModelScope.launch {
             delay(2000L)
-            reverseGeocodeAndSetCity(cameraPosition)
-        }
-    }
-
-    private fun reverseGeocodeAndSetCity(location: Point) {
-        val searchOptions = SearchOptions().apply {
-            searchTypes = SearchType.GEO.value
-            resultPageSize = 1
-        }
-        searchSession = searchManager?.submit(
-            location,
-            null,
-            searchOptions,
-            object : Session.SearchListener {
-                override fun onSearchResponse(p0: Response) {
-                    val geoObject = p0.collection.children.firstOrNull()?.obj
-                        ?.metadataContainer
-                        ?.getItem(ToponymObjectMetadata::class.java)
-
-                    val city = geoObject?.address?.components
-                        ?.firstOrNull {
-                            it.kinds.contains(Address.Component.Kind.LOCALITY)
-                        }?.name
-                        ?: geoObject?.address?.components
-                            ?.firstOrNull {
-                                it.kinds.contains(Address.Component.Kind.AREA)
-                            }?.name
-                    Log.d("YandexGeoCoding", city.toString())
-
-                    if (city != null) {
-                        val currentCityName = _cityCenterData.value.city?.cityName
-
-                        if (!currentCityName.equals(city, ignoreCase = true)) {
-                            val cityEnum = CityCoordinatesConstants.fromCityName(city)
-
-                            val newCityData = if (cityEnum != null) {
-                                lastCityEnum = cityEnum
-                                _cityChanged.value = true
-                                CityData(city = cityEnum, cityCoordinates = location)
-                            } else {
-                                return
-                            }
-
-                            Log.d("YandexGeoCoding", "City Changed: true")
-                            _cityCenterData.value = newCityData
-                            getEventsList()
-                        } else {
-                            _cityChanged.value = false
-                            Log.d("YandexGeoCoding", "City Changed: false")
-                            return
-                        }
-                    }
-                }
-
-                override fun onSearchError(p0: com.yandex.runtime.Error) {
-                    Log.e("MapViewModel", "Reverse geocoding error: $p0")
-                }
+            val resultCityData = geoRepository.getCityByPoint(cameraPosition)
+            resultCityData?.let {
+                updateCityIfChanged(it)
             }
-        )
+        }
     }
 
     fun searchForCity(city: CityCoordinatesConstants) {
-        Log.d("Coordinates", "Starting method ${city.cityName}")
-        val searchOptions = SearchOptions().apply {
-            searchTypes = SearchType.GEO.value
-            resultPageSize = 1
-        }
-        val boundingBox = BoundingBox(
-            Point(49.0, 22.0),
-            Point(57.0, 33.0)
-        )
-        searchSession = searchManager?.submit(
-            city.cityName,
-            Geometry.fromBoundingBox(boundingBox),
-            searchOptions,
-            object : Session.SearchListener {
-                override fun onSearchResponse(response: Response) {
-                    val firstGeoObject = response.collection.children.firstOrNull()?.obj
-                    val point = firstGeoObject?.geometry?.first()?.point
-                    _cityCenterData.value = CityData(city = city, cityCoordinates = point)
-                    Log.d("Coordinates", "${_cityCenterData.value}")
-                    getEventsList()
-                }
-
-                override fun onSearchError(p0: com.yandex.runtime.Error) {
-                    Log.e("MapViewModel", "Geocoding error: $p0")
+        viewModelScope.launch {
+            val resultCityData = geoRepository.getPointByCity(city)
+            resultCityData?.let {
+                _cityData.value = it
+                _isCityChanged.value = true
+                launch {
+                    delay(100)
+                    _isCityChanged.value = false
                 }
             }
-        )
+        }
     }
 
-    fun syncEvents() {
-        _screenState.value = ScreenState.Loading
-        viewModelScope.launch {
+    private fun syncEvents() {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 mapEventsRepository.syncWith()
-                getEventsList()
             } catch (e: ApiException) {
                 Log.e("ViewModel", "Error when sync events ${e.message}")
             }
         }
     }
 
-    fun getEventsList() {
-        _screenState.value = ScreenState.Loading
-        viewModelScope.launch {
-            mapEventsRepository.getAllEvents()
-                .combine(_filterState) { events, filters ->
-                    Pair(events, filters)
-                }.combine(_cityCenterData) { (events, filters), cityData ->
-                    cityData.cityName?.let {
-                        val eventsInCity = if (it.isNotBlank()) {
-                            events.filter { event ->
-                                event.city.equals(it, ignoreCase = true)
-                            }
-                        } else {
-                            events
-                        }
-                        if (filters.categories.isEmpty()) {
-                            eventsInCity
-                        } else {
-                            eventsInCity.filter { event ->
-                                event.category in filters.categories
-                            }
-                        }
-                    }
-                }
-                .combine(_selectedMapEventId) { events, selectedId ->
-                    events?.map { domainEvent ->
-                        domainEvent.toUiState().copy(
-                            isSelected = (domainEvent.id == selectedId)
-                        )
-                    }
-                }
-                .collectLatest { uiEvents ->
-                    if (uiEvents != null) {
-                        _screenState.value = ScreenState.Success(uiEvents.toImmutableList())
-                    }
-                }
-        }
-    }
-
-    fun onCategoryChanged(category: String) {
-        val currentCategories = _filterState.value.categories.toMutableList()
+    private fun onCategoryChanged(category: String) {
+        val currentCategories = _filters.value.categories.toMutableList()
         if (currentCategories.contains(category)) {
             currentCategories.remove(category)
         } else {
             currentCategories.add(category)
         }
-        Log.d("FilterList", _filterState.value.categories.toString())
-        _filterState.value = _filterState.value.copy(categories = currentCategories)
+        Log.d("FilterList", _filters.value.categories.toString())
+        _filters.value = _filters.value.copy(categories = currentCategories)
     }
 
-    fun selectEvent(id: String) {
+    private fun selectEvent(id: String) {
         viewModelScope.launch {
-            val currentId = _selectedMapEventId.value
-            _selectedMapEventId.value = if (currentId == id) null else id
+            val currentId = _selectedEventId.value
+            _selectedEventId.value = if (currentId == id) null else id
+        }
+    }
+
+    private fun updateCityIfChanged(newData: CityData) {
+        val currentName = _cityData.value.cityName
+        val newName = newData.cityName
+
+        if (currentName != newName && newName != null) {
+            _cityData.value = newData
+            _isCityChanged.value = true
+            viewModelScope.launch {
+                delay(100)
+                _isCityChanged.value = false
+            }
         }
     }
 }
