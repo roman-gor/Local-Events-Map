@@ -5,8 +5,7 @@ import com.gorman.domainmodel.MapEvent
 
 fun MapEventEntity.toDomain(): MapEvent =
     MapEvent(
-        localId = id,
-        remoteId = remoteId,
+        id = id,
         name = name,
         description = description,
         city = city,
@@ -21,7 +20,7 @@ fun MapEventEntity.toDomain(): MapEvent =
 
 fun MapEvent.toEntity(): MapEventEntity =
     MapEventEntity(
-        remoteId = remoteId,
+        id = id,
         name = name,
         description = description,
         city = city,

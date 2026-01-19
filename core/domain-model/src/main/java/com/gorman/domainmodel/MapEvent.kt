@@ -1,8 +1,7 @@
 package com.gorman.domainmodel
 
 data class MapEvent(
-    val localId: Int = 0,
-    val remoteId: String? = null,
+    val id: String = "",
     val name: String? = null,
     val description: String? = null,
     val city: String? = null,

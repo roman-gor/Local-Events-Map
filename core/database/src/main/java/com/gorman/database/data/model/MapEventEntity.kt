@@ -5,8 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity("events")
 data class MapEventEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val remoteId: String? = null,
+    @PrimaryKey val id: String = "",
     val name: String? = null,
     val description: String? = null,
     val city: String? = null,
