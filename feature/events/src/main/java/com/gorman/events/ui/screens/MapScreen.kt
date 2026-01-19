@@ -30,7 +30,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,16 +47,16 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CategoryConstants.Companion.categoriesList
 import com.gorman.common.constants.CostConstants
 import com.gorman.events.R
-import com.gorman.events.ui.components.cityNameDefinition
 import com.gorman.events.ui.components.FiltersBottomSheet
 import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.LoadingStub
 import com.gorman.events.ui.components.MapEventsBottomSheet
+import com.gorman.events.ui.components.cityNameDefinition
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
-import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.MapUiEvent
-import com.gorman.events.ui.states.MapUiState
+import com.gorman.events.ui.states.ScreenState
+import com.gorman.events.ui.states.ScreenUiEvent
 import com.gorman.events.ui.viewmodels.MapViewModel
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.Animation
@@ -85,82 +84,68 @@ fun MapScreenEntry(
             Manifest.permission.ACCESS_COARSE_LOCATION
         )
     )
-    val dataLoaded = rememberSaveable { mutableStateOf(false) }
-    val cityData by mapViewModel.cityCenterData.collectAsStateWithLifecycle()
 
-    when {
-        permissionsState.allPermissionsGranted -> {
-            if (!dataLoaded.value) {
-                LaunchedEffect(Unit) {
-                    mapViewModel.getEventsList()
-                    mapViewModel.fetchInitialLocation()
-                    dataLoaded.value = true
-                }
-            }
-            MapContent(mapViewModel)
+    LaunchedEffect(permissionsState) {
+        if (permissionsState.allPermissionsGranted) {
+            mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted)
         }
-        permissionsState.shouldShowRationale -> {
-            PermissionRequestScreen(
-                showManualInput = false,
-                onCitySubmit = { },
-                shouldShowRationale = true,
-                requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+    }
+
+    val uiState by mapViewModel.uiState.collectAsStateWithLifecycle()
+
+    when (permissionsState.allPermissionsGranted) {
+        true -> {
+            MapContent(
+                uiState = uiState,
+                onUiEvent = mapViewModel::onUiEvent
             )
         }
-        else -> {
-            if (cityData.cityCoordinates == null) {
+        false -> {
+            if (permissionsState.shouldShowRationale) {
                 PermissionRequestScreen(
-                    showManualInput = !permissionsState.shouldShowRationale && dataLoaded.value,
-                    onCitySubmit = { city -> mapViewModel.searchForCity(city) },
-                    shouldShowRationale = false,
+                    showManualInput = false,
+                    onCitySubmit = { },
+                    shouldShowRationale = true,
                     requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
                 )
-                LaunchedEffect(Unit) {
-                    if (!dataLoaded.value) {
-                        permissionsState.launchMultiplePermissionRequest()
-                        dataLoaded.value = true
-                    }
-                }
             } else {
-                if (!dataLoaded.value) {
-                    LaunchedEffect(Unit) {
-                        mapViewModel.getEventsList()
-                        dataLoaded.value = true
-                    }
+                val cityHasCoordinates = (uiState as? ScreenState.Success)?.cityCenterData?.cityCoordinates != null
+
+                if (!cityHasCoordinates) {
+                    PermissionRequestScreen(
+                        showManualInput = !permissionsState.shouldShowRationale,
+                        onCitySubmit = { city ->
+                            mapViewModel.onUiEvent(ScreenUiEvent.OnCitySearch(city))
+                        },
+                        shouldShowRationale = false,
+                        requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+                    )
+                } else {
+                    MapContent(
+                        uiState = uiState,
+                        onUiEvent = mapViewModel::onUiEvent
+                    )
                 }
-                MapContent(mapViewModel)
             }
         }
     }
 }
 
 @Composable
-fun MapContent(mapViewModel: MapViewModel) {
-    val mapEventsState by mapViewModel.mapEventState.collectAsStateWithLifecycle()
-    when (val state = mapEventsState) {
+fun MapContent(
+    uiState: ScreenState,
+    onUiEvent: (ScreenUiEvent) -> Unit
+) {
+    when (uiState) {
         is ScreenState.Error -> ErrorDataScreen()
-        ScreenState.Idle -> Box(
-            Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        )
-
         ScreenState.Loading -> LoadingStub()
         is ScreenState.Success -> {
-            val filters by mapViewModel.filterState.collectAsStateWithLifecycle()
-            val cityData by mapViewModel.cityCenterData.collectAsStateWithLifecycle()
-            val cityChanged by mapViewModel.cityChanged.collectAsStateWithLifecycle(initialValue = true)
             MapScreen(
-                onCameraIdle = { location -> location?.let { mapViewModel.onCameraIdle(it) } },
-                onCategoryChange = { mapViewModel.onCategoryChanged(it) },
-                onSyncClick = { mapViewModel.syncEvents() },
-                onEventClick = { mapViewModel.selectEvent(it.id) },
-                mapUiState = MapUiState(
-                    filters = filters,
-                    eventsList = state.eventsList,
-                    cityData = cityData,
-                    cityChanged = cityChanged
-                )
+                onCameraIdle = { location -> location?.let { onUiEvent(ScreenUiEvent.OnCameraIdle(location)) } },
+                onCategoryChange = { category -> onUiEvent(ScreenUiEvent.OnCategoryChanged(category)) },
+                onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
+                onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
+                uiState = uiState
             )
         }
     }
@@ -173,7 +158,7 @@ fun MapScreen(
     onCategoryChange: (String) -> Unit,
     onSyncClick: () -> Unit,
     onEventClick: (MapUiEvent) -> Unit,
-    mapUiState: MapUiState
+    uiState: ScreenState.Success
 ) {
     var mapEventsListExpanded by remember { mutableStateOf(false) }
     var filtersExpanded by remember { mutableStateOf(false) }
@@ -198,20 +183,22 @@ fun MapScreen(
         YandexMapView(
             onCameraIdle = onCameraIdle,
             onMarkerClick = { eventId ->
-                mapUiState.eventsList.find { it.id == eventId }?.let {
+                uiState.eventsList.find { it.id == eventId }?.let {
                     onEventClick(it)
                 }
             },
-            eventsList = mapUiState.eventsList,
-            cityCenter = mapUiState.cityData.cityCoordinates,
-            cityChanged = mapUiState.cityChanged
+            eventsList = uiState.eventsList,
+            cityCenter = uiState.cityCenterData.cityCoordinates,
+            cityChanged = uiState.isCityChanged
         )
-        mapUiState.cityData.city?.let {
+        uiState.cityCenterData.city?.let {
             Text(
                 text = cityNameDefinition(it),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.systemBarsPadding().align(Alignment.TopCenter)
+                modifier = Modifier
+                    .systemBarsPadding()
+                    .align(Alignment.TopCenter)
             )
         }
         if (mapEventsListExpanded) {
@@ -224,7 +211,7 @@ fun MapScreen(
                         mapEventsListExpanded = false
                     }
                 },
-                eventsList = mapUiState.eventsList,
+                eventsList = uiState.eventsList,
                 sheetState = mapEventsListSheetState
             )
         }
@@ -232,7 +219,7 @@ fun MapScreen(
             FiltersBottomSheet(
                 onDismiss = { filtersExpanded = !filtersExpanded },
                 sheetState = filtersSheetState,
-                filters = mapUiState.filters,
+                filters = uiState.filterState,
                 options = FilterOptions(
                     categoryItems = categoriesList,
                     costItems = CostConstants.costList.map { it.value }
@@ -288,11 +275,11 @@ fun EventItem(
             .fillMaxWidth()
             .background(
                 color =
-                    if (mapEvent.isSelected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.background
-                    }
+                if (mapEvent.isSelected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.background
+                }
             ),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically

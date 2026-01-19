@@ -49,6 +49,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 add("testImplementation", libs.findLibrary("junit").get())
                 add("androidTestImplementation", libs.findLibrary("androidx.junit").get())
                 add("androidTestImplementation", libs.findLibrary("androidx.espresso.core").get())
+                add("lintChecks", libs.findLibrary("compose.lint.checks").get())
             }
         }
     }
