@@ -55,7 +55,7 @@ import com.gorman.events.ui.components.LoadingStub
 import com.gorman.events.ui.components.MapEventsBottomSheet
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
-import com.gorman.events.ui.states.MapEventsState
+import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.MapUiEvent
 import com.gorman.events.ui.states.MapUiState
 import com.gorman.events.ui.viewmodels.MapViewModel
@@ -138,15 +138,15 @@ fun MapScreenEntry(
 fun MapContent(mapViewModel: MapViewModel) {
     val mapEventsState by mapViewModel.mapEventState.collectAsStateWithLifecycle()
     when (val state = mapEventsState) {
-        is MapEventsState.Error -> ErrorDataScreen()
-        MapEventsState.Idle -> Box(
+        is ScreenState.Error -> ErrorDataScreen()
+        ScreenState.Idle -> Box(
             Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
         )
 
-        MapEventsState.Loading -> LoadingStub()
-        is MapEventsState.Success -> {
+        ScreenState.Loading -> LoadingStub()
+        is ScreenState.Success -> {
             val filters by mapViewModel.filterState.collectAsStateWithLifecycle()
             val cityData by mapViewModel.cityCenterData.collectAsStateWithLifecycle()
             val cityChanged by mapViewModel.cityChanged.collectAsStateWithLifecycle(initialValue = true)
