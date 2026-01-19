@@ -10,7 +10,7 @@ import com.gorman.data.repository.IMapEventsRepository
 import com.gorman.events.ui.mappers.toUiState
 import com.gorman.events.ui.states.CityData
 import com.gorman.events.ui.states.FiltersState
-import com.gorman.events.ui.states.MapEventsState
+import com.gorman.events.ui.states.ScreenState
 import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.geometry.Point
@@ -41,8 +41,8 @@ class MapViewModel @Inject constructor(
     private val mapEventsRepository: IMapEventsRepository,
     private val locationProvider: LocationProvider
 ) : ViewModel() {
-    private val _mapEventsState = MutableStateFlow<MapEventsState>(MapEventsState.Idle)
-    val mapEventState = _mapEventsState.asStateFlow()
+    private val _screenState = MutableStateFlow<ScreenState>(ScreenState.Idle)
+    val mapEventState = _screenState.asStateFlow()
 
     private val _filterState = MutableStateFlow(FiltersState())
     val filterState = _filterState.asStateFlow()
@@ -99,6 +99,7 @@ class MapViewModel @Inject constructor(
                     val geoObject = p0.collection.children.firstOrNull()?.obj
                         ?.metadataContainer
                         ?.getItem(ToponymObjectMetadata::class.java)
+
                     val city = geoObject?.address?.components
                         ?.firstOrNull {
                             it.kinds.contains(Address.Component.Kind.LOCALITY)
@@ -108,6 +109,7 @@ class MapViewModel @Inject constructor(
                                 it.kinds.contains(Address.Component.Kind.AREA)
                             }?.name
                     Log.d("YandexGeoCoding", city.toString())
+
                     if (city != null) {
                         val currentCityName = _cityCenterData.value.city?.cityName
 
@@ -171,7 +173,7 @@ class MapViewModel @Inject constructor(
     }
 
     fun syncEvents() {
-        _mapEventsState.value = MapEventsState.Loading
+        _screenState.value = ScreenState.Loading
         viewModelScope.launch {
             try {
                 mapEventsRepository.syncWith()
@@ -183,7 +185,7 @@ class MapViewModel @Inject constructor(
     }
 
     fun getEventsList() {
-        _mapEventsState.value = MapEventsState.Loading
+        _screenState.value = ScreenState.Loading
         viewModelScope.launch {
             mapEventsRepository.getAllEvents()
                 .combine(_filterState) { events, filters ->
@@ -215,7 +217,7 @@ class MapViewModel @Inject constructor(
                 }
                 .collectLatest { uiEvents ->
                     if (uiEvents != null) {
-                        _mapEventsState.value = MapEventsState.Success(uiEvents.toImmutableList())
+                        _screenState.value = ScreenState.Success(uiEvents.toImmutableList())
                     }
                 }
         }

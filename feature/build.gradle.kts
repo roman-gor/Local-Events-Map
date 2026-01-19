@@ -1,38 +1,12 @@
 plugins {
-    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
+    id("localevents.android.library")
+    id("localevents.android.compose")
+    id("localevents.hilt")
 }
 
 android {
     namespace = "com.gorman.feature_events"
-    compileSdk {
-        version = release(36)
-    }
-
-    defaultConfig {
-        minSdk = 26
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt")
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
 }
 
 dependencies {
@@ -41,17 +15,13 @@ dependencies {
     api(project(":core:domain-model"))
     api(project(":core:data"))
     api(project(":core:ui"))
-    implementation(libs.bundles.hilt)
-    ksp(libs.hilt.compiler)
 
-    api(libs.bundles.compose)
+    api(libs.bundles.hilt)
     api(libs.androidx.core.ktx)
     api(libs.androidx.lifecycle.runtime.ktx)
-    api(libs.androidx.activity.compose)
     api(libs.accompanist.permissions)
     api(libs.androidx.compose.ui.tooling.preview)
     api(libs.kotlinx.coroutines.immutable)
-    implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
