@@ -196,11 +196,13 @@ fun MapContent(
                             )
                         },
                         onDateRangeChange = { dateState ->
-                            onUiEvent(ScreenUiEvent.OnDataChanged(dateState))
+                            onUiEvent(ScreenUiEvent.OnDateChanged(dateState))
                         },
                         onDistanceChange = {},
                         onCostChange = {},
-                        onNameChange = {}
+                        onNameChange = { name ->
+                            onUiEvent(ScreenUiEvent.OnNameChanged(name))
+                        }
                     ),
                     onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
                     onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
@@ -307,7 +309,9 @@ fun MapScreen(
                     },
                     onDistanceChange = { },
                     onCostChange = { },
-                    onNameChange = { }
+                    onNameChange = { name ->
+                        mapScreenActions.filterActions.onNameChange(name)
+                    }
                 )
             )
         }

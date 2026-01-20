@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -81,10 +82,8 @@ fun FiltersBottomSheet(
     actions: FilterActions
 ) {
     var categoryExpanded by remember { mutableStateOf(false) }
-    var selectedFilterType by remember { mutableStateOf<DateFilterType?>(null) }
     var distance by remember { mutableIntStateOf(0) }
     var cost by remember { mutableStateOf(false) }
-    var name by remember { mutableStateOf("") }
 
     Log.d("CategoriesList", options.categoryItems.toString())
     ModalBottomSheet(
@@ -103,6 +102,12 @@ fun FiltersBottomSheet(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            NameOutlinedTextField(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(LocalEventsMapTheme.dimens.paddingLarge),
+                currentName = filters.name,
+                onNameChanged = { actions.onNameChange(it) }
+            )
             CategoriesDropdownMenu(
                 expanded = categoryExpanded,
                 header = stringResource(R.string.category),
@@ -116,10 +121,9 @@ fun FiltersBottomSheet(
             Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingSmall))
             DateButtons(
                 onFilterSelect = {
-                    selectedFilterType = it
                     actions.onDateRangeChange(DateFilterState(type = it))
                 },
-                selectedFilterType = selectedFilterType
+                selectedFilterType = filters.dateRange.type
             )
         }
     }
