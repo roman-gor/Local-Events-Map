@@ -68,7 +68,7 @@ fun CitiesDropdownMenu(
                     )
                     .padding(
                         vertical = LocalEventsMapTheme.dimens.paddingMedium,
-                        horizontal = LocalEventsMapTheme.dimens.paddingLarge
+                        horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge
                     )
                     .menuAnchor(MenuAnchorType.PrimaryNotEditable, true)
                     .wrapContentWidth()
@@ -76,7 +76,7 @@ fun CitiesDropdownMenu(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { onExpandedChange() },
-                containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
+                containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
                 shadowElevation = 0.dp,
                 tonalElevation = 0.dp,
                 shape = LocalEventsMapTheme.shapes.small,
@@ -107,7 +107,7 @@ fun CitiesDropdownMenu(
 fun CityDropdownHeader(
     currentCity: String,
     expanded: Boolean,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = Modifier.wrapContentWidth()
@@ -121,8 +121,8 @@ fun CityDropdownHeader(
             Text(
                 text = currentCity,
                 maxLines = 1,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
                 overflow = TextOverflow.Ellipsis
             )
             Icon(
@@ -143,8 +143,8 @@ fun CityUiItem(
 ) {
     Text(
         text = cityNameDefinition(city),
-        fontSize = 18.sp,
-        fontWeight = FontWeight.ExtraBold,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Medium,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         textAlign = TextAlign.Center,
