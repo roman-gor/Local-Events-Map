@@ -1,7 +1,6 @@
 package com.gorman.events.ui.states
 
 import com.gorman.common.constants.CityCoordinatesConstants
-import com.gorman.common.models.CityData
 import com.yandex.mapkit.geometry.Point
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -13,19 +12,19 @@ sealed interface ScreenState {
         val eventsList: ImmutableList<MapUiEvent> = persistentListOf(),
         val filterState: FiltersState = FiltersState(),
         val selectedMapEventId: String? = null,
-        val cityCenterData: CityData = CityData(),
-        val isCityChanged: Boolean = false
+        val cityData: CityUiData = CityUiData()
     ) : ScreenState
 }
 
 sealed interface ScreenUiEvent {
     data object PermissionsGranted : ScreenUiEvent
-    data class PermissionsDenied(val manualCitySearch: Boolean) : ScreenUiEvent
 
     data class OnCameraIdle(val point: Point) : ScreenUiEvent
     data class OnCitySearch(val city: CityCoordinatesConstants) : ScreenUiEvent
 
     data object OnSyncClicked : ScreenUiEvent
     data class OnCategoryChanged(val category: String) : ScreenUiEvent
+    data class OnDateChanged(val dateState: DateFilterState) : ScreenUiEvent
+    data class OnNameChanged(val name: String) : ScreenUiEvent
     data class OnEventSelected(val id: String) : ScreenUiEvent
 }

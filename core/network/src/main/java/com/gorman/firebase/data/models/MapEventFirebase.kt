@@ -7,7 +7,7 @@ data class MapEventFirebase(
     val id: String = "",
     val name: String? = null,
     val description: String? = null,
-    val date: String? = null,
+    val date: Long? = null,
     val city: String? = null,
     val address: String? = null,
     val coordinates: String? = null,
