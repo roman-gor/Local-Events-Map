@@ -1,12 +1,12 @@
 package com.gorman.common.models
 
-import androidx.compose.runtime.Immutable
 import com.gorman.common.constants.CityCoordinatesConstants
-import com.yandex.mapkit.geometry.Point
+import kotlinx.serialization.Serializable
 
-@Immutable
+@Serializable
 data class CityData(
     val city: CityCoordinatesConstants? = null,
     val cityName: String? = city?.cityName,
-    val cityCoordinates: Point? = null
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
