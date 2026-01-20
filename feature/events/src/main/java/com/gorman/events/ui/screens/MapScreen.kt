@@ -1,12 +1,15 @@
 package com.gorman.events.ui.screens
 
 import android.Manifest
+import android.content.Context
 import android.graphics.PointF
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -15,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Refresh
@@ -36,17 +38,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CategoryConstants.Companion.categoriesList
+import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.constants.CostConstants
 import com.gorman.events.R
+import com.gorman.events.ui.components.CitiesDropdownMenu
+import com.gorman.events.ui.components.DateFilterType
+import com.gorman.events.ui.components.DateRangePickerDialog
 import com.gorman.events.ui.components.FiltersBottomSheet
 import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.LoadingStub
@@ -54,9 +60,14 @@ import com.gorman.events.ui.components.MapEventsBottomSheet
 import com.gorman.events.ui.components.cityNameDefinition
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
+import com.gorman.events.ui.states.MapScreenActions
 import com.gorman.events.ui.states.MapUiEvent
+import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
+import com.gorman.events.ui.states.YandexMapActions
+import com.gorman.events.ui.utils.MapController
+import com.gorman.events.ui.utils.rememberMapController
 import com.gorman.events.ui.viewmodels.MapViewModel
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.Animation
@@ -70,6 +81,7 @@ import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import kotlin.collections.map
 
@@ -78,18 +90,23 @@ import kotlin.collections.map
 fun MapScreenEntry(
     mapViewModel: MapViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.POST_NOTIFICATIONS
         )
     )
 
-    LaunchedEffect(permissionsState) {
-        if (permissionsState.allPermissionsGranted) {
-            mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted)
-        }
-    }
+    val mapController = rememberMapController()
+
+    HandleSideEffects(context, mapViewModel, mapController)
+
+    BindPermissionLogic(
+        permissionsState = permissionsState,
+        onPermissionsGranted = { mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted) }
+    )
 
     val uiState by mapViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -97,7 +114,8 @@ fun MapScreenEntry(
         true -> {
             MapContent(
                 uiState = uiState,
-                onUiEvent = mapViewModel::onUiEvent
+                onUiEvent = mapViewModel::onUiEvent,
+                mapController = mapController
             )
         }
         false -> {
@@ -109,7 +127,7 @@ fun MapScreenEntry(
                     requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
                 )
             } else {
-                val cityHasCoordinates = (uiState as? ScreenState.Success)?.cityCenterData?.cityCoordinates != null
+                val cityHasCoordinates = (uiState as? ScreenState.Success)?.cityData?.cityCoordinates != null
 
                 if (!cityHasCoordinates) {
                     PermissionRequestScreen(
@@ -123,8 +141,29 @@ fun MapScreenEntry(
                 } else {
                     MapContent(
                         uiState = uiState,
-                        onUiEvent = mapViewModel::onUiEvent
+                        onUiEvent = mapViewModel::onUiEvent,
+                        mapController = mapController
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HandleSideEffects(
+    context: Context,
+    mapViewModel: MapViewModel,
+    mapController: MapController
+) {
+    LaunchedEffect(Unit) {
+        mapViewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is ScreenSideEffect.MoveCamera -> {
+                    mapController.moveCamera(effect.point, effect.zoom)
+                }
+                is ScreenSideEffect.ShowToast -> {
+                    Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -134,18 +173,43 @@ fun MapScreenEntry(
 @Composable
 fun MapContent(
     uiState: ScreenState,
-    onUiEvent: (ScreenUiEvent) -> Unit
+    onUiEvent: (ScreenUiEvent) -> Unit,
+    mapController: MapController
 ) {
     when (uiState) {
         is ScreenState.Error -> ErrorDataScreen()
         ScreenState.Loading -> LoadingStub()
         is ScreenState.Success -> {
             MapScreen(
-                onCameraIdle = { location -> location?.let { onUiEvent(ScreenUiEvent.OnCameraIdle(location)) } },
-                onCategoryChange = { category -> onUiEvent(ScreenUiEvent.OnCategoryChanged(category)) },
-                onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
-                onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
-                uiState = uiState
+                mapScreenActions = MapScreenActions(
+                    onCameraIdle = { location ->
+                        location?.let {
+                            onUiEvent(ScreenUiEvent.OnCameraIdle(location))
+                        }
+                    },
+                    filterActions = FilterActions(
+                        onCategoryChange = { category ->
+                            onUiEvent(
+                                ScreenUiEvent.OnCategoryChanged(
+                                    category
+                                )
+                            )
+                        },
+                        onDateRangeChange = { dateState ->
+                            onUiEvent(ScreenUiEvent.OnDateChanged(dateState))
+                        },
+                        onDistanceChange = {},
+                        onCostChange = {},
+                        onNameChange = { name ->
+                            onUiEvent(ScreenUiEvent.OnNameChanged(name))
+                        }
+                    ),
+                    onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
+                    onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
+                    onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
+                ),
+                uiState = uiState,
+                mapController = mapController
             )
         }
     }
@@ -154,17 +218,23 @@ fun MapContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
-    onCameraIdle: (Point?) -> Unit,
-    onCategoryChange: (String) -> Unit,
-    onSyncClick: () -> Unit,
-    onEventClick: (MapUiEvent) -> Unit,
-    uiState: ScreenState.Success
+    mapScreenActions: MapScreenActions,
+    uiState: ScreenState.Success,
+    mapController: MapController
 ) {
     var mapEventsListExpanded by remember { mutableStateOf(false) }
     var filtersExpanded by remember { mutableStateOf(false) }
+    var citiesMenuExpanded by remember { mutableStateOf(false) }
+
+    var showRangePicker by remember { mutableStateOf(false) }
+
+    val isDarkMode = isSystemInDarkTheme()
+
     val scope = rememberCoroutineScope()
+
     val mapEventsListSheetState = rememberModalBottomSheetState()
     val filtersSheetState = rememberModalBottomSheetState()
+
     val filtersButtonVerticalOffset by animateDpAsState(
         targetValue = if (filtersExpanded) (-600).dp else 0.dp,
         animationSpec = tween(durationMillis = 500),
@@ -175,37 +245,40 @@ fun MapScreen(
         animationSpec = tween(durationMillis = 500),
         label = "verticalOffsetAnimation"
     )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
     ) {
         YandexMapView(
-            onCameraIdle = onCameraIdle,
-            onMarkerClick = { eventId ->
-                uiState.eventsList.find { it.id == eventId }?.let {
-                    onEventClick(it)
-                }
-            },
+            mapController = mapController,
+            yandexMapActions = YandexMapActions(
+                onCameraIdle = mapScreenActions.onCameraIdle,
+                onMarkerClick = { eventId ->
+                    uiState.eventsList.find { it.id == eventId }?.let {
+                        mapScreenActions.onEventClick(it)
+                    }
+                },
+            ),
+            isDarkMode = isDarkMode,
             eventsList = uiState.eventsList,
-            cityCenter = uiState.cityCenterData.cityCoordinates,
-            cityChanged = uiState.isCityChanged
+            initialCityPoint = uiState.cityData.cityCoordinates
         )
-        uiState.cityCenterData.city?.let {
-            Text(
-                text = cityNameDefinition(it),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier
-                    .systemBarsPadding()
-                    .align(Alignment.TopCenter)
+        uiState.cityData.city?.let {
+            CitiesDropdownMenu(
+                expanded = citiesMenuExpanded,
+                onExpandedChange = { citiesMenuExpanded = !citiesMenuExpanded },
+                currentCity = cityNameDefinition(it),
+                onCityClick = { city -> mapScreenActions.onCitySubmit(city) },
+                citiesList = CityCoordinatesConstants.cityCoordinatesList.toImmutableList()
             )
         }
         if (mapEventsListExpanded) {
             MapEventsBottomSheet(
                 onDismiss = { mapEventsListExpanded = !mapEventsListExpanded },
                 onEventClick = {
-                    onEventClick(it)
+                    mapScreenActions.onEventClick(it)
                     scope.launch {
                         mapEventsListSheetState.hide()
                         mapEventsListExpanded = false
@@ -225,16 +298,33 @@ fun MapScreen(
                     costItems = CostConstants.costList.map { it.value }
                 ),
                 actions = FilterActions(
-                    onCategoryChange = onCategoryChange,
-                    onDateRangeChange = { },
+                    onCategoryChange = mapScreenActions.filterActions.onCategoryChange,
+                    onDateRangeChange = { dateState ->
+                        Log.d("Date", dateState.toString())
+                        if (dateState.type == DateFilterType.RANGE) {
+                            showRangePicker = true
+                        } else {
+                            mapScreenActions.filterActions.onDateRangeChange(dateState)
+                        }
+                    },
                     onDistanceChange = { },
                     onCostChange = { },
-                    onNameChange = { }
+                    onNameChange = { name ->
+                        mapScreenActions.filterActions.onNameChange(name)
+                    }
                 )
             )
         }
+        if (showRangePicker) {
+            DateRangePickerDialog(
+                onDateRangeSelected = { dateState ->
+                    mapScreenActions.filterActions.onDateRangeChange(dateState)
+                },
+                onDismiss = { showRangePicker = !showRangePicker }
+            )
+        }
         FunctionalButton(
-            onClick = { onSyncClick() },
+            onClick = { mapScreenActions.onSyncClick() },
             iconSize = 32.dp,
             imageVector = Icons.Outlined.Refresh,
             modifier = Modifier
@@ -274,8 +364,7 @@ fun EventItem(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color =
-                if (mapEvent.isSelected) {
+                color = if (mapEvent.isSelected) {
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.background
@@ -288,6 +377,11 @@ fun EventItem(
             Text(
                 text = it,
                 fontSize = 14.sp,
+                color = if (mapEvent.isSelected) {
+                    MaterialTheme.colorScheme.inverseOnSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
                 modifier = Modifier
                     .padding(vertical = LocalEventsMapTheme.dimens.paddingLarge)
                     .clickable(onClick = { onEventClick(mapEvent) })
@@ -298,11 +392,11 @@ fun EventItem(
 
 @Composable
 fun YandexMapView(
-    cityChanged: Boolean,
-    onCameraIdle: (Point?) -> Unit,
-    onMarkerClick: (String) -> Unit,
+    mapController: MapController,
+    yandexMapActions: YandexMapActions,
+    isDarkMode: Boolean,
     eventsList: ImmutableList<MapUiEvent>,
-    cityCenter: Point?
+    initialCityPoint: Point?
 ) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
@@ -312,28 +406,29 @@ fun YandexMapView(
         ImageProvider.fromResource(context, R.drawable.ic_marker_selected)
     }
 
-    val tapListener = remember(onMarkerClick) {
+    val tapListener = remember(yandexMapActions.onMarkerClick) {
         MapObjectTapListener { mapObject, _ ->
             val eventId = mapObject.userData as? String
-            Log.d("MapDebug", "Marker clicked: $eventId")
-            if (eventId != null) {
-                onMarkerClick(eventId)
-            }
+            if (eventId != null) yandexMapActions.onMarkerClick(eventId)
             true
         }
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(mapView) {
+        mapController.attach(mapView)
         mapView.onStart()
+        MapKitFactory.getInstance().onStart()
+
         onDispose {
             mapView.onStop()
             MapKitFactory.getInstance().onStop()
+            mapController.detach()
         }
     }
     DisposableEffect(mapView) {
         val cameraListener = CameraListener { _, _, reason, finished ->
             if (finished && reason == CameraUpdateReason.GESTURES) {
-                onCameraIdle(mapView.mapWindow.map.cameraPosition.target)
+                yandexMapActions.onCameraIdle(mapView.mapWindow.map.cameraPosition.target)
             }
         }
         mapView.mapWindow.map.addCameraListener(cameraListener)
@@ -341,61 +436,88 @@ fun YandexMapView(
             mapView.mapWindow.map.removeCameraListener(cameraListener)
         }
     }
-
-    val cameraPosition = cityCenter ?: Point(53.886944, 27.566667)
-    if (cityChanged) {
-        mapView.mapWindow.map.move(
-            CameraPosition(
-                cameraPosition,
-                10.5f,
-                0.0f,
-                0.0f
+    LaunchedEffect(Unit) {
+        if (initialCityPoint != null) {
+            mapView.mapWindow.map.move(
+                CameraPosition(initialCityPoint, 11.0f, 0.0f, 0.0f)
             )
-        )
+        }
     }
-    val iconStyle = IconStyle().apply {
-        anchor = PointF(0.5f, 1.0f)
-        zIndex = 10f
-    }
+
     AndroidView(
         factory = { mapView },
         modifier = Modifier
             .fillMaxSize()
             .clip(LocalEventsMapTheme.shapes.medium),
         update = {
-            val mapObjects = mapView.mapWindow.map.mapObjects
-            mapObjects.clear()
-            eventsList.forEach { event ->
-                val coordinates = event.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
-                if (coordinates != null && coordinates.size == 2) {
-                    val point = Point(coordinates[0], coordinates[1])
-                    mapObjects.addPlacemark().apply {
-                        geometry = point
-                        setIcon(if (event.isSelected) selectedIcon else normalIcon, iconStyle)
-                        userData = event.id
-                        addTapListener(tapListener)
-                    }
-                }
-            }
-            val selectedEvent = eventsList.firstOrNull { it.isSelected }
-            if (selectedEvent != null) {
-                val coordinates = selectedEvent.coordinates?.split(",")
-                    ?.mapNotNull { it.trim().toDoubleOrNull() }
-                if (coordinates != null && coordinates.size == 2) {
-                    val point = Point(coordinates[0], coordinates[1])
-                    mapView.mapWindow.map.move(
-                        CameraPosition(point, 15.0f, 0.0f, 0.0f),
-                        Animation(Animation.Type.SMOOTH, 0.5f),
-                        null
-                    )
-                }
-            } else if (cityChanged && cityCenter != null) {
-                mapView.mapWindow.map.move(
-                    CameraPosition(cityCenter, 11.0f, 0.0f, 0.0f),
-                    Animation(Animation.Type.SMOOTH, 1f),
-                    null
-                )
-            }
+            mapView.updateMapState(
+                isDarkMode = isDarkMode,
+                eventsList = eventsList,
+                selectedIcon = selectedIcon,
+                normalIcon = normalIcon,
+                tapListener = tapListener
+            )
         }
     )
+}
+
+private fun MapView.updateMapState(
+    isDarkMode: Boolean,
+    eventsList: List<MapUiEvent>,
+    selectedIcon: ImageProvider,
+    normalIcon: ImageProvider,
+    tapListener: MapObjectTapListener
+) {
+    this.mapWindow.map.isNightModeEnabled = isDarkMode
+    val mapObjects = this.mapWindow.map.mapObjects
+    mapObjects.clear()
+
+    val iconStyle = IconStyle().apply {
+        anchor = PointF(0.5f, 1.0f)
+        zIndex = 10f
+    }
+
+    eventsList.forEach { event ->
+        val coordinates = event.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
+        if (coordinates != null && coordinates.size == 2) {
+            val point = Point(coordinates[0], coordinates[1])
+            mapObjects.addPlacemark().apply {
+                geometry = point
+                setIcon(if (event.isSelected) selectedIcon else normalIcon, iconStyle)
+                userData = event.id
+                addTapListener(tapListener)
+            }
+        }
+    }
+
+    val selectedEvent = eventsList.firstOrNull { it.isSelected }
+    if (selectedEvent != null) {
+        val coords = selectedEvent.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
+        if (coords != null && coords.size == 2) {
+            this.mapWindow.map.move(
+                CameraPosition(Point(coords[0], coords[1]), 15.0f, 0.0f, 0.0f),
+                Animation(Animation.Type.SMOOTH, 0.5f),
+                null
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+private fun BindPermissionLogic(
+    permissionsState: MultiplePermissionsState,
+    onPermissionsGranted: () -> Unit
+) {
+    LaunchedEffect(permissionsState.allPermissionsGranted) {
+        if (permissionsState.allPermissionsGranted) {
+            onPermissionsGranted()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (!permissionsState.allPermissionsGranted && !permissionsState.shouldShowRationale) {
+            permissionsState.launchMultiplePermissionRequest()
+        }
+    }
 }

@@ -11,8 +11,11 @@ android {
 
 dependencies {
 
+    implementation(project(":core:common"))
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.datastore)
+    implementation(libs.yandex.android)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

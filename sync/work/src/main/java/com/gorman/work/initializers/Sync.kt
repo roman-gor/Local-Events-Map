@@ -18,7 +18,7 @@ object Sync {
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
-            val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(24, TimeUnit.HOURS)
+            val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(15, TimeUnit.MINUTES)
                 .setConstraints(constraints)
                 .setBackoffCriteria(
                     BackoffPolicy.LINEAR,

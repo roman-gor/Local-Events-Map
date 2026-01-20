@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":core:network"))
     implementation(project(":core:common"))
+    implementation(project(":core:cache"))
     implementation(project(":core:domain-model"))
 
     ksp(libs.room.compiler)
