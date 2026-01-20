@@ -89,7 +89,6 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCitySearch -> searchForCity(event.city)
             is ScreenUiEvent.OnEventSelected -> selectEvent(event.id)
             ScreenUiEvent.OnSyncClicked -> syncEvents()
-            is ScreenUiEvent.PermissionsDenied -> TODO()
             ScreenUiEvent.PermissionsGranted -> {
                 fetchInitialLocation()
                 syncEvents()
@@ -132,9 +131,11 @@ class MapViewModel @Inject constructor(
                 it.toUiState().cityCoordinates?.let { point ->
                     _sideEffect.send(ScreenSideEffect.MoveCamera(point))
                 }
-                Log.d("Coordinates City Choose",
+                Log.d(
+                    "Coordinates City Choose",
                     "${it.toUiState().cityCoordinates?.latitude}" +
-                            " / ${it.toUiState().cityCoordinates?.longitude}")
+                        " / ${it.toUiState().cityCoordinates?.longitude}"
+                )
                 Log.d("Real Name City Choose", "${it.city?.cityName}")
                 Log.d("Name City Choose", "${it.cityName}")
             }

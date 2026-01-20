@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
+import java.io.IOException
 import javax.inject.Inject
 
 class MapEventRemoteDataSourceImpl @Inject constructor(
@@ -42,14 +43,16 @@ class MapEventRemoteDataSourceImpl @Inject constructor(
         return try {
             withTimeout(5000) {
                 val snapshot = database.get().await()
-                snapshot.children.mapNotNull { snap ->
+                val events = snapshot.children.mapNotNull { snap ->
                     snap.getValue(MapEventFirebase::class.java)
                 }
+                Log.d("Events", events.toString())
+                events
             }
         } catch (e: TimeoutCancellationException) {
             Log.e("Network Data Source", "Error ${e.message}")
             null
-        } catch (e: Exception) {
+        } catch (e: IOException) {
             Log.e("Network Data Source", "Error ${e.message}")
             null
         }

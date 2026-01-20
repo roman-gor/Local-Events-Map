@@ -18,7 +18,6 @@ sealed interface ScreenState {
 
 sealed interface ScreenUiEvent {
     data object PermissionsGranted : ScreenUiEvent
-    data class PermissionsDenied(val manualCitySearch: Boolean) : ScreenUiEvent
 
     data class OnCameraIdle(val point: Point) : ScreenUiEvent
     data class OnCitySearch(val city: CityCoordinatesConstants) : ScreenUiEvent
