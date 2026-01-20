@@ -9,6 +9,7 @@ data class MapEventEntity(
     val name: String? = null,
     val description: String? = null,
     val city: String? = null,
+    val date: Long? = null,
     val address: String? = null,
     val coordinates: String? = null,
     val link: String? = null,

@@ -23,4 +23,10 @@
     <string name="gomel">Гомель</string>
     <string name="brest">Брест</string>
     <string name="mogilev">Могилев</string>
+    <string name="today">Сегодня</string>
+    <string name="week">Неделя</string>
+    <string name="range">Диапазон</string>
+    <string name="selectDateRange">Выберите диапазон дат</string>
+    <string name="confirm">ОК</string>
+    <string name="dismiss">Закрыть</string>
 </resources>

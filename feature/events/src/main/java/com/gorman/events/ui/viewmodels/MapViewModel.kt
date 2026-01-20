@@ -8,11 +8,16 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.models.CityData
 import com.gorman.data.repository.IGeoRepository
 import com.gorman.data.repository.IMapEventsRepository
+import com.gorman.events.ui.components.DateFilterType
 import com.gorman.events.ui.mappers.toUiState
+import com.gorman.events.ui.states.DateFilterState
 import com.gorman.events.ui.states.FiltersState
 import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
+import com.gorman.events.ui.utils.getEndOfDay
+import com.gorman.events.ui.utils.getEndOfWeek
+import com.gorman.events.ui.utils.getStartOfDay
 import com.yandex.mapkit.geometry.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
@@ -64,7 +69,13 @@ class MapViewModel @Inject constructor(
 
             val matchesCategory = filters.categories.isEmpty() || event.category in filters.categories
 
-            matchesCity && matchesCategory
+            val matchesDate = if (filters.dateRange.startDate != null && filters.dateRange.endDate != null) {
+                event.date in filters.dateRange.startDate..filters.dateRange.endDate
+            } else {
+                true
+            }
+
+            matchesCity && matchesCategory && matchesDate
         }.map { domainEvent ->
             domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
         }.toImmutableList()
@@ -86,6 +97,10 @@ class MapViewModel @Inject constructor(
         when (event) {
             is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
+            is ScreenUiEvent.OnDataChanged -> {
+                dateChanged(event.dateState)
+                Log.d("Date Changed VM", "${event.dateState.type} / ${event.dateState.startDate}")
+            }
             is ScreenUiEvent.OnCitySearch -> searchForCity(event.city)
             is ScreenUiEvent.OnEventSelected -> selectEvent(event.id)
             ScreenUiEvent.OnSyncClicked -> syncEvents()
@@ -108,6 +123,41 @@ class MapViewModel @Inject constructor(
                 _sideEffect.send(ScreenSideEffect.MoveCamera(location))
             } else {
                 searchForCity(CityCoordinatesConstants.MINSK)
+            }
+        }
+    }
+
+    private fun dateChanged(dateState: DateFilterState) {
+        when (dateState.type) {
+            DateFilterType.RANGE -> {
+                _filters.value = _filters.value.copy(
+                    dateRange = DateFilterState(
+                        type = DateFilterType.RANGE,
+                        startDate = dateState.startDate,
+                        endDate = dateState.endDate
+                    )
+                )
+                Log.d("Date Check State", _filters.value.dateRange.toString())
+            }
+            DateFilterType.TODAY -> {
+                _filters.value = _filters.value.copy(
+                    dateRange = DateFilterState(
+                        type = dateState.type,
+                        startDate = getStartOfDay(),
+                        endDate = getEndOfDay()
+                    )
+                )
+                Log.d("Date Check State", _filters.value.dateRange.toString())
+            }
+            DateFilterType.WEEK -> {
+                _filters.value = _filters.value.copy(
+                    dateRange = DateFilterState(
+                        type = dateState.type,
+                        startDate = getStartOfDay(),
+                        endDate = getEndOfWeek()
+                    )
+                )
+                Log.d("Date Check State", _filters.value.dateRange.toString())
             }
         }
     }

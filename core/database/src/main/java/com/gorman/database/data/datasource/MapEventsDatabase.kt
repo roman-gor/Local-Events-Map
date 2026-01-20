@@ -6,7 +6,7 @@ import com.gorman.database.data.model.MapEventEntity
 
 @Database(
     entities = [MapEventEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MapEventsDatabase : RoomDatabase() {
