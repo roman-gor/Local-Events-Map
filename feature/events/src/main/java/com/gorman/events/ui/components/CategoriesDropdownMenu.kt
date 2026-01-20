@@ -38,7 +38,7 @@ fun CategoriesDropdownMenu(
 ) {
     val visibleText = remember(header) { mutableStateOf(header) }
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopCenter
     ) {
         ExposedDropdownMenuBox(

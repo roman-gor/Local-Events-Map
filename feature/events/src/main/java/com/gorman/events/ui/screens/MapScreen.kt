@@ -1,7 +1,9 @@
 package com.gorman.events.ui.screens
 
 import android.Manifest
+import android.content.Context
 import android.graphics.PointF
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -49,6 +51,8 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.constants.CostConstants
 import com.gorman.events.R
 import com.gorman.events.ui.components.CitiesDropdownMenu
+import com.gorman.events.ui.components.DateFilterType
+import com.gorman.events.ui.components.DateRangePickerDialog
 import com.gorman.events.ui.components.FiltersBottomSheet
 import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.LoadingStub
@@ -56,10 +60,12 @@ import com.gorman.events.ui.components.MapEventsBottomSheet
 import com.gorman.events.ui.components.cityNameDefinition
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
+import com.gorman.events.ui.states.MapScreenActions
 import com.gorman.events.ui.states.MapUiEvent
 import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
+import com.gorman.events.ui.states.YandexMapActions
 import com.gorman.events.ui.utils.MapController
 import com.gorman.events.ui.utils.rememberMapController
 import com.gorman.events.ui.viewmodels.MapViewModel
@@ -95,18 +101,7 @@ fun MapScreenEntry(
 
     val mapController = rememberMapController()
 
-    LaunchedEffect(Unit) {
-        mapViewModel.sideEffect.collect { effect ->
-            when (effect) {
-                is ScreenSideEffect.MoveCamera -> {
-                    mapController.moveCamera(effect.point, effect.zoom)
-                }
-                is ScreenSideEffect.ShowToast -> {
-                    Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
+    HandleSideEffects(context, mapViewModel, mapController)
 
     BindPermissionLogic(
         permissionsState = permissionsState,
@@ -156,6 +151,26 @@ fun MapScreenEntry(
 }
 
 @Composable
+fun HandleSideEffects(
+    context: Context,
+    mapViewModel: MapViewModel,
+    mapController: MapController
+) {
+    LaunchedEffect(Unit) {
+        mapViewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is ScreenSideEffect.MoveCamera -> {
+                    mapController.moveCamera(effect.point, effect.zoom)
+                }
+                is ScreenSideEffect.ShowToast -> {
+                    Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun MapContent(
     uiState: ScreenState,
     onUiEvent: (ScreenUiEvent) -> Unit,
@@ -166,11 +181,31 @@ fun MapContent(
         ScreenState.Loading -> LoadingStub()
         is ScreenState.Success -> {
             MapScreen(
-                onCameraIdle = { location -> location?.let { onUiEvent(ScreenUiEvent.OnCameraIdle(location)) } },
-                onCategoryChange = { category -> onUiEvent(ScreenUiEvent.OnCategoryChanged(category)) },
-                onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
-                onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
-                onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
+                mapScreenActions = MapScreenActions(
+                    onCameraIdle = { location ->
+                        location?.let {
+                            onUiEvent(ScreenUiEvent.OnCameraIdle(location))
+                        }
+                    },
+                    filterActions = FilterActions(
+                        onCategoryChange = { category ->
+                            onUiEvent(
+                                ScreenUiEvent.OnCategoryChanged(
+                                    category
+                                )
+                            )
+                        },
+                        onDateRangeChange = { dateState ->
+                            onUiEvent(ScreenUiEvent.OnDataChanged(dateState))
+                        },
+                        onDistanceChange = {},
+                        onCostChange = {},
+                        onNameChange = {}
+                    ),
+                    onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
+                    onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
+                    onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
+                ),
                 uiState = uiState,
                 mapController = mapController
             )
@@ -181,17 +216,15 @@ fun MapContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
-    onCameraIdle: (Point?) -> Unit,
-    onCategoryChange: (String) -> Unit,
-    onSyncClick: () -> Unit,
-    onEventClick: (MapUiEvent) -> Unit,
-    onCitySubmit: (CityCoordinatesConstants) -> Unit,
+    mapScreenActions: MapScreenActions,
     uiState: ScreenState.Success,
     mapController: MapController
 ) {
     var mapEventsListExpanded by remember { mutableStateOf(false) }
     var filtersExpanded by remember { mutableStateOf(false) }
     var citiesMenuExpanded by remember { mutableStateOf(false) }
+
+    var showRangePicker by remember { mutableStateOf(false) }
 
     val isDarkMode = isSystemInDarkTheme()
 
@@ -218,12 +251,14 @@ fun MapScreen(
     ) {
         YandexMapView(
             mapController = mapController,
-            onCameraIdle = onCameraIdle,
-            onMarkerClick = { eventId ->
-                uiState.eventsList.find { it.id == eventId }?.let {
-                    onEventClick(it)
-                }
-            },
+            yandexMapActions = YandexMapActions(
+                onCameraIdle = mapScreenActions.onCameraIdle,
+                onMarkerClick = { eventId ->
+                    uiState.eventsList.find { it.id == eventId }?.let {
+                        mapScreenActions.onEventClick(it)
+                    }
+                },
+            ),
             isDarkMode = isDarkMode,
             eventsList = uiState.eventsList,
             initialCityPoint = uiState.cityData.cityCoordinates
@@ -233,7 +268,7 @@ fun MapScreen(
                 expanded = citiesMenuExpanded,
                 onExpandedChange = { citiesMenuExpanded = !citiesMenuExpanded },
                 currentCity = cityNameDefinition(it),
-                onCityClick = { city -> onCitySubmit(city) },
+                onCityClick = { city -> mapScreenActions.onCitySubmit(city) },
                 citiesList = CityCoordinatesConstants.cityCoordinatesList.toImmutableList()
             )
         }
@@ -241,7 +276,7 @@ fun MapScreen(
             MapEventsBottomSheet(
                 onDismiss = { mapEventsListExpanded = !mapEventsListExpanded },
                 onEventClick = {
-                    onEventClick(it)
+                    mapScreenActions.onEventClick(it)
                     scope.launch {
                         mapEventsListSheetState.hide()
                         mapEventsListExpanded = false
@@ -261,16 +296,31 @@ fun MapScreen(
                     costItems = CostConstants.costList.map { it.value }
                 ),
                 actions = FilterActions(
-                    onCategoryChange = onCategoryChange,
-                    onDateRangeChange = { },
+                    onCategoryChange = mapScreenActions.filterActions.onCategoryChange,
+                    onDateRangeChange = { dateState ->
+                        Log.d("Date", dateState.toString())
+                        if (dateState.type == DateFilterType.RANGE) {
+                            showRangePicker = true
+                        } else {
+                            mapScreenActions.filterActions.onDateRangeChange(dateState)
+                        }
+                    },
                     onDistanceChange = { },
                     onCostChange = { },
                     onNameChange = { }
                 )
             )
         }
+        if (showRangePicker) {
+            DateRangePickerDialog(
+                onDateRangeSelected = { dateState ->
+                    mapScreenActions.filterActions.onDateRangeChange(dateState)
+                },
+                onDismiss = { showRangePicker = !showRangePicker }
+            )
+        }
         FunctionalButton(
-            onClick = { onSyncClick() },
+            onClick = { mapScreenActions.onSyncClick() },
             iconSize = 32.dp,
             imageVector = Icons.Outlined.Refresh,
             modifier = Modifier
@@ -310,8 +360,7 @@ fun EventItem(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color =
-                if (mapEvent.isSelected) {
+                color = if (mapEvent.isSelected) {
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.background
@@ -324,6 +373,11 @@ fun EventItem(
             Text(
                 text = it,
                 fontSize = 14.sp,
+                color = if (mapEvent.isSelected) {
+                    MaterialTheme.colorScheme.inverseOnSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
                 modifier = Modifier
                     .padding(vertical = LocalEventsMapTheme.dimens.paddingLarge)
                     .clickable(onClick = { onEventClick(mapEvent) })
@@ -335,8 +389,7 @@ fun EventItem(
 @Composable
 fun YandexMapView(
     mapController: MapController,
-    onCameraIdle: (Point?) -> Unit,
-    onMarkerClick: (String) -> Unit,
+    yandexMapActions: YandexMapActions,
     isDarkMode: Boolean,
     eventsList: ImmutableList<MapUiEvent>,
     initialCityPoint: Point?
@@ -349,10 +402,10 @@ fun YandexMapView(
         ImageProvider.fromResource(context, R.drawable.ic_marker_selected)
     }
 
-    val tapListener = remember(onMarkerClick) {
+    val tapListener = remember(yandexMapActions.onMarkerClick) {
         MapObjectTapListener { mapObject, _ ->
             val eventId = mapObject.userData as? String
-            if (eventId != null) onMarkerClick(eventId)
+            if (eventId != null) yandexMapActions.onMarkerClick(eventId)
             true
         }
     }
@@ -371,7 +424,7 @@ fun YandexMapView(
     DisposableEffect(mapView) {
         val cameraListener = CameraListener { _, _, reason, finished ->
             if (finished && reason == CameraUpdateReason.GESTURES) {
-                onCameraIdle(mapView.mapWindow.map.cameraPosition.target)
+                yandexMapActions.onCameraIdle(mapView.mapWindow.map.cameraPosition.target)
             }
         }
         mapView.mapWindow.map.addCameraListener(cameraListener)
@@ -387,46 +440,63 @@ fun YandexMapView(
         }
     }
 
-    val iconStyle = IconStyle().apply {
-        anchor = PointF(0.5f, 1.0f)
-        zIndex = 10f
-    }
     AndroidView(
         factory = { mapView },
         modifier = Modifier
             .fillMaxSize()
             .clip(LocalEventsMapTheme.shapes.medium),
         update = {
-            mapView.mapWindow.map.isNightModeEnabled = isDarkMode
-            val mapObjects = mapView.mapWindow.map.mapObjects
-            mapObjects.clear()
-            eventsList.forEach { event ->
-                val coordinates = event.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
-                if (coordinates != null && coordinates.size == 2) {
-                    val point = Point(coordinates[0], coordinates[1])
-                    mapObjects.addPlacemark().apply {
-                        geometry = point
-                        setIcon(if (event.isSelected) selectedIcon else normalIcon, iconStyle)
-                        userData = event.id
-                        addTapListener(tapListener)
-                    }
-                }
-            }
-            val selectedEvent = eventsList.firstOrNull { it.isSelected }
-            if (selectedEvent != null) {
-                val coordinates = selectedEvent.coordinates?.split(",")
-                    ?.mapNotNull { it.trim().toDoubleOrNull() }
-                if (coordinates != null && coordinates.size == 2) {
-                    val point = Point(coordinates[0], coordinates[1])
-                    mapView.mapWindow.map.move(
-                        CameraPosition(point, 15.0f, 0.0f, 0.0f),
-                        Animation(Animation.Type.SMOOTH, 0.5f),
-                        null
-                    )
-                }
-            }
+            mapView.updateMapState(
+                isDarkMode = isDarkMode,
+                eventsList = eventsList,
+                selectedIcon = selectedIcon,
+                normalIcon = normalIcon,
+                tapListener = tapListener
+            )
         }
     )
+}
+
+private fun MapView.updateMapState(
+    isDarkMode: Boolean,
+    eventsList: List<MapUiEvent>,
+    selectedIcon: ImageProvider,
+    normalIcon: ImageProvider,
+    tapListener: MapObjectTapListener
+) {
+    this.mapWindow.map.isNightModeEnabled = isDarkMode
+    val mapObjects = this.mapWindow.map.mapObjects
+    mapObjects.clear()
+
+    val iconStyle = IconStyle().apply {
+        anchor = PointF(0.5f, 1.0f)
+        zIndex = 10f
+    }
+
+    eventsList.forEach { event ->
+        val coordinates = event.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
+        if (coordinates != null && coordinates.size == 2) {
+            val point = Point(coordinates[0], coordinates[1])
+            mapObjects.addPlacemark().apply {
+                geometry = point
+                setIcon(if (event.isSelected) selectedIcon else normalIcon, iconStyle)
+                userData = event.id
+                addTapListener(tapListener)
+            }
+        }
+    }
+
+    val selectedEvent = eventsList.firstOrNull { it.isSelected }
+    if (selectedEvent != null) {
+        val coords = selectedEvent.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
+        if (coords != null && coords.size == 2) {
+            this.mapWindow.map.move(
+                CameraPosition(Point(coords[0], coords[1]), 15.0f, 0.0f, 0.0f),
+                Animation(Animation.Type.SMOOTH, 0.5f),
+                null
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalPermissionsApi::class)

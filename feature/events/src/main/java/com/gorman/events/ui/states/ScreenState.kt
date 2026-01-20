@@ -24,5 +24,6 @@ sealed interface ScreenUiEvent {
 
     data object OnSyncClicked : ScreenUiEvent
     data class OnCategoryChanged(val category: String) : ScreenUiEvent
+    data class OnDataChanged(val dateState: DateFilterState) : ScreenUiEvent
     data class OnEventSelected(val id: String) : ScreenUiEvent
 }
