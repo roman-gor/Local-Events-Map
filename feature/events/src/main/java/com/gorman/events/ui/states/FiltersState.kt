@@ -15,7 +15,7 @@ data class FiltersState(
 
 @Immutable
 data class DateFilterState(
-    val type: DateFilterType = DateFilterType.TODAY,
+    val type: DateFilterType? = null,
     val startDate: Long? = null,
     val endDate: Long? = null
 )
@@ -26,7 +26,7 @@ data class FilterActions(
     val onDateRangeChange: (DateFilterState) -> Unit,
     val onDistanceChange: () -> Unit,
     val onCostChange: () -> Unit,
-    val onNameChange: () -> Unit
+    val onNameChange: (String) -> Unit
 )
 
 @Immutable

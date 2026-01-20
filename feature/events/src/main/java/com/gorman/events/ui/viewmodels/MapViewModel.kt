@@ -75,7 +75,9 @@ class MapViewModel @Inject constructor(
                 true
             }
 
-            matchesCity && matchesCategory && matchesDate
+            val matchesName = event.name?.contains(filters.name) ?: true
+
+            matchesCity && matchesCategory && matchesDate && matchesName
         }.map { domainEvent ->
             domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
         }.toImmutableList()
@@ -97,10 +99,8 @@ class MapViewModel @Inject constructor(
         when (event) {
             is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
-            is ScreenUiEvent.OnDataChanged -> {
-                dateChanged(event.dateState)
-                Log.d("Date Changed VM", "${event.dateState.type} / ${event.dateState.startDate}")
-            }
+            is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
+            is ScreenUiEvent.OnNameChanged -> {  }
             is ScreenUiEvent.OnCitySearch -> searchForCity(event.city)
             is ScreenUiEvent.OnEventSelected -> selectEvent(event.id)
             ScreenUiEvent.OnSyncClicked -> syncEvents()
@@ -127,7 +127,19 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    private fun dateChanged(dateState: DateFilterState) {
+    private fun filterDateChanged(dateState: DateFilterState) {
+        val currentType = _filters.value.dateRange.type
+        val newType = dateState.type
+
+        if (currentType == newType && newType != DateFilterType.RANGE) {
+            resetDateFilter()
+            return
+        }
+
+        if (newType == DateFilterType.RANGE && dateState.startDate == null) {
+            return
+        }
+
         when (dateState.type) {
             DateFilterType.RANGE -> {
                 _filters.value = _filters.value.copy(
@@ -159,7 +171,24 @@ class MapViewModel @Inject constructor(
                 )
                 Log.d("Date Check State", _filters.value.dateRange.toString())
             }
+            else -> resetDateFilter()
         }
+    }
+
+    private fun resetDateFilter() {
+        _filters.value = _filters.value.copy(
+            dateRange = DateFilterState(
+                type = null,
+                startDate = null,
+                endDate = null
+            )
+        )
+    }
+
+    fun filterNameChanged(name: String) {
+        _filters.value = _filters.value.copy(
+            name = name
+        )
     }
 
     fun onCameraIdle(cameraPosition: Point) {

@@ -35,8 +35,8 @@ fun DateRangePickerDialog(
                     onDateRangeSelected(
                         DateFilterState(
                             type = DateFilterType.RANGE,
-                            startDate = dateRangePickerState.selectedStartDateMillis?.div(1000),
-                            endDate = dateRangePickerState.selectedEndDateMillis?.div(1000)
+                            startDate = dateRangePickerState.selectedStartDateMillis,
+                            endDate = dateRangePickerState.selectedEndDateMillis
                         )
                     )
                     onDismiss()
