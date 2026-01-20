@@ -10,9 +10,10 @@ fun CityData.toUiState(): CityUiData {
             longitude?.let { longitude ->
                 Point(latitude, longitude)
             }
-        } } else {
-            null
         }
+    } else {
+        null
+    }
     return CityUiData(
         city = city,
         cityName = cityName,

@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Refresh
@@ -34,10 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -47,8 +45,10 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CategoryConstants.Companion.categoriesList
+import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.constants.CostConstants
 import com.gorman.events.R
+import com.gorman.events.ui.components.CitiesDropdownMenu
 import com.gorman.events.ui.components.FiltersBottomSheet
 import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.LoadingStub
@@ -56,8 +56,8 @@ import com.gorman.events.ui.components.MapEventsBottomSheet
 import com.gorman.events.ui.components.cityNameDefinition
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
-import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.MapUiEvent
+import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
 import com.gorman.events.ui.utils.MapController
@@ -75,6 +75,7 @@ import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import kotlin.collections.map
 
@@ -116,7 +117,6 @@ fun MapScreenEntry(
 
     when (permissionsState.allPermissionsGranted) {
         true -> {
-            mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted)
             MapContent(
                 uiState = uiState,
                 onUiEvent = mapViewModel::onUiEvent,
@@ -170,6 +170,7 @@ fun MapContent(
                 onCategoryChange = { category -> onUiEvent(ScreenUiEvent.OnCategoryChanged(category)) },
                 onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
                 onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
+                onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
                 uiState = uiState,
                 mapController = mapController
             )
@@ -184,14 +185,21 @@ fun MapScreen(
     onCategoryChange: (String) -> Unit,
     onSyncClick: () -> Unit,
     onEventClick: (MapUiEvent) -> Unit,
+    onCitySubmit: (CityCoordinatesConstants) -> Unit,
     uiState: ScreenState.Success,
     mapController: MapController
 ) {
     var mapEventsListExpanded by remember { mutableStateOf(false) }
     var filtersExpanded by remember { mutableStateOf(false) }
+    var citiesMenuExpanded by remember { mutableStateOf(false) }
+
+    val isDarkMode = isSystemInDarkTheme()
+
     val scope = rememberCoroutineScope()
+
     val mapEventsListSheetState = rememberModalBottomSheetState()
     val filtersSheetState = rememberModalBottomSheetState()
+
     val filtersButtonVerticalOffset by animateDpAsState(
         targetValue = if (filtersExpanded) (-600).dp else 0.dp,
         animationSpec = tween(durationMillis = 500),
@@ -202,6 +210,7 @@ fun MapScreen(
         animationSpec = tween(durationMillis = 500),
         label = "verticalOffsetAnimation"
     )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -215,18 +224,17 @@ fun MapScreen(
                     onEventClick(it)
                 }
             },
+            isDarkMode = isDarkMode,
             eventsList = uiState.eventsList,
             initialCityPoint = uiState.cityData.cityCoordinates
         )
         uiState.cityData.city?.let {
-            Text(
-                text = cityNameDefinition(it),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.Black,
-                modifier = Modifier
-                    .systemBarsPadding()
-                    .align(Alignment.TopCenter)
+            CitiesDropdownMenu(
+                expanded = citiesMenuExpanded,
+                onExpandedChange = { citiesMenuExpanded = !citiesMenuExpanded },
+                currentCity = cityNameDefinition(it),
+                onCityClick = { city -> onCitySubmit(city) },
+                citiesList = CityCoordinatesConstants.cityCoordinatesList.toImmutableList()
             )
         }
         if (mapEventsListExpanded) {
@@ -329,6 +337,7 @@ fun YandexMapView(
     mapController: MapController,
     onCameraIdle: (Point?) -> Unit,
     onMarkerClick: (String) -> Unit,
+    isDarkMode: Boolean,
     eventsList: ImmutableList<MapUiEvent>,
     initialCityPoint: Point?
 ) {
@@ -388,6 +397,7 @@ fun YandexMapView(
             .fillMaxSize()
             .clip(LocalEventsMapTheme.shapes.medium),
         update = {
+            mapView.mapWindow.map.isNightModeEnabled = isDarkMode
             val mapObjects = mapView.mapWindow.map.mapObjects
             mapObjects.clear()
             eventsList.forEach { event ->

@@ -50,11 +50,13 @@ class GeoRepositoryImpl @Inject constructor(
                     val cityEnum = cityName?.let { CityCoordinatesConstants.fromCityName(it) }
 
                     if (cityEnum != null) {
-                        continuation.resume(CityData(
-                            city = cityEnum,
-                            latitude = location.latitude,
-                            longitude = location.longitude
-                        ))
+                        continuation.resume(
+                            CityData(
+                                city = cityEnum,
+                                latitude = location.latitude,
+                                longitude = location.longitude
+                            )
+                        )
                     } else {
                         continuation.resume(null)
                     }
@@ -90,11 +92,13 @@ class GeoRepositoryImpl @Inject constructor(
                     val firstGeoObject = response.collection.children.firstOrNull()?.obj
                     val point = firstGeoObject?.geometry?.first()?.point
                     if (point != null) {
-                        continuation.resume(CityData(
-                            city = city,
-                            latitude = point.latitude,
-                            longitude = point.longitude
-                        ))
+                        continuation.resume(
+                            CityData(
+                                city = city,
+                                latitude = point.latitude,
+                                longitude = point.longitude
+                            )
+                        )
                     } else {
                         continuation.resume(null)
                     }

@@ -1,4 +1,7 @@
 <resources>
+    <string name="appName">Афиша Твоего Города</string>
     <string name="NetworkError">Не удалось обновить данные: проверьте подключения к интернету</string>
     <string name="DefaultError">Ошибка при синхронизации данных</string>
+    <string name="successSync">Данные синхронизированы</string>
+    <string name="errorSync">Ошибка при синхронизации данных</string>
 </resources>

@@ -29,8 +29,10 @@ class LocationProvider @Inject constructor(
                 com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
                 null
             ).await()
-            Log.e("LocationProvider",
-                "Coordinates: ${currentLoc.latitude} / ${currentLoc.longitude}")
+            Log.e(
+                "LocationProvider",
+                "Coordinates: ${currentLoc.latitude} / ${currentLoc.longitude}"
+            )
             currentLoc?.let { Point(it.latitude, it.longitude) }
         } catch (e: ApiException) {
             Log.e("LocationProvider", "GMS API error: ${e.statusCode} - ${e.message}")

@@ -1,6 +1,5 @@
 package com.gorman.data.repository
 
-import android.net.http.NetworkException
 import android.util.Log
 import androidx.room.withTransaction
 import com.gorman.database.data.datasource.MapEventsDao
@@ -10,6 +9,7 @@ import com.gorman.database.toEntity
 import com.gorman.domainmodel.MapEvent
 import com.gorman.firebase.data.datasource.MapEventRemoteDataSource
 import com.gorman.firebase.toDomain
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.io.IOException
@@ -53,16 +53,18 @@ internal class MapEventsRepositoryImpl @Inject constructor(
                     if (remoteIds.isNotEmpty()) {
                         mapEventsDao.deleteEventsNotIn(remoteIds)
                         mapEventsDao.upsertEvent(entities)
-                    }
-                    else {
+                    } else {
                         mapEventsDao.clearAll()
                     }
                 }
-                return Result.success(Unit)
+                Result.success(Unit)
             } else {
-                return Result.failure(IOException("Error network connection"))
+                Result.failure(IOException("Error network connection"))
             }
-        } catch (e: Exception) {
+        } catch (e: TimeoutCancellationException) {
+            Log.e("Repository", "Sync failed ${e.message}")
+            Result.failure(e)
+        } catch (e: IOException) {
             Log.e("Repository", "Sync failed ${e.message}")
             Result.failure(e)
         }
