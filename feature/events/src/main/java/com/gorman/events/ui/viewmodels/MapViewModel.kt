@@ -75,7 +75,7 @@ class MapViewModel @Inject constructor(
                 true
             }
 
-            val matchesName = event.name?.contains(filters.name) ?: true
+            val matchesName = event.name?.lowercase()?.contains(filters.name.lowercase()) ?: true
 
             matchesCity && matchesCategory && matchesDate && matchesName
         }.map { domainEvent ->
@@ -100,7 +100,7 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
             is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
-            is ScreenUiEvent.OnNameChanged -> {  }
+            is ScreenUiEvent.OnNameChanged -> { filterNameChanged(event.name) }
             is ScreenUiEvent.OnCitySearch -> searchForCity(event.city)
             is ScreenUiEvent.OnEventSelected -> selectEvent(event.id)
             ScreenUiEvent.OnSyncClicked -> syncEvents()
