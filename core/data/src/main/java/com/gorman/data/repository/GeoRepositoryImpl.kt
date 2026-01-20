@@ -1,5 +1,6 @@
 package com.gorman.data.repository
 
+import com.gorman.cache.data.DataStoreManager
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.LocationProvider
 import com.gorman.common.models.CityData
@@ -14,12 +15,14 @@ import com.yandex.mapkit.search.SearchOptions
 import com.yandex.mapkit.search.SearchType
 import com.yandex.mapkit.search.Session
 import com.yandex.mapkit.search.ToponymObjectMetadata
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import kotlin.coroutines.resume
 
 class GeoRepositoryImpl @Inject constructor(
-    private val locationProvider: LocationProvider
+    private val locationProvider: LocationProvider,
+    private val dataStoreManager: DataStoreManager
 ) : IGeoRepository {
     private val searchManager = SearchFactory.getInstance()
         .createSearchManager(SearchManagerType.COMBINED)
@@ -47,7 +50,11 @@ class GeoRepositoryImpl @Inject constructor(
                     val cityEnum = cityName?.let { CityCoordinatesConstants.fromCityName(it) }
 
                     if (cityEnum != null) {
-                        continuation.resume(CityData(city = cityEnum, cityCoordinates = location))
+                        continuation.resume(CityData(
+                            city = cityEnum,
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        ))
                     } else {
                         continuation.resume(null)
                     }
@@ -83,7 +90,11 @@ class GeoRepositoryImpl @Inject constructor(
                     val firstGeoObject = response.collection.children.firstOrNull()?.obj
                     val point = firstGeoObject?.geometry?.first()?.point
                     if (point != null) {
-                        continuation.resume(CityData(city = city, cityCoordinates = point))
+                        continuation.resume(CityData(
+                            city = city,
+                            latitude = point.latitude,
+                            longitude = point.longitude
+                        ))
                     } else {
                         continuation.resume(null)
                     }
@@ -101,4 +112,12 @@ class GeoRepositoryImpl @Inject constructor(
 
     override suspend fun getUserLocation(): Point? =
         locationProvider.getLastKnownLocation()
+
+    override fun getSavedCity(): Flow<CityData?> {
+        return dataStoreManager.savedCity
+    }
+
+    override suspend fun saveCity(cityData: CityData) {
+        dataStoreManager.saveCity(cityData)
+    }
 }

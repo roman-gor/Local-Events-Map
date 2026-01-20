@@ -1,5 +1,6 @@
 package com.gorman.data.repository
 
+import android.net.http.NetworkException
 import android.util.Log
 import androidx.room.withTransaction
 import com.gorman.database.data.datasource.MapEventsDao
@@ -11,6 +12,7 @@ import com.gorman.firebase.data.datasource.MapEventRemoteDataSource
 import com.gorman.firebase.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 import javax.inject.Inject
 
 internal class MapEventsRepositoryImpl @Inject constructor(
@@ -35,31 +37,34 @@ internal class MapEventsRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun getAllRemoteEvents(): Flow<List<MapEvent>> {
-        return mapEventRemoteDataSource.getAllEvents().map { events ->
-            events.map { it.toDomain() }
+    private suspend fun getAllRemoteEvents(): List<MapEvent>? {
+        return mapEventRemoteDataSource.getAllEventsOnce()?.map { event ->
+            event.toDomain()
         }
     }
 
-    override suspend fun syncWith() {
-        try {
-            getAllRemoteEvents()
-                .collect { remoteEvents ->
-                    val entities = remoteEvents.map { it.toEntity() }
-                    val remoteIds = entities.map { it.id }
-                    database.withTransaction {
-                        if (remoteIds.isNotEmpty()) {
-                            mapEventsDao.deleteEventsNotIn(remoteIds)
-                            mapEventsDao.upsertEvent(entities)
-                        }
-                        else {
-                            mapEventsDao.clearAll()
-                        }
+    override suspend fun syncWith(): Result<Unit> {
+        return try {
+            val remoteEvents = getAllRemoteEvents()
+            if (remoteEvents != null) {
+                val entities = remoteEvents.map { it.toEntity() }
+                val remoteIds = entities.map { it.id }
+                database.withTransaction {
+                    if (remoteIds.isNotEmpty()) {
+                        mapEventsDao.deleteEventsNotIn(remoteIds)
+                        mapEventsDao.upsertEvent(entities)
+                    }
+                    else {
+                        mapEventsDao.clearAll()
                     }
                 }
+                return Result.success(Unit)
+            } else {
+                return Result.failure(IOException("Error network connection"))
+            }
         } catch (e: Exception) {
             Log.e("Repository", "Sync failed ${e.message}")
+            Result.failure(e)
         }
-
     }
 }

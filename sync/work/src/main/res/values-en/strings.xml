@@ -1,0 +1,4 @@
+<resources>
+    <string name="NetworkError">Couldn\'t update data: check your network connection</string>
+    <string name="DefaultError">Synchronization data error</string>
+</resources>

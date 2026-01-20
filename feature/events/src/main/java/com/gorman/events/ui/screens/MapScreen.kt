@@ -2,6 +2,7 @@ package com.gorman.events.ui.screens
 
 import android.Manifest
 import android.graphics.PointF
+import android.widget.Toast
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -33,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,7 +56,7 @@ import com.gorman.events.ui.components.MapEventsBottomSheet
 import com.gorman.events.ui.components.cityNameDefinition
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
-import com.gorman.events.ui.states.MapSideEffect
+import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.MapUiEvent
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
@@ -81,11 +83,12 @@ import kotlin.collections.map
 fun MapScreenEntry(
     mapViewModel: MapViewModel = hiltViewModel()
 ) {
-
+    val context = LocalContext.current
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.POST_NOTIFICATIONS
         )
     )
 
@@ -94,8 +97,11 @@ fun MapScreenEntry(
     LaunchedEffect(Unit) {
         mapViewModel.sideEffect.collect { effect ->
             when (effect) {
-                is MapSideEffect.MoveCamera -> {
+                is ScreenSideEffect.MoveCamera -> {
                     mapController.moveCamera(effect.point, effect.zoom)
+                }
+                is ScreenSideEffect.ShowToast -> {
+                    Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -126,7 +132,7 @@ fun MapScreenEntry(
                     requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
                 )
             } else {
-                val cityHasCoordinates = (uiState as? ScreenState.Success)?.cityCenterData?.cityCoordinates != null
+                val cityHasCoordinates = (uiState as? ScreenState.Success)?.cityData?.cityCoordinates != null
 
                 if (!cityHasCoordinates) {
                     PermissionRequestScreen(
@@ -209,13 +215,15 @@ fun MapScreen(
                     onEventClick(it)
                 }
             },
-            eventsList = uiState.eventsList
+            eventsList = uiState.eventsList,
+            initialCityPoint = uiState.cityData.cityCoordinates
         )
-        uiState.cityCenterData.city?.let {
+        uiState.cityData.city?.let {
             Text(
                 text = cityNameDefinition(it),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
+                color = Color.Black,
                 modifier = Modifier
                     .systemBarsPadding()
                     .align(Alignment.TopCenter)
@@ -321,7 +329,8 @@ fun YandexMapView(
     mapController: MapController,
     onCameraIdle: (Point?) -> Unit,
     onMarkerClick: (String) -> Unit,
-    eventsList: ImmutableList<MapUiEvent>
+    eventsList: ImmutableList<MapUiEvent>,
+    initialCityPoint: Point?
 ) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
@@ -359,6 +368,13 @@ fun YandexMapView(
         mapView.mapWindow.map.addCameraListener(cameraListener)
         onDispose {
             mapView.mapWindow.map.removeCameraListener(cameraListener)
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (initialCityPoint != null) {
+            mapView.mapWindow.map.move(
+                CameraPosition(initialCityPoint, 11.0f, 0.0f, 0.0f)
+            )
         }
     }
 

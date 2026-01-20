@@ -10,7 +10,7 @@ import com.gorman.data.repository.IGeoRepository
 import com.gorman.data.repository.IMapEventsRepository
 import com.gorman.events.ui.mappers.toUiState
 import com.gorman.events.ui.states.FiltersState
-import com.gorman.events.ui.states.MapSideEffect
+import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
 import com.yandex.mapkit.geometry.Point
@@ -20,11 +20,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -39,14 +41,15 @@ class MapViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _filters = MutableStateFlow(FiltersState())
-    private val _cityData = MutableStateFlow(CityData())
     private val _selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
 
-    private val _sideEffect = Channel<MapSideEffect>(Channel.BUFFERED)
-    val sideEffect = _sideEffect.receiveAsFlow()
-
     private var cameraMoveJob: Job? = null
+
+    private val _cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
+
+    private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
+    val sideEffect = _sideEffect.receiveAsFlow()
 
     val uiState: StateFlow<ScreenState> = combine(
         mapEventsRepository.getAllEvents(),
@@ -69,7 +72,7 @@ class MapViewModel @Inject constructor(
             eventsList = filteredEvents,
             filterState = filters,
             selectedMapEventId = selectedEventId,
-            cityCenterData = cityData
+            cityData = cityData.toUiState()
         ) as ScreenState
     }.catch { e ->
         emit(ScreenState.Error(e))
@@ -87,7 +90,10 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnEventSelected -> selectEvent(event.id)
             ScreenUiEvent.OnSyncClicked -> syncEvents()
             is ScreenUiEvent.PermissionsDenied -> TODO()
-            ScreenUiEvent.PermissionsGranted -> fetchInitialLocation()
+            ScreenUiEvent.PermissionsGranted -> {
+                fetchInitialLocation()
+                syncEvents()
+            }
         }
     }
 
@@ -99,8 +105,8 @@ class MapViewModel @Inject constructor(
             val location = geoRepository.getUserLocation()
             if (location != null) {
                 val userCityData = geoRepository.getCityByPoint(location)
-                userCityData?.let { _cityData.value = it }
-                _sideEffect.send(MapSideEffect.MoveCamera(location))
+                userCityData?.let { geoRepository.saveCity(it) }
+                _sideEffect.send(ScreenSideEffect.MoveCamera(location))
             } else {
                 searchForCity(CityCoordinatesConstants.MINSK)
             }
@@ -122,10 +128,15 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             val resultCityData = geoRepository.getPointByCity(city)
             resultCityData?.let {
-                _cityData.value = it
-                it.cityCoordinates?.let { point ->
-                    _sideEffect.send(MapSideEffect.MoveCamera(point))
+                geoRepository.saveCity(it)
+                it.toUiState().cityCoordinates?.let { point ->
+                    _sideEffect.send(ScreenSideEffect.MoveCamera(point))
                 }
+                Log.d("Coordinates City Choose",
+                    "${it.toUiState().cityCoordinates?.latitude}" +
+                            " / ${it.toUiState().cityCoordinates?.longitude}")
+                Log.d("Real Name City Choose", "${it.city?.cityName}")
+                Log.d("Name City Choose", "${it.cityName}")
             }
         }
     }
@@ -133,7 +144,10 @@ class MapViewModel @Inject constructor(
     private fun syncEvents() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                mapEventsRepository.syncWith()
+                mapEventsRepository.syncWith().getOrElse { exception ->
+                    _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
+                    Log.d("SyncError", "${exception.message}")
+                }
             } catch (e: ApiException) {
                 Log.e("ViewModel", "Error when sync events ${e.message}")
             }
@@ -159,11 +173,17 @@ class MapViewModel @Inject constructor(
     }
 
     private fun updateCityIfChanged(newData: CityData) {
-        val currentName = _cityData.value.cityName
+        val currentState = uiState.value
+
+        if (currentState !is ScreenState.Success) return
+
+        val currentName = currentState.cityData.cityName
         val newName = newData.cityName
 
         if (currentName != newName && newName != null) {
-            _cityData.value = newData
+            viewModelScope.launch {
+                geoRepository.saveCity(newData)
+            }
         }
     }
 }
