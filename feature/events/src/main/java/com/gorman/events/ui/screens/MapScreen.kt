@@ -3,8 +3,10 @@ package com.gorman.events.ui.screens
 import android.Manifest
 import android.content.Context
 import android.graphics.PointF
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -12,9 +14,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -56,6 +61,7 @@ import com.gorman.events.ui.components.DateRangePickerDialog
 import com.gorman.events.ui.components.FiltersBottomSheet
 import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.LoadingStub
+import com.gorman.events.ui.components.MapEventNameOutlineTextField
 import com.gorman.events.ui.components.MapEventsBottomSheet
 import com.gorman.events.ui.components.cityNameDefinition
 import com.gorman.events.ui.states.FilterActions
@@ -85,6 +91,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 import kotlin.collections.map
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreenEntry(
@@ -332,26 +339,41 @@ fun MapScreen(
                 .size(48.dp)
                 .align(alignment = Alignment.CenterEnd)
         )
-        FunctionalButton(
-            onClick = { mapEventsListExpanded = !mapEventsListExpanded },
-            iconSize = 32.dp,
-            imageVector = Icons.Outlined.Menu,
-            modifier = Modifier
+        Column(
+            modifier = Modifier.fillMaxWidth()
                 .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
-                .size(48.dp)
-                .align(alignment = Alignment.BottomStart)
-                .offset(y = listEventsButtonVerticalOffset)
-        )
-        FunctionalButton(
-            onClick = { filtersExpanded = !filtersExpanded },
-            iconSize = 32.dp,
-            painter = painterResource(R.drawable.filter_alt),
-            modifier = Modifier
-                .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
-                .size(48.dp)
-                .align(alignment = Alignment.BottomEnd)
-                .offset(y = filtersButtonVerticalOffset)
-        )
+                .align(Alignment.BottomCenter),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FunctionalButton(
+                    onClick = { mapEventsListExpanded = !mapEventsListExpanded },
+                    iconSize = 32.dp,
+                    imageVector = Icons.Outlined.Menu,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .offset(y = listEventsButtonVerticalOffset)
+                )
+                FunctionalButton(
+                    onClick = { filtersExpanded = !filtersExpanded },
+                    iconSize = 32.dp,
+                    painter = painterResource(R.drawable.filter_alt),
+                    modifier = Modifier
+                        .size(48.dp)
+                        .offset(y = filtersButtonVerticalOffset)
+                )
+            }
+            Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingLarge))
+            MapEventNameOutlineTextField(
+                modifier = Modifier.fillMaxWidth(),
+                currentName = uiState.filterState.name,
+                onNameChanged = { mapScreenActions.filterActions.onNameChange(it) }
+            )
+        }
     }
 }
 

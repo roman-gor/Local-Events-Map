@@ -102,12 +102,6 @@ fun FiltersBottomSheet(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            NameOutlinedTextField(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(LocalEventsMapTheme.dimens.paddingLarge),
-                currentName = filters.name,
-                onNameChanged = { actions.onNameChange(it) }
-            )
             CategoriesDropdownMenu(
                 expanded = categoryExpanded,
                 header = stringResource(R.string.category),
