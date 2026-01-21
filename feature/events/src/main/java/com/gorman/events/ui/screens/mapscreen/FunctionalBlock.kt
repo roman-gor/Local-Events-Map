@@ -1,5 +1,6 @@
 package com.gorman.events.ui.screens.mapscreen
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -23,9 +24,12 @@ import androidx.compose.ui.unit.dp
 import com.gorman.events.R
 import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.MapEventNameOutlineTextField
+import com.gorman.events.ui.components.MapEventSelectedButton
 import com.gorman.events.ui.states.MapScreenActions
+import com.gorman.events.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun BoxScope.FunctionalBlock(
     mapScreenData: MapScreenData
@@ -74,15 +78,27 @@ fun BoxScope.FunctionalBlock(
             currentName = mapScreenData.name,
             onNameChanged = { mapScreenData.mapScreenActions.filterActions.onNameChange(it) }
         )
+        if (mapScreenData.isEventSelected) {
+            mapScreenData.selectedEvent?.let { event ->
+                MapEventSelectedButton(
+                    onMapEventButtonClick = { mapScreenData.onMapEventSelectedItemClick(event) },
+                    mapEvent = event,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = LocalEventsMapTheme.dimens.paddingLarge)
+                )
+            }
+        }
     }
 }
 
 @Immutable
 data class MapScreenData(
     val name: String,
+    val selectedEvent: MapUiEvent? = null,
     val listEventsButtonVerticalOffset: Dp,
     val filtersButtonVerticalOffset: Dp,
     val mapScreenActions: MapScreenActions,
+    val isEventSelected: Boolean,
     val onMapEventsListExpanded: () -> Unit,
-    val onFiltersExpanded: () -> Unit
+    val onFiltersExpanded: () -> Unit,
+    val onMapEventSelectedItemClick: (MapUiEvent) -> Unit
 )

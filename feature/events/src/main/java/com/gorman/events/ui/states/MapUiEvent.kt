@@ -6,6 +6,7 @@ import androidx.compose.runtime.Immutable
 data class MapUiEvent(
     val id: String = "",
     val name: String? = null,
+    val description: String? = null,
     val category: String? = null,
     val photoUrl: String? = null,
     val date: Long? = null,

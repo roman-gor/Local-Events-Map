@@ -128,6 +128,7 @@ fun MapContent(
     onUiEvent: (ScreenUiEvent) -> Unit,
     mapController: MapController
 ) {
+    val state = rememberMapScreenLocalState()
     when (uiState) {
         is ScreenState.Error -> ErrorDataScreen()
         ScreenState.Loading -> LoadingStub()
@@ -157,14 +158,18 @@ fun MapContent(
                         }
                     ),
                     onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
-                    onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
+                    onEventClick = { event ->
+                        onUiEvent(ScreenUiEvent.OnEventSelected(event.id))
+                        state.isEventSelected = event.id != uiState.selectedMapEventId
+                    },
                     onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
                 ),
                 uiState = uiState,
                 mapController = mapController,
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color = MaterialTheme.colorScheme.background)
+                    .background(color = MaterialTheme.colorScheme.background),
+                state = state
             )
         }
     }
@@ -176,8 +181,8 @@ fun MapScreen(
     mapScreenActions: MapScreenActions,
     uiState: ScreenState.Success,
     mapController: MapController,
-    modifier: Modifier = Modifier,
-    state: MapScreenLocalState = rememberMapScreenLocalState()
+    state: MapScreenLocalState,
+    modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
         YandexMapView(
@@ -225,14 +230,20 @@ fun MapScreen(
             filtersState = uiState.filterState,
             mapScreenActions = mapScreenActions
         )
+        val selectedEvent = if (state.isEventSelected) {
+            uiState.eventsList.firstOrNull { it.id == uiState.selectedMapEventId }
+        } else { null }
         FunctionalBlock(
             mapScreenData = MapScreenData(
                 name = uiState.filterState.name,
+                selectedEvent = selectedEvent,
                 listEventsButtonVerticalOffset = state.listEventsButtonOffset.value,
                 filtersButtonVerticalOffset = state.filtersButtonOffset.value,
                 mapScreenActions = mapScreenActions,
                 onMapEventsListExpanded = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
-                onFiltersExpanded = { state.filtersExpanded = !state.filtersExpanded }
+                onFiltersExpanded = { state.filtersExpanded = !state.filtersExpanded },
+                isEventSelected = state.isEventSelected,
+                onMapEventSelectedItemClick = { /*TODO(NavigationToDetailsScreen)*/ }
             )
         )
     }

@@ -1,5 +1,6 @@
 package com.gorman.events.ui.screens.mapscreen
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -15,16 +16,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun rememberMapScreenLocalState(): MapScreenLocalState {
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+
     val mapEventsListExpanded = remember { mutableStateOf(false) }
     val filtersExpanded = remember { mutableStateOf(false) }
     val citiesMenuExpanded = remember { mutableStateOf(false) }
+    val isEventSelected = remember { mutableStateOf(false) }
 
     val isDarkMode = isSystemInDarkTheme()
     val scope = rememberCoroutineScope()
@@ -32,14 +39,16 @@ fun rememberMapScreenLocalState(): MapScreenLocalState {
     val mapEventsListSheetState = rememberModalBottomSheetState()
     val filtersSheetState = rememberModalBottomSheetState()
 
+    val heightPercentage = 0.5f
+
     val filtersButtonVerticalOffset = animateDpAsState(
-        targetValue = if (filtersExpanded.value) (-600).dp else 0.dp,
+        targetValue = if (filtersExpanded.value) -(screenHeight * heightPercentage) else 0.dp,
         animationSpec = tween(durationMillis = 500),
         label = "filtersOffset"
     )
 
     val listEventsButtonVerticalOffset = animateDpAsState(
-        targetValue = if (mapEventsListExpanded.value) (-600).dp else 0.dp,
+        targetValue = if (mapEventsListExpanded.value) -(screenHeight * heightPercentage) else 0.dp,
         animationSpec = tween(durationMillis = 500),
         label = "listOffset"
     )
@@ -54,7 +63,8 @@ fun rememberMapScreenLocalState(): MapScreenLocalState {
             listEventsButtonOffset = listEventsButtonVerticalOffset,
             mapEventsListExpandedState = mapEventsListExpanded,
             filtersExpandedState = filtersExpanded,
-            citiesMenuExpandedState = citiesMenuExpanded
+            citiesMenuExpandedState = citiesMenuExpanded,
+            isEventSelectedState = isEventSelected
         )
     }
 }
@@ -68,6 +78,7 @@ data class MapScreenLocalState(
     val filtersSheetState: SheetState,
     val filtersButtonOffset: State<Dp>,
     val listEventsButtonOffset: State<Dp>,
+    private val isEventSelectedState: MutableState<Boolean>,
     private val mapEventsListExpandedState: MutableState<Boolean>,
     private val filtersExpandedState: MutableState<Boolean>,
     private val citiesMenuExpandedState: MutableState<Boolean>
@@ -75,4 +86,5 @@ data class MapScreenLocalState(
     var mapEventsListExpanded by mapEventsListExpandedState
     var filtersExpanded by filtersExpandedState
     var citiesMenuExpanded by citiesMenuExpandedState
+    var isEventSelected by isEventSelectedState
 }
