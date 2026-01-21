@@ -13,14 +13,3 @@ fun MapEvent.toUiState(): MapUiEvent =
         photoUrl = photo,
         isFavourite = isFavourite
     )
-
-fun MapUiEvent.toDomain(): MapEvent =
-    MapEvent(
-        id = id,
-        name = name,
-        category = category,
-        date = date,
-        coordinates = coordinates,
-        photo = photoUrl,
-        isFavourite = isFavourite
-    )

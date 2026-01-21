@@ -16,8 +16,8 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun MapEventNameOutlineTextField(
-    modifier: Modifier,
     currentName: String,
+    modifier: Modifier = Modifier,
     onNameChanged: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current

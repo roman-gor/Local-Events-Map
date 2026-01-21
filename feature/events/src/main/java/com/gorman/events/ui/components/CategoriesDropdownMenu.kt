@@ -1,5 +1,6 @@
 package com.gorman.events.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,7 +27,10 @@ import androidx.compose.ui.unit.sp
 import com.gorman.common.constants.CategoryConstants
 import com.gorman.events.R
 import com.gorman.ui.theme.LocalEventsMapTheme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 
+@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoriesDropdownMenu(
@@ -49,7 +53,7 @@ fun CategoriesDropdownMenu(
             onExpandedChange = { onExpandedChange() }
         ) {
             CategoriesTextField(
-                selectedItems = categoriesOptions.selectedItems,
+                selectedItems = categoriesOptions.selectedItems.toImmutableList(),
                 visibleText = visibleText.value,
                 header = header,
                 modifier = Modifier
@@ -84,10 +88,10 @@ fun CategoriesDropdownMenu(
 
 @Composable
 fun CategoriesTextField(
-    selectedItems: List<String>,
+    selectedItems: ImmutableList<String>,
     visibleText: String,
     header: String,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     trailingIcon: @Composable () -> Unit
 ) {
     OutlinedTextField(
@@ -111,6 +115,7 @@ fun CategoriesTextField(
     )
 }
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun CategoryMenuItem(
     checked: Boolean,

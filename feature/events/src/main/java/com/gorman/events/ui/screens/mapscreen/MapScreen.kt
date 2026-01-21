@@ -1,6 +1,7 @@
 package com.gorman.events.ui.screens.mapscreen
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -120,6 +121,7 @@ fun MapScreenEntry(
     }
 }
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun MapContent(
     uiState: ScreenState,
@@ -159,7 +161,10 @@ fun MapContent(
                     onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
                 ),
                 uiState = uiState,
-                mapController = mapController
+                mapController = mapController,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = MaterialTheme.colorScheme.background)
             )
         }
     }
@@ -171,9 +176,10 @@ fun MapScreen(
     mapScreenActions: MapScreenActions,
     uiState: ScreenState.Success,
     mapController: MapController,
+    modifier: Modifier = Modifier,
     state: MapScreenLocalState = rememberMapScreenLocalState()
 ) {
-    Box(modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)) {
+    Box(modifier = modifier) {
         YandexMapView(
             mapController = mapController,
             yandexMapActions = YandexMapActions(
@@ -232,6 +238,7 @@ fun MapScreen(
     }
 }
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun YandexMapView(
     mapController: MapController,

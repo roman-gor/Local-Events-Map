@@ -1,5 +1,6 @@
 package com.gorman.events.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import com.gorman.events.R
 import com.gorman.events.ui.components.CitySelectDropdownMenu
 import com.gorman.ui.theme.LocalEventsMapTheme
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun PermissionRequestScreen(
     showManualInput: Boolean,

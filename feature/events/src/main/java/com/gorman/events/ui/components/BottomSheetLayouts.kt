@@ -37,7 +37,7 @@ import com.gorman.events.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 
-@SuppressLint("ConfigurationScreenWidthHeight")
+@SuppressLint("ConfigurationScreenWidthHeight", "ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapEventsBottomSheet(
@@ -73,7 +73,7 @@ fun MapEventsBottomSheet(
     }
 }
 
-@SuppressLint("ConfigurationScreenWidthHeight")
+@SuppressLint("ConfigurationScreenWidthHeight", "ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FiltersBottomSheet(
@@ -91,7 +91,7 @@ fun FiltersBottomSheet(
     ModalBottomSheet(
         onDismissRequest = { onDismiss() },
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background.copy(alpha = alpha.value),
+        containerColor = MaterialTheme.colorScheme.background.copy(alpha = alpha.floatValue),
         shape = RoundedCornerShape(
             topStart = LocalEventsMapTheme.dimens.cornerRadius,
             topEnd = LocalEventsMapTheme.dimens.cornerRadius
@@ -115,12 +115,12 @@ fun FiltersBottomSheet(
                     options = options,
                     filters = filters,
                     onDistanceValueChanged = { value ->
-                        alpha.value = 0f
+                        alpha.floatValue = 0f
                         isDistanceChange = true
                         actions.onDistanceChange(value.toInt())
                     },
                     onDistanceValueChangeFinished = {
-                        alpha.value = 1f
+                        alpha.floatValue = 1f
                         isDistanceChange = false
                     },
                     onDistanceFilterEnabled = {
@@ -140,6 +140,7 @@ fun FiltersBottomSheet(
     }
 }
 
+@SuppressLint("ComposeMultipleContentEmitters", "ComposeModifierMissing")
 @Composable
 fun FiltersBottomSheetContent(
     data: FilterBottomSheetData
