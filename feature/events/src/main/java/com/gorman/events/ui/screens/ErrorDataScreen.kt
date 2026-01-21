@@ -1,5 +1,6 @@
 package com.gorman.events.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import com.gorman.events.R
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun ErrorDataScreen() {
     Box(

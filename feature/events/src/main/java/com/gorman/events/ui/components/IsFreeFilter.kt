@@ -1,5 +1,6 @@
 package com.gorman.events.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.gorman.events.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun IsFreeFilter(
     isFree: Boolean,

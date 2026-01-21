@@ -1,5 +1,6 @@
 package com.gorman.events.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.gorman.events.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun DateButtons(
     onFilterSelect: (DateFilterType) -> Unit,
@@ -46,6 +48,7 @@ fun DateButtons(
     }
 }
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun DateButtonItem(
     type: DateFilterType,

@@ -20,10 +20,3 @@ fun CityData.toUiState(): CityUiData {
         cityCoordinates = point
     )
 }
-
-fun CityUiData.toDomain(): CityData = CityData(
-    city = city,
-    cityName = cityName,
-    latitude = cityCoordinates?.latitude,
-    longitude = cityCoordinates?.longitude
-)

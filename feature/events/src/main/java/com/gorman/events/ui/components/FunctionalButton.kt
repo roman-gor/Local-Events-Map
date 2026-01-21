@@ -18,7 +18,7 @@ fun FunctionalButton(
     onClick: () -> Unit,
     iconSize: Dp,
     imageVector: ImageVector,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     Button(
         onClick = { onClick() },
@@ -42,7 +42,7 @@ fun FunctionalButton(
     onClick: () -> Unit,
     iconSize: Dp,
     painter: Painter,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     Button(
         onClick = { onClick() },
