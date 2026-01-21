@@ -72,7 +72,7 @@ fun MapEventsBottomSheet(
                 .fillMaxWidth()
                 .padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
