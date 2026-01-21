@@ -1,74 +1,38 @@
-package com.gorman.events.ui.screens
+package com.gorman.events.ui.screens.mapscreen
 
 import android.Manifest
-import android.content.Context
 import android.graphics.PointF
 import android.os.Build
-import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.gorman.common.constants.CategoryConstants.Companion.categoriesList
 import com.gorman.common.constants.CityCoordinatesConstants
-import com.gorman.common.constants.CostConstants
 import com.gorman.events.R
 import com.gorman.events.ui.components.CitiesDropdownMenu
-import com.gorman.events.ui.components.DateFilterType
-import com.gorman.events.ui.components.DateRangePickerDialog
-import com.gorman.events.ui.components.FiltersBottomSheet
-import com.gorman.events.ui.components.FunctionalButton
 import com.gorman.events.ui.components.LoadingStub
-import com.gorman.events.ui.components.MapEventNameOutlineTextField
-import com.gorman.events.ui.components.MapEventsBottomSheet
 import com.gorman.events.ui.components.cityNameDefinition
+import com.gorman.events.ui.screens.ErrorDataScreen
+import com.gorman.events.ui.screens.PermissionRequestScreen
 import com.gorman.events.ui.states.FilterActions
-import com.gorman.events.ui.states.FilterOptions
 import com.gorman.events.ui.states.MapScreenActions
 import com.gorman.events.ui.states.MapUiEvent
-import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
 import com.gorman.events.ui.states.YandexMapActions
@@ -89,7 +53,6 @@ import com.yandex.runtime.image.ImageProvider
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
-import kotlin.collections.map
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
@@ -158,26 +121,6 @@ fun MapScreenEntry(
 }
 
 @Composable
-fun HandleSideEffects(
-    context: Context,
-    mapViewModel: MapViewModel,
-    mapController: MapController
-) {
-    LaunchedEffect(Unit) {
-        mapViewModel.sideEffect.collect { effect ->
-            when (effect) {
-                is ScreenSideEffect.MoveCamera -> {
-                    mapController.moveCamera(effect.point, effect.zoom)
-                }
-                is ScreenSideEffect.ShowToast -> {
-                    Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun MapContent(
     uiState: ScreenState,
     onUiEvent: (ScreenUiEvent) -> Unit,
@@ -196,11 +139,7 @@ fun MapContent(
                     },
                     filterActions = FilterActions(
                         onCategoryChange = { category ->
-                            onUiEvent(
-                                ScreenUiEvent.OnCategoryChanged(
-                                    category
-                                )
-                            )
+                            onUiEvent(ScreenUiEvent.OnCategoryChanged(category))
                         },
                         onDateRangeChange = { dateState ->
                             onUiEvent(ScreenUiEvent.OnDateChanged(dateState))
@@ -231,188 +170,65 @@ fun MapContent(
 fun MapScreen(
     mapScreenActions: MapScreenActions,
     uiState: ScreenState.Success,
-    mapController: MapController
+    mapController: MapController,
+    state: MapScreenLocalState = rememberMapScreenLocalState()
 ) {
-    var mapEventsListExpanded by remember { mutableStateOf(false) }
-    var filtersExpanded by remember { mutableStateOf(false) }
-    var citiesMenuExpanded by remember { mutableStateOf(false) }
-
-    var showRangePicker by remember { mutableStateOf(false) }
-
-    val isDarkMode = isSystemInDarkTheme()
-
-    val scope = rememberCoroutineScope()
-
-    val mapEventsListSheetState = rememberModalBottomSheetState()
-    val filtersSheetState = rememberModalBottomSheetState()
-
-    val filtersButtonVerticalOffset by animateDpAsState(
-        targetValue = if (filtersExpanded) (-600).dp else 0.dp,
-        animationSpec = tween(durationMillis = 500),
-        label = "verticalOffsetAnimation"
-    )
-    val listEventsButtonVerticalOffset by animateDpAsState(
-        targetValue = if (mapEventsListExpanded) (-600).dp else 0.dp,
-        animationSpec = tween(durationMillis = 500),
-        label = "verticalOffsetAnimation"
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.background)
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)) {
         YandexMapView(
             mapController = mapController,
             yandexMapActions = YandexMapActions(
                 onCameraIdle = mapScreenActions.onCameraIdle,
                 onMarkerClick = { eventId ->
-                    uiState.eventsList.find { it.id == eventId }?.let {
-                        mapScreenActions.onEventClick(it)
-                    }
+                    uiState.eventsList.find { it.id == eventId }?.let { mapScreenActions.onEventClick(it) }
                 },
             ),
-            isDarkMode = isDarkMode,
+            isDarkMode = state.isDarkMode,
             eventsList = uiState.eventsList,
             initialCityPoint = uiState.cityData.cityCoordinates
         )
         uiState.cityData.city?.let {
             CitiesDropdownMenu(
-                expanded = citiesMenuExpanded,
-                onExpandedChange = { citiesMenuExpanded = !citiesMenuExpanded },
+                expanded = state.citiesMenuExpanded,
+                onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
                 currentCity = cityNameDefinition(it),
                 onCityClick = { city -> mapScreenActions.onCitySubmit(city) },
                 citiesList = CityCoordinatesConstants.cityCoordinatesList.toImmutableList()
             )
         }
-        if (mapEventsListExpanded) {
-            MapEventsBottomSheet(
-                onDismiss = { mapEventsListExpanded = !mapEventsListExpanded },
-                onEventClick = {
-                    mapScreenActions.onEventClick(it)
-                    scope.launch {
-                        mapEventsListSheetState.hide()
-                        mapEventsListExpanded = false
-                    }
-                },
-                eventsList = uiState.eventsList,
-                sheetState = mapEventsListSheetState
-            )
-        }
-        if (filtersExpanded) {
-            FiltersBottomSheet(
-                onDismiss = { filtersExpanded = !filtersExpanded },
-                sheetState = filtersSheetState,
-                filters = uiState.filterState,
-                options = FilterOptions(
-                    categoryItems = categoriesList,
-                    costItems = CostConstants.costList.map { it.value }
-                ),
-                actions = FilterActions(
-                    onCategoryChange = mapScreenActions.filterActions.onCategoryChange,
-                    onDateRangeChange = { dateState ->
-                        Log.d("Date", dateState.toString())
-                        if (dateState.type == DateFilterType.RANGE) {
-                            showRangePicker = true
-                        } else {
-                            mapScreenActions.filterActions.onDateRangeChange(dateState)
-                        }
-                    },
-                    onDistanceChange = { mapScreenActions.filterActions.onDistanceChange(it) },
-                    onCostChange = { mapScreenActions.filterActions.onCostChange(it) },
-                    onNameChange = { name ->
-                        mapScreenActions.filterActions.onNameChange(name)
-                    }
-                )
-            )
-        }
-        if (showRangePicker) {
-            DateRangePickerDialog(
-                onDateRangeSelected = { dateState ->
-                    mapScreenActions.filterActions.onDateRangeChange(dateState)
-                },
-                onDismiss = { showRangePicker = !showRangePicker }
-            )
-        }
-        FunctionalButton(
-            onClick = { mapScreenActions.onSyncClick() },
-            iconSize = 32.dp,
-            imageVector = Icons.Outlined.Refresh,
-            modifier = Modifier
-                .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
-                .size(48.dp)
-                .align(alignment = Alignment.CenterEnd)
-        )
-        Column(
-            modifier = Modifier.fillMaxWidth()
-                .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
-                .align(Alignment.BottomCenter),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FunctionalButton(
-                    onClick = { mapEventsListExpanded = !mapEventsListExpanded },
-                    iconSize = 32.dp,
-                    imageVector = Icons.Outlined.Menu,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .offset(y = listEventsButtonVerticalOffset)
-                )
-                FunctionalButton(
-                    onClick = { filtersExpanded = !filtersExpanded },
-                    iconSize = 32.dp,
-                    painter = painterResource(R.drawable.filter_alt),
-                    modifier = Modifier
-                        .size(48.dp)
-                        .offset(y = filtersButtonVerticalOffset)
-                )
-            }
-            Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingLarge))
-            MapEventNameOutlineTextField(
-                modifier = Modifier.fillMaxWidth(),
-                currentName = uiState.filterState.name,
-                onNameChanged = { mapScreenActions.filterActions.onNameChange(it) }
-            )
-        }
-    }
-}
-
-@Composable
-fun EventItem(
-    mapEvent: MapUiEvent,
-    onEventClick: (MapUiEvent) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = if (mapEvent.isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.background
-                }
+        MapEventsBottomSheetContent(
+            data = BottomSheetData(
+                expanded = state.mapEventsListExpanded,
+                onDismissSheet = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
+                sheetState = state.mapEventsListSheetState
             ),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        mapEvent.name?.let {
-            Text(
-                text = it,
-                fontSize = 14.sp,
-                color = if (mapEvent.isSelected) {
-                    MaterialTheme.colorScheme.inverseOnSurface
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
-                modifier = Modifier
-                    .padding(vertical = LocalEventsMapTheme.dimens.paddingLarge)
-                    .clickable(onClick = { onEventClick(mapEvent) })
+            onEventClick = {
+                mapScreenActions.onEventClick(it)
+                state.scope.launch {
+                    state.mapEventsListSheetState.hide()
+                    state.mapEventsListExpanded = false
+                }
+            },
+            eventsList = uiState.eventsList
+        )
+        FilterBottomSheetContent(
+            data = BottomSheetData(
+                expanded = state.filtersExpanded,
+                onDismissSheet = { state.filtersExpanded = !state.filtersExpanded },
+                sheetState = state.filtersSheetState
+            ),
+            filtersState = uiState.filterState,
+            mapScreenActions = mapScreenActions
+        )
+        FunctionalBlock(
+            mapScreenData = MapScreenData(
+                name = uiState.filterState.name,
+                listEventsButtonVerticalOffset = state.listEventsButtonOffset.value,
+                filtersButtonVerticalOffset = state.filtersButtonOffset.value,
+                mapScreenActions = mapScreenActions,
+                onMapEventsListExpanded = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
+                onFiltersExpanded = { state.filtersExpanded = !state.filtersExpanded }
             )
-        }
+        )
     }
 }
 
@@ -443,6 +259,43 @@ fun YandexMapView(
         }
     }
 
+    YandexMapEffects(
+        mapView = mapView,
+        mapController = mapController,
+        yandexMapActions = yandexMapActions,
+        initialCityPoint = initialCityPoint
+    )
+
+    AndroidView(
+        factory = { mapView },
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(LocalEventsMapTheme.shapes.medium),
+        update = {
+            mapView.updateMapState(
+                isDarkMode = isDarkMode,
+                eventsList = eventsList,
+                selectedIcon = selectedIcon,
+                normalIcon = normalIcon,
+                tapListener = tapListener
+            )
+            initialCityPoint?.let {
+                mapView.mapWindow.map.mapObjects.addPlacemark().apply {
+                    geometry = it
+                    setIcon(userLocationIcon)
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun YandexMapEffects(
+    mapView: MapView,
+    mapController: MapController,
+    yandexMapActions: YandexMapActions,
+    initialCityPoint: Point?
+) {
     DisposableEffect(mapView) {
         mapController.attach(mapView)
         mapView.onStart()
@@ -472,28 +325,6 @@ fun YandexMapView(
             )
         }
     }
-
-    AndroidView(
-        factory = { mapView },
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(LocalEventsMapTheme.shapes.medium),
-        update = {
-            mapView.updateMapState(
-                isDarkMode = isDarkMode,
-                eventsList = eventsList,
-                selectedIcon = selectedIcon,
-                normalIcon = normalIcon,
-                tapListener = tapListener
-            )
-            initialCityPoint?.let {
-                mapView.mapWindow.map.mapObjects.addPlacemark().apply {
-                    geometry = it
-                    setIcon(userLocationIcon)
-                }
-            }
-        }
-    )
 }
 
 private fun MapView.updateMapState(
@@ -527,10 +358,10 @@ private fun MapView.updateMapState(
 
     val selectedEvent = eventsList.firstOrNull { it.isSelected }
     if (selectedEvent != null) {
-        val coords = selectedEvent.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
-        if (coords != null && coords.size == 2) {
+        val coordinates = selectedEvent.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
+        if (coordinates != null && coordinates.size == 2) {
             this.mapWindow.map.move(
-                CameraPosition(Point(coords[0], coords[1]), 15.0f, 0.0f, 0.0f),
+                CameraPosition(Point(coordinates[0], coordinates[1]), 15.0f, 0.0f, 0.0f),
                 Animation(Animation.Type.SMOOTH, 0.5f),
                 null
             )
