@@ -9,6 +9,7 @@ data class MapUiEvent(
     val category: String? = null,
     val photoUrl: String? = null,
     val date: Long? = null,
+    val address: String? = null,
     val coordinates: String? = null,
     val isSelected: Boolean = false,
     val isFavourite: Boolean? = null

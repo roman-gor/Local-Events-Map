@@ -9,6 +9,7 @@ fun MapEvent.toUiState(): MapUiEvent =
         name = name,
         category = category,
         date = date,
+        address = address,
         coordinates = coordinates,
         photoUrl = photo,
         isFavourite = isFavourite

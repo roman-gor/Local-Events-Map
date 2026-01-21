@@ -1,7 +1,7 @@
 package com.gorman.events.ui.components
 
 import android.annotation.SuppressLint
-import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,14 +9,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -27,7 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.gorman.events.R
 import com.gorman.events.ui.states.DateFilterState
 import com.gorman.events.ui.states.FilterActions
@@ -58,16 +62,34 @@ fun MapEventsBottomSheet(
             .fillMaxSize()
             .systemBarsPadding()
     ) {
+        Text(
+            text = stringResource(R.string.events),
+            style = MaterialTheme.typography.titleLarge,
+            fontSize = 28.sp,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom
         ) {
-            items(eventsList) { event ->
+            itemsIndexed(eventsList) { index, event ->
                 MapEventItem(
                     mapEvent = event,
                     onEventClick = onEventClick
                 )
+                if (index != eventsList.size - 1) {
+                    Spacer(
+                        modifier = Modifier.height(1.dp).fillMaxWidth().background(
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                }
             }
         }
     }
@@ -87,7 +109,6 @@ fun FiltersBottomSheet(
     val alpha = remember { mutableFloatStateOf(1f) }
     var isDistanceFilterEnabled by remember { mutableStateOf(filters.distance != null) }
     var isDistanceChange by remember { mutableStateOf(false) }
-    Log.d("CategoriesList", options.categoryItems.toString())
     ModalBottomSheet(
         onDismissRequest = { onDismiss() },
         sheetState = sheetState,
@@ -96,10 +117,15 @@ fun FiltersBottomSheet(
             topStart = LocalEventsMapTheme.dimens.cornerRadius,
             topEnd = LocalEventsMapTheme.dimens.cornerRadius
         ),
-        modifier = Modifier
-            .fillMaxSize()
-            .systemBarsPadding()
+        modifier = Modifier.fillMaxSize().systemBarsPadding()
     ) {
+        if (!isDistanceChange) {
+            Header(
+                text = stringResource(R.string.filters),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -125,9 +151,7 @@ fun FiltersBottomSheet(
                     },
                     onDistanceFilterEnabled = {
                         isDistanceFilterEnabled = !isDistanceFilterEnabled
-                        if (!isDistanceFilterEnabled) {
-                            actions.onDistanceChange(null)
-                        } else {
+                        if (!isDistanceFilterEnabled) { actions.onDistanceChange(null) } else {
                             actions.onDistanceChange(1)
                         }
                     },
@@ -196,6 +220,21 @@ fun FiltersBottomSheetContent(
             onCheckedChange = { data.actions.onCostChange(it) }
         )
     }
+}
+
+@Composable
+fun Header(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleLarge,
+        fontSize = 28.sp,
+        color = MaterialTheme.colorScheme.primary,
+        textAlign = TextAlign.Start,
+        modifier = modifier
+    )
 }
 
 @Immutable
