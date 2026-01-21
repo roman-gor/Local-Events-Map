@@ -1,5 +1,6 @@
 package com.gorman.events.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,7 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 
+@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CitiesDropdownMenu(
@@ -137,6 +139,7 @@ fun CityDropdownHeader(
     }
 }
 
+@SuppressLint("ComposeModifierMissing")
 @Composable
 fun CityUiItem(
     city: CityCoordinatesConstants

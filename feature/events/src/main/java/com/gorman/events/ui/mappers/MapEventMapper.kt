@@ -7,20 +7,11 @@ fun MapEvent.toUiState(): MapUiEvent =
     MapUiEvent(
         id = id,
         name = name,
+        description = description,
         category = category,
         date = date,
+        address = address,
         coordinates = coordinates,
         photoUrl = photo,
-        isFavourite = isFavourite
-    )
-
-fun MapUiEvent.toDomain(): MapEvent =
-    MapEvent(
-        id = id,
-        name = name,
-        category = category,
-        date = date,
-        coordinates = coordinates,
-        photo = photoUrl,
         isFavourite = isFavourite
     )

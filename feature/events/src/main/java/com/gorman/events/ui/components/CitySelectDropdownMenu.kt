@@ -1,5 +1,6 @@
 package com.gorman.events.ui.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,7 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.events.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
+@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CitySelectDropdownMenu(
@@ -86,8 +88,8 @@ fun CitySelectDropdownMenu(
 
 @Composable
 fun CityTextField(
-    modifier: Modifier,
     selectedCity: String,
+    modifier: Modifier = Modifier,
     trailingIcon: @Composable () -> Unit
 ) {
     OutlinedTextField(
