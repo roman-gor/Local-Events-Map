@@ -8,10 +8,12 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.models.CityData
 import com.gorman.data.repository.IGeoRepository
 import com.gorman.data.repository.IMapEventsRepository
+import com.gorman.domainmodel.MapEvent
 import com.gorman.events.ui.components.DateFilterType
 import com.gorman.events.ui.mappers.toUiState
 import com.gorman.events.ui.states.DateFilterState
 import com.gorman.events.ui.states.FiltersState
+import com.gorman.events.ui.states.MapUiEvent
 import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
@@ -31,6 +33,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -38,6 +41,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.filter
 import kotlin.collections.toMutableList
+import kotlin.ranges.contains
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
@@ -63,21 +67,7 @@ class MapViewModel @Inject constructor(
         _selectedEventId
     ) { events, filters, cityData, selectedEventId ->
         val filteredEvents = events.filter { event ->
-            val matchesCity = cityData.cityName?.let {
-                it.isBlank() || event.city.equals(it, ignoreCase = true)
-            } ?: true
-
-            val matchesCategory = filters.categories.isEmpty() || event.category in filters.categories
-
-            val matchesDate = if (filters.dateRange.startDate != null && filters.dateRange.endDate != null) {
-                event.date in filters.dateRange.startDate..filters.dateRange.endDate
-            } else {
-                true
-            }
-
-            val matchesName = event.name?.lowercase()?.contains(filters.name.lowercase()) ?: true
-
-            matchesCity && matchesCategory && matchesDate && matchesName
+            event.filter(filters, cityData)
         }.map { domainEvent ->
             domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
         }.toImmutableList()
@@ -95,12 +85,45 @@ class MapViewModel @Inject constructor(
         initialValue = ScreenState.Loading
     )
 
+    private suspend fun MapEvent.filter(
+        filters: FiltersState,
+        cityData: CityData
+    ): Boolean {
+        val matchesCity = cityData.cityName?.let {
+            it.isBlank() || this.city.equals(it, ignoreCase = true)
+        } ?: true
+
+        val matchesCategory = filters.categories.isEmpty() || this.category in filters.categories
+
+        val matchesDate = if (filters.dateRange.startDate != null && filters.dateRange.endDate != null) {
+            this.date in filters.dateRange.startDate..filters.dateRange.endDate
+        } else {
+            true
+        }
+
+        val matchesName = this.name?.lowercase()?.contains(filters.name.lowercase()) ?: true
+
+        val matchesDistance = if (filters.distance != null) {
+            checkDistanceBetween(this.toUiState())?.let {
+                it <= filters.distance
+            } ?: true
+        } else {
+            true
+        }
+
+        val matchesIsFree = if (filters.isFree) this.price == 0 else true
+
+        return matchesCity && matchesCategory && matchesDate && matchesName && matchesDistance && matchesIsFree
+    }
+
     fun onUiEvent(event: ScreenUiEvent) {
         when (event) {
             is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
             is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
             is ScreenUiEvent.OnNameChanged -> { filterNameChanged(event.name) }
+            is ScreenUiEvent.OnCostChanged -> { filterIsFreeChanged(event.isFree) }
+            is ScreenUiEvent.OnDistanceChanged -> { filterDistanceChanged(event.distance) }
             is ScreenUiEvent.OnCitySearch -> searchForCity(event.city)
             is ScreenUiEvent.OnEventSelected -> selectEvent(event.id)
             ScreenUiEvent.OnSyncClicked -> syncEvents()
@@ -185,9 +208,40 @@ class MapViewModel @Inject constructor(
         )
     }
 
-    fun filterNameChanged(name: String) {
+    private fun filterNameChanged(name: String) {
         _filters.value = _filters.value.copy(
             name = name
+        )
+    }
+
+    private fun filterDistanceChanged(distance: Int?) {
+        _filters.value = _filters.value.copy(
+            distance = distance
+        )
+    }
+
+    private suspend fun checkDistanceBetween(event: MapUiEvent): Int? {
+        val cityData = _cityData.first().toUiState()
+        val userLocation = cityData.cityCoordinates
+        val eventLocation = event.coordinates?.let { coordinates ->
+            getPointFromCoordinates(coordinates)
+        }
+        return if (userLocation != null && eventLocation != null) {
+            geoRepository.getDistanceFromPoints(userLocation, eventLocation)
+        } else {
+            null
+        }
+    }
+
+    private fun getPointFromCoordinates(coordinates: String): Point {
+        val coordinatesList = coordinates.split(",")
+        Log.d("Coordinates Pair", Pair(coordinatesList[0].toDouble(), coordinatesList[1].toDouble()).toString())
+        return Point(coordinatesList[0].toDouble(), coordinatesList[1].toDouble())
+    }
+
+    private fun filterIsFreeChanged(isFree: Boolean) {
+        _filters.value = _filters.value.copy(
+            isFree = isFree
         )
     }
 
