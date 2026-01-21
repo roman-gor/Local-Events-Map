@@ -10,16 +10,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.sp
 import com.gorman.events.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun MapEventNameOutlineTextField(
-    modifier: Modifier,
     currentName: String,
+    modifier: Modifier = Modifier,
     onNameChanged: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current

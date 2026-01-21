@@ -5,6 +5,7 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.LocationProvider
 import com.gorman.common.models.CityData
 import com.yandex.mapkit.geometry.BoundingBox
+import com.yandex.mapkit.geometry.Geo
 import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.search.Address
@@ -116,6 +117,12 @@ class GeoRepositoryImpl @Inject constructor(
 
     override suspend fun getUserLocation(): Point? =
         locationProvider.getLastKnownLocation()
+
+    override fun getDistanceFromPoints(
+        point1: Point,
+        point2: Point
+    ): Int =
+        Geo.distance(point1, point2).toInt() / 1000
 
     override fun getSavedCity(): Flow<CityData?> {
         return dataStoreManager.savedCity

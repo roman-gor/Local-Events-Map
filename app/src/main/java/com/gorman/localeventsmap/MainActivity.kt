@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.gorman.events.ui.screens.MapScreenEntry
+import com.gorman.events.ui.screens.mapscreen.MapScreenEntry
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.AndroidEntryPoint

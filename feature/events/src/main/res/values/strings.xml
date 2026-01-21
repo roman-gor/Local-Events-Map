@@ -30,4 +30,9 @@
     <string name="confirm">ОК</string>
     <string name="dismiss">Закрыть</string>
     <string name="titleEvent">Поиск по названию</string>
+    <string name="freeEventsOnly">Только бесплатные</string>
+    <string name="searchDistance">Дистанция поиска</string>
+    <string name="distanceFilterAvailable">Расстояние</string>
+    <string name="events">События</string>
+    <string name="filters">Фильтры</string>
 </resources>
