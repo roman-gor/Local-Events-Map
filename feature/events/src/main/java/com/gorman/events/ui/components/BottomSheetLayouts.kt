@@ -4,15 +4,12 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,9 +17,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gorman.events.R
-import com.gorman.events.ui.screens.EventItem
 import com.gorman.events.ui.states.DateFilterState
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.FilterOptions
@@ -69,7 +64,7 @@ fun MapEventsBottomSheet(
             verticalArrangement = Arrangement.Bottom
         ) {
             items(eventsList) { event ->
-                EventItem(
+                MapEventItem(
                     mapEvent = event,
                     onEventClick = onEventClick
                 )
@@ -111,81 +106,109 @@ fun FiltersBottomSheet(
                 .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (!isDistanceChange) {
-                CategoriesDropdownMenu(
-                    expanded = categoryExpanded,
-                    header = stringResource(R.string.category),
-                    onExpandedChange = { categoryExpanded = !categoryExpanded },
-                    onItemClick = { actions.onCategoryChange(it) },
-                    categoriesOptions = CategoriesOptions(
-                        items = options.categoryItems,
-                        selectedItems = filters.categories
-                    )
-                )
-                Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingSmall))
-                DateButtons(
-                    onFilterSelect = {
-                        actions.onDateRangeChange(DateFilterState(type = it))
+            FiltersBottomSheetContent(
+                data = FilterBottomSheetData(
+                    isDistanceChange = isDistanceChange,
+                    isDistanceFilterEnabled = isDistanceFilterEnabled,
+                    categoryExpanded = categoryExpanded,
+                    actions = actions,
+                    options = options,
+                    filters = filters,
+                    onDistanceValueChanged = { value ->
+                        alpha.value = 0f
+                        isDistanceChange = true
+                        actions.onDistanceChange(value.toInt())
                     },
-                    selectedFilterType = filters.dateRange.type
+                    onDistanceValueChangeFinished = {
+                        alpha.value = 1f
+                        isDistanceChange = false
+                    },
+                    onDistanceFilterEnabled = {
+                        isDistanceFilterEnabled = !isDistanceFilterEnabled
+                        if (!isDistanceFilterEnabled) {
+                            actions.onDistanceChange(null)
+                        } else {
+                            actions.onDistanceChange(1)
+                        }
+                    },
+                    onDateFilterSelect = { actions.onDateRangeChange(it) },
+                    onCategoriesItemClick = { actions.onCategoryChange(it) },
+                    onCategoriesListExpanded = { categoryExpanded = !categoryExpanded }
                 )
-                Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingLarge))
-            } else {
-                Spacer(modifier = Modifier.height(100.dp))
-            }
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (!isDistanceChange) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(
-                            horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge
-                        ),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Switch(
-                            checked = isDistanceFilterEnabled,
-                            onCheckedChange = {
-                                isDistanceFilterEnabled = !isDistanceFilterEnabled
-                                if (!isDistanceFilterEnabled) {
-                                    actions.onDistanceChange(null)
-                                } else {
-                                    actions.onDistanceChange(1)
-                                }
-                            }
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = stringResource(R.string.distanceFilterAvailable),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-                filters.distance?.let {
-                    DistanceSlider(
-                        distance = it,
-                        onValueChange = { value ->
-                            alpha.value = 0f
-                            isDistanceChange = true
-                            actions.onDistanceChange(value.toInt())
-                        },
-                        onValueChangeFinished = {
-                            isDistanceChange = false
-                            alpha.value = 1f
-                        },
-                        enabled = isDistanceFilterEnabled
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingMedium))
-            if (!isDistanceChange) {
-                IsFreeFilter(
-                    isFree = filters.isFree,
-                    onCheckedChange = { actions.onCostChange(it) }
-                )
-            }
+            )
         }
     }
 }
+
+@Composable
+fun FiltersBottomSheetContent(
+    data: FilterBottomSheetData
+) {
+    if (!data.isDistanceChange) {
+        CategoriesDropdownMenu(
+            expanded = data.categoryExpanded,
+            header = stringResource(R.string.category),
+            onExpandedChange = { data.onCategoriesListExpanded() },
+            onItemClick = { data.actions.onCategoryChange(it) },
+            categoriesOptions = CategoriesOptions(
+                items = data.options.categoryItems,
+                selectedItems = data.filters.categories
+            )
+        )
+        Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingSmall))
+        DateButtons(
+            onFilterSelect = {
+                data.onDateFilterSelect(DateFilterState(type = it))
+            },
+            selectedFilterType = data.filters.dateRange.type
+        )
+        Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingLarge))
+    } else {
+        Spacer(modifier = Modifier.height(100.dp))
+    }
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (!data.isDistanceChange) {
+            DistanceSwitch(data.isDistanceFilterEnabled) {
+                data.onDistanceFilterEnabled()
+            }
+        }
+        data.filters.distance?.let {
+            DistanceSlider(
+                distance = it,
+                onValueChange = { value ->
+                    data.onDistanceValueChanged(value)
+                },
+                onValueChangeFinished = {
+                    data.onDistanceValueChangeFinished()
+                },
+                enabled = data.isDistanceFilterEnabled
+            )
+        }
+    }
+    Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingMedium))
+    if (!data.isDistanceChange) {
+        IsFreeFilter(
+            isFree = data.filters.isFree,
+            onCheckedChange = { data.actions.onCostChange(it) }
+        )
+    }
+}
+
+@Immutable
+data class FilterBottomSheetData(
+    val isDistanceChange: Boolean,
+    val isDistanceFilterEnabled: Boolean,
+    val categoryExpanded: Boolean,
+    val actions: FilterActions,
+    val options: FilterOptions,
+    val filters: FiltersState,
+    val onDistanceValueChanged: (Float) -> Unit,
+    val onDistanceValueChangeFinished: () -> Unit,
+    val onDistanceFilterEnabled: () -> Unit,
+    val onDateFilterSelect: (DateFilterState) -> Unit,
+    val onCategoriesItemClick: (String) -> Unit,
+    val onCategoriesListExpanded: () -> Unit
+)

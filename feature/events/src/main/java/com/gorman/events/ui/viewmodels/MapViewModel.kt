@@ -121,11 +121,16 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
             is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
-            is ScreenUiEvent.OnNameChanged -> { filterNameChanged(event.name) }
-            is ScreenUiEvent.OnCostChanged -> { filterIsFreeChanged(event.isFree) }
-            is ScreenUiEvent.OnDistanceChanged -> { filterDistanceChanged(event.distance) }
+            is ScreenUiEvent.OnNameChanged -> _filters.value = _filters.value.copy(name = event.name)
+            is ScreenUiEvent.OnCostChanged -> _filters.value = _filters.value.copy(isFree = event.isFree)
+            is ScreenUiEvent.OnDistanceChanged -> _filters.value = _filters.value.copy(distance = event.distance)
             is ScreenUiEvent.OnCitySearch -> searchForCity(event.city)
-            is ScreenUiEvent.OnEventSelected -> selectEvent(event.id)
+            is ScreenUiEvent.OnEventSelected -> {
+                viewModelScope.launch {
+                    val currentId = _selectedEventId.value
+                    _selectedEventId.value = if (currentId == event.id) null else event.id
+                }
+            }
             ScreenUiEvent.OnSyncClicked -> syncEvents()
             ScreenUiEvent.PermissionsGranted -> {
                 fetchInitialLocation()
@@ -155,7 +160,13 @@ class MapViewModel @Inject constructor(
         val newType = dateState.type
 
         if (currentType == newType && newType != DateFilterType.RANGE) {
-            resetDateFilter()
+            _filters.value = _filters.value.copy(
+                dateRange = DateFilterState(
+                    type = null,
+                    startDate = null,
+                    endDate = null
+                )
+            )
             return
         }
 
@@ -194,55 +205,28 @@ class MapViewModel @Inject constructor(
                 )
                 Log.d("Date Check State", _filters.value.dateRange.toString())
             }
-            else -> resetDateFilter()
-        }
-    }
-
-    private fun resetDateFilter() {
-        _filters.value = _filters.value.copy(
-            dateRange = DateFilterState(
-                type = null,
-                startDate = null,
-                endDate = null
+            else -> _filters.value = _filters.value.copy(
+                dateRange = DateFilterState(
+                    type = null,
+                    startDate = null,
+                    endDate = null
+                )
             )
-        )
-    }
-
-    private fun filterNameChanged(name: String) {
-        _filters.value = _filters.value.copy(
-            name = name
-        )
-    }
-
-    private fun filterDistanceChanged(distance: Int?) {
-        _filters.value = _filters.value.copy(
-            distance = distance
-        )
+        }
     }
 
     private suspend fun checkDistanceBetween(event: MapUiEvent): Int? {
         val cityData = _cityData.first().toUiState()
         val userLocation = cityData.cityCoordinates
         val eventLocation = event.coordinates?.let { coordinates ->
-            getPointFromCoordinates(coordinates)
+            val coordinatesList = coordinates.split(",")
+            Point(coordinatesList[0].toDouble(), coordinatesList[1].toDouble())
         }
         return if (userLocation != null && eventLocation != null) {
             geoRepository.getDistanceFromPoints(userLocation, eventLocation)
         } else {
             null
         }
-    }
-
-    private fun getPointFromCoordinates(coordinates: String): Point {
-        val coordinatesList = coordinates.split(",")
-        Log.d("Coordinates Pair", Pair(coordinatesList[0].toDouble(), coordinatesList[1].toDouble()).toString())
-        return Point(coordinatesList[0].toDouble(), coordinatesList[1].toDouble())
-    }
-
-    private fun filterIsFreeChanged(isFree: Boolean) {
-        _filters.value = _filters.value.copy(
-            isFree = isFree
-        )
     }
 
     fun onCameraIdle(cameraPosition: Point) {
@@ -297,13 +281,6 @@ class MapViewModel @Inject constructor(
         }
         Log.d("FilterList", _filters.value.categories.toString())
         _filters.value = _filters.value.copy(categories = currentCategories)
-    }
-
-    private fun selectEvent(id: String) {
-        viewModelScope.launch {
-            val currentId = _selectedEventId.value
-            _selectedEventId.value = if (currentId == id) null else id
-        }
     }
 
     private fun updateCityIfChanged(newData: CityData) {

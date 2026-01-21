@@ -122,7 +122,7 @@ class GeoRepositoryImpl @Inject constructor(
         point1: Point,
         point2: Point
     ): Int =
-        Geo.distance(point1, point2).toInt()/1000
+        Geo.distance(point1, point2).toInt() / 1000
 
     override fun getSavedCity(): Flow<CityData?> {
         return dataStoreManager.savedCity
