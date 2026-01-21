@@ -205,8 +205,12 @@ fun MapContent(
                         onDateRangeChange = { dateState ->
                             onUiEvent(ScreenUiEvent.OnDateChanged(dateState))
                         },
-                        onDistanceChange = {},
-                        onCostChange = {},
+                        onDistanceChange = { currentDistance ->
+                            onUiEvent(ScreenUiEvent.OnDistanceChanged(currentDistance))
+                        },
+                        onCostChange = { isFree ->
+                            onUiEvent(ScreenUiEvent.OnCostChanged(isFree))
+                        },
                         onNameChange = { name ->
                             onUiEvent(ScreenUiEvent.OnNameChanged(name))
                         }
@@ -314,8 +318,8 @@ fun MapScreen(
                             mapScreenActions.filterActions.onDateRangeChange(dateState)
                         }
                     },
-                    onDistanceChange = { },
-                    onCostChange = { },
+                    onDistanceChange = { mapScreenActions.filterActions.onDistanceChange(it) },
+                    onCostChange = { mapScreenActions.filterActions.onCostChange(it) },
                     onNameChange = { name ->
                         mapScreenActions.filterActions.onNameChange(name)
                     }
@@ -427,6 +431,9 @@ fun YandexMapView(
     val selectedIcon = remember {
         ImageProvider.fromResource(context, R.drawable.ic_marker_selected)
     }
+    val userLocationIcon = remember {
+        ImageProvider.fromResource(context, R.drawable.ic_location_marker)
+    }
 
     val tapListener = remember(yandexMapActions.onMarkerClick) {
         MapObjectTapListener { mapObject, _ ->
@@ -479,6 +486,12 @@ fun YandexMapView(
                 normalIcon = normalIcon,
                 tapListener = tapListener
             )
+            initialCityPoint?.let {
+                mapView.mapWindow.map.mapObjects.addPlacemark().apply {
+                    geometry = it
+                    setIcon(userLocationIcon)
+                }
+            }
         }
     )
 }

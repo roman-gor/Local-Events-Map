@@ -8,8 +8,8 @@ import com.gorman.events.ui.components.DateFilterType
 data class FiltersState(
     val categories: List<String> = listOf(),
     val dateRange: DateFilterState = DateFilterState(),
-    val distance: Int = 0,
-    val isFree: Boolean = true,
+    val distance: Int? = null,
+    val isFree: Boolean = false,
     val name: String = ""
 )
 
@@ -24,8 +24,8 @@ data class DateFilterState(
 data class FilterActions(
     val onCategoryChange: (String) -> Unit,
     val onDateRangeChange: (DateFilterState) -> Unit,
-    val onDistanceChange: () -> Unit,
-    val onCostChange: () -> Unit,
+    val onDistanceChange: (Int?) -> Unit,
+    val onCostChange: (Boolean) -> Unit,
     val onNameChange: (String) -> Unit
 )
 
