@@ -33,4 +33,6 @@
     <string name="freeEventsOnly">Free events only</string>
     <string name="searchDistance">Search Distance</string>
     <string name="distanceFilterAvailable">Distance</string>
+    <string name="events">Events</string>
+    <string name="filters">Filters</string>
 </resources>
