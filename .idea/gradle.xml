@@ -26,6 +26,7 @@
             <option value="$PROJECT_DIR$/build-logic" />
             <option value="$PROJECT_DIR$/build-logic/conversion" />
             <option value="$PROJECT_DIR$/core" />
+            <option value="$PROJECT_DIR$/core/auth" />
             <option value="$PROJECT_DIR$/core/cache" />
             <option value="$PROJECT_DIR$/core/common" />
             <option value="$PROJECT_DIR$/core/data" />
