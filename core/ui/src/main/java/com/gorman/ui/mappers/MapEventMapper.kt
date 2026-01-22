@@ -10,6 +10,7 @@ fun MapEvent.toUiState(): MapUiEvent =
         description = description,
         category = category,
         date = date,
+        link = link,
         address = address,
         cityName = city,
         coordinates = coordinates,

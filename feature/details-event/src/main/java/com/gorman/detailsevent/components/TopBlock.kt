@@ -13,7 +13,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,6 +25,7 @@ fun TopBlock(
     name: String?,
     isFavourite: Boolean?,
     imageState: AsyncImagePainter.State,
+    detailsActions: DetailsActions,
     modifier: Modifier = Modifier
 ) {
     val selectedIcon = isFavourite?.let {
@@ -52,15 +52,15 @@ fun TopBlock(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(180.dp)
-                .background(Color.Gray)
+                .background(MaterialTheme.colorScheme.primary)
         )
         ActionsRow(
             selectedIcon = selectedIcon,
             detailsActions = DetailsActions(
-                onFavouriteClick = {},
-                onLocationClick = {},
-                onShareClick = {},
-                onLinkClick = {}
+                onFavouriteClick = detailsActions.onFavouriteClick,
+                onLocationClick = detailsActions.onLocationClick,
+                onShareClick = detailsActions.onShareClick,
+                onLinkClick = detailsActions.onLinkClick
             ),
             modifier = Modifier
                 .fillMaxWidth()

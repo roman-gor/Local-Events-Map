@@ -10,6 +10,7 @@ data class MapUiEvent(
     val category: String? = null,
     val photoUrl: String? = null,
     val date: Long? = null,
+    val link: String? = null,
     val address: String? = null,
     val cityName: String? = null,
     val coordinates: String? = null,

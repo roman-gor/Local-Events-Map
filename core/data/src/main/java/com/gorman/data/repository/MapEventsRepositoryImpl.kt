@@ -11,6 +11,8 @@ import com.gorman.firebase.data.datasource.MapEventRemoteDataSource
 import com.gorman.firebase.toDomain
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
@@ -27,8 +29,22 @@ internal class MapEventsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getEventById(id: Long): Flow<MapEvent> {
+    override fun getEventById(id: String): Flow<MapEvent> {
         return mapEventsDao.getEventById(id).map { it.toDomain() }
+    }
+
+    override suspend fun updateFavouriteState(id: String): Result<Unit> {
+        return try {
+            val updatedRows = mapEventsDao.toggleFavouriteState(id)
+            if (updatedRows > 0) {
+                Log.d("Repository", "Updated favourite for map Event")
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Event with id $id not found"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override fun getEventsByName(name: String): Flow<List<MapEvent>> {
