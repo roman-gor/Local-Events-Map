@@ -27,8 +27,6 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.events.R
 import com.gorman.events.ui.components.CitiesDropdownMenu
-import com.gorman.events.ui.components.LoadingStub
-import com.gorman.events.ui.screens.ErrorDataScreen
 import com.gorman.events.ui.screens.PermissionRequestScreen
 import com.gorman.events.ui.states.FilterActions
 import com.gorman.events.ui.states.MapScreenActions
@@ -38,6 +36,8 @@ import com.gorman.events.ui.states.YandexMapActions
 import com.gorman.events.ui.utils.MapController
 import com.gorman.events.ui.utils.rememberMapController
 import com.gorman.events.ui.viewmodels.MapViewModel
+import com.gorman.ui.components.ErrorDataScreen
+import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.gorman.ui.utils.cityNameDefinition

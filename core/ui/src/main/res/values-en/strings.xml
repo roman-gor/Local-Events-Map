@@ -14,4 +14,5 @@
     <string name="food">Food</string>
     <string name="cinema">Cinema</string>
     <string name="categoryPlaceholder">Poster</string>
+    <string name="errorDataLoading">Error loading data</string>
 </resources>

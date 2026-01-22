@@ -47,7 +47,8 @@ class MainActivity : ComponentActivity() {
                             category = "education",
                             coordinates = "53.6822, 23.8330",
                             isSelected = true,
-                            isFavourite = false
+                            isFavourite = false,
+                            id = "event2"
                         ),
                         modifier = Modifier.fillMaxSize().systemBarsPadding()
                     )

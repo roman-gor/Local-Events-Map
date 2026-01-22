@@ -1,5 +1,6 @@
 package com.gorman.detailsevent.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,28 +20,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.rememberAsyncImagePainter
 import com.gorman.detailsevent.components.BottomBlock
 import com.gorman.detailsevent.components.MapEventInfoRow
 import com.gorman.detailsevent.components.TopBlock
+import com.gorman.detailsevent.states.DetailsActions
+import com.gorman.detailsevent.states.DetailsScreenState
+import com.gorman.detailsevent.states.DetailsScreenUiEvent
+import com.gorman.detailsevent.viewmodels.DetailsViewModel
+import com.gorman.ui.components.ErrorDataScreen
+import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun DetailsEventScreenEntry(
     mapUiEvent: MapUiEvent,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    detailsViewModel: DetailsViewModel = hiltViewModel()
 ) {
-    DetailsEventScreen(
-        mapUiEvent = mapUiEvent,
-        modifier = modifier
-    )
+    val uiState by detailsViewModel.uiState.collectAsStateWithLifecycle()
+    when (val state = uiState) {
+        is DetailsScreenState.Error -> ErrorDataScreen()
+        DetailsScreenState.Loading -> LoadingStub()
+        is DetailsScreenState.Success -> {
+            Log.d("State", "${state.event}")
+            DetailsEventScreen(
+                mapUiEvent = state.event,
+                onUiEvent = detailsViewModel::onUiEvent,
+                modifier = modifier
+            )
+        }
+    }
 }
 
 @Composable
 fun DetailsEventScreen(
     mapUiEvent: MapUiEvent,
+    onUiEvent: (DetailsScreenUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val painter = rememberAsyncImagePainter(mapUiEvent.photoUrl)
@@ -59,6 +78,12 @@ fun DetailsEventScreen(
                 name = mapUiEvent.name,
                 isFavourite = mapUiEvent.isFavourite,
                 imageState = imageState,
+                detailsActions = DetailsActions(
+                    onFavouriteClick = { onUiEvent(DetailsScreenUiEvent.OnFavouriteClick(mapUiEvent.id)) },
+                    onLocationClick = { onUiEvent(DetailsScreenUiEvent.OnLocationClick(mapUiEvent.coordinates)) },
+                    onShareClick = { onUiEvent(DetailsScreenUiEvent.OnShareClick(mapUiEvent.link)) },
+                    onLinkClick = { onUiEvent(DetailsScreenUiEvent.OnLinkClick(mapUiEvent.link)) }
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
             Text(
@@ -82,7 +107,9 @@ fun DetailsEventScreen(
             BottomBlock(
                 cityName = mapUiEvent.cityName?.lowercase() ?: "",
                 category = mapUiEvent.category?.lowercase() ?: "",
-                modifier = Modifier.fillMaxWidth().padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
             )
             Spacer(modifier = Modifier.height(20.dp))
         }
