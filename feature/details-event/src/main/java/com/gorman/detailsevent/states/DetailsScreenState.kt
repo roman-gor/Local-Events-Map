@@ -9,7 +9,4 @@ sealed interface DetailsScreenState {
 }
 sealed interface DetailsScreenUiEvent {
     data class OnFavouriteClick(val id: String) : DetailsScreenUiEvent
-    data class OnLocationClick(val coordinates: String?) : DetailsScreenUiEvent
-    data class OnShareClick(val link: String?) : DetailsScreenUiEvent
-    data class OnLinkClick(val link: String?) : DetailsScreenUiEvent
 }

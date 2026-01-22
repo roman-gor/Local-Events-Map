@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,6 +27,9 @@ import coil3.compose.rememberAsyncImagePainter
 import com.gorman.detailsevent.components.BottomBlock
 import com.gorman.detailsevent.components.MapEventInfoRow
 import com.gorman.detailsevent.components.TopBlock
+import com.gorman.detailsevent.contextUtils.openBrowser
+import com.gorman.detailsevent.contextUtils.openMap
+import com.gorman.detailsevent.contextUtils.shareContent
 import com.gorman.detailsevent.states.DetailsActions
 import com.gorman.detailsevent.states.DetailsScreenState
 import com.gorman.detailsevent.states.DetailsScreenUiEvent
@@ -48,7 +52,7 @@ fun DetailsEventScreenEntry(
         is DetailsScreenState.Success -> {
             Log.d("State", "${state.event}")
             DetailsEventScreen(
-                mapUiEvent = state.event,
+                mapUiEvent = mapUiEvent,
                 onUiEvent = detailsViewModel::onUiEvent,
                 modifier = modifier
             )
@@ -62,6 +66,7 @@ fun DetailsEventScreen(
     onUiEvent: (DetailsScreenUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     val painter = rememberAsyncImagePainter(mapUiEvent.photoUrl)
     val imageState by painter.state.collectAsStateWithLifecycle()
     Box(
@@ -80,9 +85,9 @@ fun DetailsEventScreen(
                 imageState = imageState,
                 detailsActions = DetailsActions(
                     onFavouriteClick = { onUiEvent(DetailsScreenUiEvent.OnFavouriteClick(mapUiEvent.id)) },
-                    onLocationClick = { onUiEvent(DetailsScreenUiEvent.OnLocationClick(mapUiEvent.coordinates)) },
-                    onShareClick = { onUiEvent(DetailsScreenUiEvent.OnShareClick(mapUiEvent.link)) },
-                    onLinkClick = { onUiEvent(DetailsScreenUiEvent.OnLinkClick(mapUiEvent.link)) }
+                    onLocationClick = { openMap(context, mapUiEvent.coordinates) },
+                    onShareClick = { shareContent(context, mapUiEvent.link) },
+                    onLinkClick = { openBrowser(context, mapUiEvent.link) }
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -109,7 +114,7 @@ fun DetailsEventScreen(
                 category = mapUiEvent.category?.lowercase() ?: "",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
+                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
             )
             Spacer(modifier = Modifier.height(20.dp))
         }

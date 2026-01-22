@@ -42,6 +42,7 @@ class MainActivity : ComponentActivity() {
                                 " Будет проходить открытие библиотеки: экскурсия и призы" +
                                 " Будет проходить открытие библиотеки: экскурсия и призы",
                             date = 1769241600000L,
+                            link = "https://bsuir.by",
                             address = "пр. Независимости, 62",
                             cityName = "minsk",
                             category = "education",
