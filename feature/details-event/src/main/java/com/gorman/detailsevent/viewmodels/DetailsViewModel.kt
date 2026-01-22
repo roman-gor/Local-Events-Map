@@ -36,9 +36,6 @@ class DetailsViewModel @Inject constructor(
     fun onUiEvent(uiEvent: DetailsScreenUiEvent) {
         when (uiEvent) {
             is DetailsScreenUiEvent.OnFavouriteClick -> onFavouriteChange(uiEvent.id)
-            is DetailsScreenUiEvent.OnLinkClick -> { uiEvent.link?.let { onLinkOpen(it) } }
-            is DetailsScreenUiEvent.OnLocationClick -> { uiEvent.coordinates?.let { onCoordinatesOpen(it) } }
-            is DetailsScreenUiEvent.OnShareClick -> { uiEvent.link?.let { onShareClick(it) } }
         }
     }
 
@@ -50,10 +47,4 @@ class DetailsViewModel @Inject constructor(
             }
         }
     }
-
-    private fun onLinkOpen(link: String) {}
-
-    private fun onCoordinatesOpen(coordinates: String) {}
-
-    private fun onShareClick(link: String) {}
 }

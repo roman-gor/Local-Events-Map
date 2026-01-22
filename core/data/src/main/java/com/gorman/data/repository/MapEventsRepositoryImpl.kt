@@ -11,8 +11,6 @@ import com.gorman.firebase.data.datasource.MapEventRemoteDataSource
 import com.gorman.firebase.toDomain
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
