@@ -53,6 +53,8 @@ dependencies {
 
     implementation(project(":feature"))
     implementation(project(":feature:events"))
+    implementation(project(":feature:details-event"))
+    implementation(project(":core:ui"))
     implementation(project(":sync:work"))
 
     implementation(libs.androidx.core.ktx)
@@ -63,7 +65,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.hilt.work)
+    implementation(libs.hilt.ext.work)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

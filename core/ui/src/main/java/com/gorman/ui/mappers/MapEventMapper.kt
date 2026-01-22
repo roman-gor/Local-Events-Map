@@ -1,7 +1,7 @@
-package com.gorman.events.ui.mappers
+package com.gorman.ui.mappers
 
 import com.gorman.domainmodel.MapEvent
-import com.gorman.events.ui.states.MapUiEvent
+import com.gorman.ui.states.MapUiEvent
 
 fun MapEvent.toUiState(): MapUiEvent =
     MapUiEvent(
@@ -10,7 +10,9 @@ fun MapEvent.toUiState(): MapUiEvent =
         description = description,
         category = category,
         date = date,
+        link = link,
         address = address,
+        cityName = city,
         coordinates = coordinates,
         photoUrl = photo,
         isFavourite = isFavourite
