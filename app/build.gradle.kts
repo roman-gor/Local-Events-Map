@@ -3,11 +3,11 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.gms.google.services)
+    alias(libs.plugins.detekt)
     id("kotlin-parcelize")
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
-    id("com.google.gms.google-services")
-    id("io.gitlab.arturbosch.detekt")
 }
 
 android {

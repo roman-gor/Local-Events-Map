@@ -1,16 +1,16 @@
 plugins {
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.serialization)
+    alias(libs.plugins.gms.google.services)
     id("localevents.android.library")
     id("localevents.hilt")
 }
 
 android {
-    namespace = "com.gorman.firebase"
+    namespace = "com.gorman.auth"
 }
 
 dependencies {
-
-    implementation(project(":core"))
     implementation(project(":core:domain-model"))
 
     implementation(platform(libs.firebase.bom))
