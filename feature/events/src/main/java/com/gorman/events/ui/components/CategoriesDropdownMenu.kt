@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.gorman.common.constants.CategoryConstants
 import com.gorman.events.R
 import com.gorman.ui.theme.LocalEventsMapTheme
+import com.gorman.ui.utils.categoryNameDefinition
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
@@ -151,15 +152,3 @@ data class CategoriesOptions(
     val items: List<CategoryConstants>,
     val selectedItems: List<String>
 )
-
-@Composable
-fun categoryNameDefinition(category: CategoryConstants): String {
-    return when (category) {
-        CategoryConstants.EDUCATION -> stringResource(R.string.education)
-        CategoryConstants.MUSIC -> stringResource(R.string.music)
-        CategoryConstants.ART -> stringResource(R.string.art)
-        CategoryConstants.SPORT -> stringResource(R.string.sport)
-        CategoryConstants.FOOD -> stringResource(R.string.food)
-        CategoryConstants.CINEMA -> stringResource(R.string.cinema)
-    }
-}

@@ -1,4 +1,4 @@
-package com.gorman.events.ui.states
+package com.gorman.ui.states
 
 import androidx.compose.runtime.Immutable
 
@@ -11,6 +11,7 @@ data class MapUiEvent(
     val photoUrl: String? = null,
     val date: Long? = null,
     val address: String? = null,
+    val cityName: String? = null,
     val coordinates: String? = null,
     val isSelected: Boolean = false,
     val isFavourite: Boolean? = null

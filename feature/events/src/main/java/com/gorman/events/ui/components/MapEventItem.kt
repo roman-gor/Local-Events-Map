@@ -18,11 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gorman.events.ui.states.MapUiEvent
+import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.gorman.ui.utils.convertMillisToDate
 
 @SuppressLint("ComposeModifierMissing")
 @Composable
@@ -80,11 +78,4 @@ fun MapEventItem(
                 .padding(LocalEventsMapTheme.dimens.paddingLarge)
         )
     }
-}
-
-fun convertMillisToDate(millis: Long): String {
-    val formatter = DateTimeFormatter.ofPattern("d MMMM")
-    val instant = Instant.ofEpochMilli(millis)
-    val date = instant.atZone(ZoneId.systemDefault()).toLocalDate()
-    return date.format(formatter)
 }

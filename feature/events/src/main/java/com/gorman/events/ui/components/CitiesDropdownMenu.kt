@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.ui.theme.LocalEventsMapTheme
+import com.gorman.ui.utils.cityNameDefinition
 import kotlinx.collections.immutable.ImmutableList
 
 @SuppressLint("ComposeModifierMissing")
