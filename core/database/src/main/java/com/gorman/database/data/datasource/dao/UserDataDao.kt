@@ -13,8 +13,8 @@ interface UserDataDao {
     fun getUserById(uid: String): Flow<UserDataEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun saveUser(userDataEntity: UserDataEntity)
+    suspend fun saveUser(userDataEntity: UserDataEntity)
 
     @Query("DELETE FROM events")
-    fun clearAll()
+    suspend fun clearAll()
 }

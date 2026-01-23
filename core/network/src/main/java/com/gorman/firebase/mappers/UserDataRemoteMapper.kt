@@ -8,7 +8,7 @@ fun UserDataRemote.toDomain(): UserData =
         uid = uid,
         email = email,
         username = username,
-        favouriteEventsIds = favouriteEventsIds
+        favouriteEventsIds = favouriteEventsIds.map { it.key }
     )
 
 fun UserData.toRemote(): UserDataRemote =
@@ -16,5 +16,5 @@ fun UserData.toRemote(): UserDataRemote =
         uid = uid,
         email = email,
         username = username,
-        favouriteEventsIds = favouriteEventsIds
+        favouriteEventsIds = HashMap(favouriteEventsIds.associateWith { true })
     )
