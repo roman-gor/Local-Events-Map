@@ -1,29 +1,21 @@
 plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.gms.google.services)
     id("localevents.android.library")
     id("localevents.hilt")
 }
 
 android {
-    namespace = "com.gorman.data"
+    namespace = "com.gorman.auth"
 }
 
 dependencies {
-
-    implementation(project(":core:database"))
-    implementation(project(":core:network"))
-    implementation(project(":core:auth"))
-    implementation(project(":core:common"))
-    implementation(project(":core:cache"))
     implementation(project(":core:domain-model"))
 
-    ksp(libs.room.compiler)
-    implementation(libs.bundles.room)
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
 
-    implementation(libs.yandex.android)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

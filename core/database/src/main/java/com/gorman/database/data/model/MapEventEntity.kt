@@ -15,6 +15,5 @@ data class MapEventEntity(
     val link: String? = null,
     val photo: String? = null,
     val category: String? = null,
-    val price: Int? = null,
-    val isFavourite: Boolean? = null
+    val price: Int? = null
 )

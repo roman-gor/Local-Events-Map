@@ -1,14 +1,14 @@
-package com.gorman.data.repository
+package com.gorman.data.repository.mapevents
 
 import android.util.Log
 import androidx.room.withTransaction
-import com.gorman.database.data.datasource.MapEventsDao
-import com.gorman.database.data.datasource.MapEventsDatabase
-import com.gorman.database.toDomain
-import com.gorman.database.toEntity
+import com.gorman.database.data.datasource.LocalEventsDatabase
+import com.gorman.database.data.datasource.dao.MapEventsDao
+import com.gorman.database.mappers.toDomain
+import com.gorman.database.mappers.toEntity
 import com.gorman.domainmodel.MapEvent
-import com.gorman.firebase.data.datasource.MapEventRemoteDataSource
-import com.gorman.firebase.toDomain
+import com.gorman.firebase.data.datasource.mapevent.MapEventRemoteDataSource
+import com.gorman.firebase.mappers.toDomain
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,7 +18,7 @@ import javax.inject.Inject
 internal class MapEventsRepositoryImpl @Inject constructor(
     private val mapEventsDao: MapEventsDao,
     private val mapEventRemoteDataSource: MapEventRemoteDataSource,
-    private val database: MapEventsDatabase
+    private val database: LocalEventsDatabase
 ) : IMapEventsRepository {
 
     override fun getAllEvents(): Flow<List<MapEvent>> {
@@ -29,20 +29,6 @@ internal class MapEventsRepositoryImpl @Inject constructor(
 
     override fun getEventById(id: String): Flow<MapEvent> {
         return mapEventsDao.getEventById(id).map { it.toDomain() }
-    }
-
-    override suspend fun updateFavouriteState(id: String): Result<Unit> {
-        return try {
-            val updatedRows = mapEventsDao.toggleFavouriteState(id)
-            if (updatedRows > 0) {
-                Log.d("Repository", "Updated favourite for map Event")
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("Event with id $id not found"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
     }
 
     override fun getEventsByName(name: String): Flow<List<MapEvent>> {

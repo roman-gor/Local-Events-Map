@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.common.api.ApiException
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.models.CityData
-import com.gorman.data.repository.IGeoRepository
-import com.gorman.data.repository.IMapEventsRepository
+import com.gorman.data.repository.geo.IGeoRepository
+import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.events.ui.components.DateFilterType
 import com.gorman.events.ui.mappers.toUiState
