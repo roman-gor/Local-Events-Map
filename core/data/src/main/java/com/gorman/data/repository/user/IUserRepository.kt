@@ -9,4 +9,5 @@ interface IUserRepository {
     suspend fun signOut()
     suspend fun updateFavouriteEventsState(mapEventId: String): Result<Unit>
     fun getUserFavouriteEvents(): Flow<List<String>>
+    suspend fun getUserData(): Flow<UserData>
 }

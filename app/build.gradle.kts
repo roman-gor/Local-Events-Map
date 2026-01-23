@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":feature"))
     implementation(project(":feature:events"))
     implementation(project(":feature:details-event"))
+    implementation(project(":feature:auth"))
     implementation(project(":core:ui"))
     implementation(project(":sync:work"))
 

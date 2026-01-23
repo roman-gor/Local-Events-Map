@@ -41,7 +41,6 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun DetailsEventScreenEntry(
-    mapUiEvent: MapUiEvent,
     modifier: Modifier = Modifier,
     detailsViewModel: DetailsViewModel = hiltViewModel()
 ) {
