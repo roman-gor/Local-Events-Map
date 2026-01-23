@@ -3,7 +3,7 @@ package com.gorman.detailsevent.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gorman.data.repository.IMapEventsRepository
+import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.detailsevent.states.DetailsScreenState
 import com.gorman.detailsevent.states.DetailsScreenUiEvent
 import com.gorman.ui.mappers.toUiState
@@ -42,7 +42,7 @@ class DetailsViewModel @Inject constructor(
     private fun onFavouriteChange(id: String) {
         viewModelScope.launch {
             val result = mapEventsRepository.updateFavouriteState(id)
-            result.onFailure { e->
+            result.onFailure { e ->
                 Log.e("Details VM", "Error updating state of favourite ${e.message}")
             }
         }

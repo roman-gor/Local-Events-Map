@@ -1,4 +1,4 @@
-package com.gorman.data.repository
+package com.gorman.data.repository.geo
 
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.models.CityData

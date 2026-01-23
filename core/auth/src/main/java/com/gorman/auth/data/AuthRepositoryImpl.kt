@@ -1,13 +1,14 @@
 package com.gorman.auth.data
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class AuthDataSourceImpl @Inject constructor(
+class AuthRepositoryImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth
-): IAuthDataSource {
+) : IAuthRepository {
 
     override val currentUser: FirebaseUser?
         get() = firebaseAuth.currentUser
@@ -21,7 +22,7 @@ class AuthDataSourceImpl @Inject constructor(
             } else {
                 Result.failure(Exception("Sign in failed: User is null"))
             }
-        } catch (e: Exception) {
+        } catch (e: FirebaseAuthException) {
             Result.failure(e)
         }
     }
@@ -35,7 +36,7 @@ class AuthDataSourceImpl @Inject constructor(
             } else {
                 Result.failure(Exception("User creation failed: User is null"))
             }
-        } catch (e: Exception) {
+        } catch (e: FirebaseAuthException) {
             Result.failure(e)
         }
     }

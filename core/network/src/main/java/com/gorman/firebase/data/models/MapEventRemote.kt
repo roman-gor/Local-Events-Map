@@ -3,7 +3,7 @@ package com.gorman.firebase.data.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MapEventFirebase(
+data class MapEventRemote(
     val id: String = "",
     val name: String? = null,
     val description: String? = null,
