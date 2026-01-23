@@ -6,5 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface IUserRepository {
     suspend fun signIn(email: String, password: String): Flow<UserData>
     suspend fun signUp(userData: UserData, password: String): Result<UserData>
-    fun signOut()
+    suspend fun signOut()
+    suspend fun updateFavouriteEventsState(mapEventId: String): Result<Unit>
+    suspend fun getUserFavouriteEvents(): Flow<List<String>>
 }
