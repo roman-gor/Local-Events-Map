@@ -1,4 +1,4 @@
-package com.gorman.database
+package com.gorman.database.mappers
 
 import com.gorman.database.data.model.MapEventEntity
 import com.gorman.domainmodel.MapEvent

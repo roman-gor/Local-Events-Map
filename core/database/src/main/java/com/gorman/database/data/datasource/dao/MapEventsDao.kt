@@ -1,4 +1,4 @@
-package com.gorman.database.data.datasource
+package com.gorman.database.data.datasource.dao
 
 import androidx.room.Dao
 import androidx.room.Query

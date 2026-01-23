@@ -1,4 +1,4 @@
-package com.gorman.data.repository
+package com.gorman.data.repository.geo
 
 import com.gorman.cache.data.DataStoreManager
 import com.gorman.common.constants.CityCoordinatesConstants
@@ -16,6 +16,7 @@ import com.yandex.mapkit.search.SearchOptions
 import com.yandex.mapkit.search.SearchType
 import com.yandex.mapkit.search.Session
 import com.yandex.mapkit.search.ToponymObjectMetadata
+import com.yandex.runtime.Error
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
@@ -63,7 +64,7 @@ class GeoRepositoryImpl @Inject constructor(
                     }
                 }
 
-                override fun onSearchError(p0: com.yandex.runtime.Error) {
+                override fun onSearchError(p0: Error) {
                     continuation.resume(null)
                 }
             }
@@ -105,7 +106,7 @@ class GeoRepositoryImpl @Inject constructor(
                     }
                 }
 
-                override fun onSearchError(p0: com.yandex.runtime.Error) {
+                override fun onSearchError(p0: Error) {
                     continuation.resume(null)
                 }
             }
