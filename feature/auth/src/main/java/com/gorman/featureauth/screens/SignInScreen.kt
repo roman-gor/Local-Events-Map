@@ -4,20 +4,10 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,18 +25,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gorman.featureauth.R
+import com.gorman.featureauth.components.BottomButtons
 import com.gorman.featureauth.components.DefaultOutlinedTextField
 import com.gorman.featureauth.components.PasswordTextField
 import com.gorman.featureauth.states.AuthScreenState
 import com.gorman.featureauth.states.AuthScreenUiEvent
 import com.gorman.featureauth.states.AuthSideEffects
+import com.gorman.featureauth.states.UserUiState
 import com.gorman.featureauth.viewmodels.AuthViewModel
 import com.gorman.ui.components.LoadingStub
-import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun SignInScreenEntry(
-    onNavigateToMain: () -> Unit,
+    onNavigateToMain: (UserUiState) -> Unit,
     onNavigateToSignUp: () -> Unit,
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel = hiltViewModel()
@@ -55,11 +46,18 @@ fun SignInScreenEntry(
     val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        authViewModel.sideEffect.collect { effects ->
-            when(effects) {
+        authViewModel.sideEffect.collect { effect ->
+            when(effect) {
                 is AuthSideEffects.ShowToast -> {
-                    Toast.makeText(context, effects.text, Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, effect.text, Toast.LENGTH_LONG).show()
                 }
+                is AuthSideEffects.OnNavigateToMain -> {
+                    onNavigateToMain(effect.userUiState)
+                }
+                AuthSideEffects.OnNavigateToSignUp -> {
+                    onNavigateToSignUp()
+                }
+                else -> {}
             }
         }
     }
@@ -70,17 +68,10 @@ fun SignInScreenEntry(
     ) {
         SignInScreen(
             modifier = Modifier.fillMaxWidth(),
-            onUiEvent = authViewModel::onUiEvent,
-            onNavigateToSignUp = { onNavigateToSignUp() }
+            onUiEvent = authViewModel::onUiEvent
         )
         if (uiState is AuthScreenState.Loading) {
             LoadingStub()
-        }
-
-        if (uiState is AuthScreenState.Success) {
-            LaunchedEffect(Unit) {
-                onNavigateToMain()
-            }
         }
     }
 }
@@ -88,8 +79,7 @@ fun SignInScreenEntry(
 @Composable
 fun SignInScreen(
     onUiEvent: (AuthScreenUiEvent) -> Unit,
-    modifier: Modifier = Modifier,
-    onNavigateToSignUp: () -> Unit
+    modifier: Modifier = Modifier
 ) {
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
@@ -128,55 +118,10 @@ fun SignInScreen(
         BottomButtons(
             password = password.value,
             email = email.value,
-            onNavigateToSignUp = onNavigateToSignUp,
+            onNavigateToSignUp = { onUiEvent(AuthScreenUiEvent.OnNavigateToSignUpClicked) },
             onSignInClick = { onUiEvent(AuthScreenUiEvent.OnSignInClick(email.value, password.value)) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp)
+            modifier = Modifier.fillMaxWidth().height(55.dp)
         )
         Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-@Composable
-fun BottomButtons(
-    password: String,
-    email: String,
-    onNavigateToSignUp: () -> Unit,
-    onSignInClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Button(
-            onClick = {
-                if (password.isNotEmpty() && email.isNotEmpty()) { onNavigateToSignUp() }
-            },
-            modifier = Modifier
-                .wrapContentWidth()
-                .height(55.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.signUp),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(LocalEventsMapTheme.dimens.paddingMedium)
-            )
-        }
-        IconButton(
-            onClick = { onSignInClick() },
-            colors = IconButtonDefaults.iconButtonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            ),
-            modifier = Modifier.size(55.dp)
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary
-            )
-        }
     }
 }

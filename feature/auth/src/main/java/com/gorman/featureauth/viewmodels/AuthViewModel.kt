@@ -32,6 +32,16 @@ class AuthViewModel @Inject constructor(
         when (uiEvent) {
             is AuthScreenUiEvent.OnSignInClick -> signIn(uiEvent.email, uiEvent.password)
             is AuthScreenUiEvent.OnSignUpClick -> signUp(uiEvent.user, uiEvent.password)
+            AuthScreenUiEvent.OnNavigateToSignInClicked -> {
+                viewModelScope.launch {
+                    _sideEffect.send(AuthSideEffects.OnNavigateToSignIn)
+                }
+            }
+            AuthScreenUiEvent.OnNavigateToSignUpClicked -> {
+                viewModelScope.launch {
+                    _sideEffect.send(AuthSideEffects.OnNavigateToSignUp)
+                }
+            }
         }
     }
 
@@ -39,11 +49,12 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AuthScreenState.Loading
             try {
-                _uiState.value = AuthScreenState.Success(userRepository.signIn(email, password).first().toUiState())
+                val user = userRepository.signIn(email, password).first().toUiState()
+                _sideEffect.send(AuthSideEffects.OnNavigateToMain(user))
+                _uiState.value = AuthScreenState.Success
                 Log.d("Auth VM", "Successfully Sign In")
             } catch (e: IllegalStateException) {
                 _uiState.value = AuthScreenState.Error(e)
-                _sideEffect.send(AuthSideEffects.ShowToast(e.localizedMessage ?: "Error"))
                 Log.d("Auth VM", "Sign In Failed: ${e.message}")
             }
         }
@@ -54,7 +65,8 @@ class AuthViewModel @Inject constructor(
             _uiState.value = AuthScreenState.Loading
             userRepository.signUp(user.toDomain(), password)
                 .onSuccess {
-                    _uiState.value = AuthScreenState.Success(it.toUiState())
+                    _sideEffect.send(AuthSideEffects.OnNavigateToMain(it.toUiState()))
+                    _uiState.value = AuthScreenState.Success
                 }
                 .onFailure { e ->
                     _uiState.value = AuthScreenState.Error(e)
