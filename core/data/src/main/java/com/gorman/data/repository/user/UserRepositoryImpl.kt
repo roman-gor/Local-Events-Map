@@ -12,15 +12,13 @@ import com.gorman.domainmodel.UserData
 import com.gorman.firebase.data.datasource.users.IUserRemoteDataSource
 import com.gorman.firebase.mappers.toDomain
 import com.gorman.firebase.mappers.toRemote
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal class UserRepositoryImpl @Inject constructor(
@@ -29,7 +27,7 @@ internal class UserRepositoryImpl @Inject constructor(
     private val userDataDao: UserDataDao,
     private val dataStoreManager: DataStoreManager
 ) : IUserRepository {
-    override suspend fun signIn(email: String, password: String) {
+    override suspend fun signIn(email: String, password: String): Flow<UserData> {
         val result = authRepository.signIn(email, password)
         return result.fold(
             onSuccess = { user ->
@@ -44,19 +42,17 @@ internal class UserRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun getUserFromRemote(uid: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                userRemoteDataSource.getUserFromRemote(uid).collect { remoteUser ->
-                    remoteUser?.let {
-                        userDataDao.saveUser(it.toDomain().toEntity())
-                        Log.d("UserRepository", "User synced from remote to local DB")
-                    }
-                }
-            } catch (e: FirebaseException) {
-                Log.e("UserRepository", "Network error during sync", e)
+    private suspend fun getUserFromRemote(uid: String): Flow<UserData> {
+        try {
+            val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()
+            remoteUser?.let {
+                userDataDao.saveUser(it.toDomain().toEntity())
+                Log.d("UserRepository", "User synced from remote to local DB")
             }
+        } catch (e: FirebaseException) {
+            Log.e("UserRepository", "Network error during sync", e)
         }
+        return userDataDao.getUserById(uid).map { it.toDomain() }
     }
 
     override suspend fun signUp(userData: UserData, password: String): Result<UserData> {
