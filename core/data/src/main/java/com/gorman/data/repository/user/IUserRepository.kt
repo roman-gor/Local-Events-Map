@@ -4,7 +4,7 @@ import com.gorman.domainmodel.UserData
 import kotlinx.coroutines.flow.Flow
 
 interface IUserRepository {
-    suspend fun signIn(email: String, password: String)
+    suspend fun signIn(email: String, password: String): Flow<UserData>
     suspend fun signUp(userData: UserData, password: String): Result<UserData>
     suspend fun signOut()
     suspend fun updateFavouriteEventsState(mapEventId: String): Result<Unit>
