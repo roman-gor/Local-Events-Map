@@ -15,15 +15,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.collections.emptyList
 
 internal class UserRepositoryImpl @Inject constructor(
     private val authRepository: IAuthRepository,
@@ -31,12 +28,13 @@ internal class UserRepositoryImpl @Inject constructor(
     private val userDataDao: UserDataDao,
     private val dataStoreManager: DataStoreManager
 ) : IUserRepository {
-    override suspend fun signIn(email: String, password: String): Flow<UserData> = flow {
+    override suspend fun signIn(email: String, password: String): Flow<UserData> {
         val result = authRepository.signIn(email, password)
-        result.fold(
+        return result.fold(
             onSuccess = { user ->
+                Log.d("UserAuth", user.uid)
                 dataStoreManager.saveUserId(user.uid)
-                emitAll(getUser(user.uid))
+                getUser(user.uid)
             },
             onFailure = { e ->
                 Log.e("UserRepository", "Sign In Failed: ${e.message}")
@@ -70,25 +68,34 @@ internal class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateFavouriteEventsState(mapEventId: String): Result<Unit> {
-        val uid = dataStoreManager.savedUserId.first()
+        val uid = dataStoreManager.savedUserId.first() ?: return Result.failure(Exception("No UID"))
+        Log.d("Data", "$uid/$mapEventId")
         return try {
-            if (uid != null) {
-                userRemoteDataSource.updateFavouriteEventsState(uid, mapEventId)
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("UId is null"))
-            }
+            val currentUser = userDataDao.getUserById(uid).first()
+            val currentList = currentUser.favouriteEventsIds.toMutableList()
+
+            val isAdding = !currentList.contains(mapEventId)
+            if (isAdding) currentList.add(mapEventId) else currentList.remove(mapEventId)
+
+            val updatedUser = currentUser.copy(favouriteEventsIds = currentList)
+            userDataDao.saveUser(updatedUser)
+
+            userRemoteDataSource.updateFavouriteEventsState(uid, mapEventId)
+            Result.success(Unit)
         } catch (e: IllegalStateException) {
-            Result.failure(e)
+            Log.e("UserRepository", "Failed to sync with remote", e)
+            Result.success(Unit)
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun getUserFavouriteEvents(): Flow<List<String>> {
+    override fun getUserFavouriteEvents(): Flow<List<String>> {
         return dataStoreManager.savedUserId
             .flatMapLatest { uid ->
                 if (uid != null) {
-                    userRemoteDataSource.getUserFavouriteEvents(uid)
+                    userDataDao.getUserById(uid).map { entity ->
+                        entity.favouriteEventsIds
+                    }
                 } else {
                     flowOf(emptyList())
                 }
@@ -107,13 +114,18 @@ internal class UserRepositoryImpl @Inject constructor(
             }
     }
 
-    private suspend fun getUser(uid: String): Flow<UserData> {
-        try {
-            userRemoteDataSource.getUserFromRemote(uid).collect { remoteUser ->
-                remoteUser?.let { userDataDao.saveUser(it.toDomain().toEntity()) }
+    private fun getUser(uid: String): Flow<UserData> {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                userRemoteDataSource.getUserFromRemote(uid).collect { remoteUser ->
+                    remoteUser?.let {
+                        userDataDao.saveUser(it.toDomain().toEntity())
+                        Log.d("UserRepository", "User synced from remote to local DB")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("UserRepository", "Network error during sync", e)
             }
-        } catch (e: Exception) {
-            Log.e("UserRepository", "Network error, using cache", e)
         }
         return userDataDao.getUserById(uid).map { it.toDomain() }
     }

@@ -31,20 +31,6 @@ internal class MapEventsRepositoryImpl @Inject constructor(
         return mapEventsDao.getEventById(id).map { it.toDomain() }
     }
 
-    override suspend fun updateFavouriteState(id: String): Result<Unit> {
-        return try {
-            val updatedRows = mapEventsDao.toggleFavouriteState(id)
-            if (updatedRows > 0) {
-                Log.d("Repository", "Updated favourite for map Event")
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("Event with id $id not found"))
-            }
-        } catch (e: IllegalStateException) {
-            Result.failure(e)
-        }
-    }
-
     override fun getEventsByName(name: String): Flow<List<MapEvent>> {
         return mapEventsDao.getEventsByName(name).map { list ->
             list.map { it.toDomain() }

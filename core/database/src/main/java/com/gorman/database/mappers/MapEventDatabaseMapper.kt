@@ -15,8 +15,7 @@ fun MapEventEntity.toDomain(): MapEvent =
         link = link,
         photo = photo,
         category = category,
-        price = price,
-        isFavourite = isFavourite
+        price = price
     )
 
 fun MapEvent.toEntity(): MapEventEntity =
@@ -31,6 +30,5 @@ fun MapEvent.toEntity(): MapEventEntity =
         link = link,
         photo = photo,
         category = category,
-        price = price,
-        isFavourite = isFavourite
+        price = price
     )

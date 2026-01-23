@@ -52,7 +52,7 @@ fun DetailsEventScreenEntry(
         is DetailsScreenState.Success -> {
             Log.d("State", "${state.event}")
             DetailsEventScreen(
-                mapUiEvent = mapUiEvent,
+                mapUiEvent = state.event,
                 onUiEvent = detailsViewModel::onUiEvent,
                 modifier = modifier
             )

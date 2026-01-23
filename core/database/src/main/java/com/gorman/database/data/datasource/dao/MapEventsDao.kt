@@ -17,9 +17,6 @@ interface MapEventsDao {
     @Query("SELECT * FROM events WHERE id=:id")
     fun getEventById(id: String): Flow<MapEventEntity>
 
-    @Query("UPDATE events SET isFavourite = NOT isFavourite WHERE id = :id")
-    suspend fun toggleFavouriteState(id: String): Int
-
     @Query("SELECT * FROM events WHERE name LIKE '%' || :name || '%'")
     fun getEventsByName(name: String): Flow<List<MapEventEntity>>
 
