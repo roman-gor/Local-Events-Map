@@ -14,4 +14,7 @@ interface UserDataDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun saveUser(userDataEntity: UserDataEntity)
+
+    @Query("DELETE FROM events")
+    fun clearAll()
 }

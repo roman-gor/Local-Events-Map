@@ -26,7 +26,7 @@ class DataStoreManager @Inject constructor(
         private val USER_ID = stringPreferencesKey("user_id")
     }
 
-    val saveUserId: Flow<String?> = context.dataStore.data.map { prefs -> prefs[USER_ID] }
+    val savedUserId: Flow<String?> = context.dataStore.data.map { prefs -> prefs[USER_ID] }
 
     val savedCity: Flow<CityData?> = context.dataStore.data.map { prefs ->
         val jsonString = prefs[KEY_CITY_DATA]

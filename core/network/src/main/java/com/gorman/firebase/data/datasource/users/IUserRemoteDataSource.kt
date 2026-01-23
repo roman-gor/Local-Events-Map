@@ -5,5 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface IUserRemoteDataSource {
     fun saveUserToRemote(user: UserDataRemote): Flow<Result<Unit>>
-    fun getUserFromRemote(uuid: String): Flow<UserDataRemote?>
+    fun getUserFromRemote(uid: String): Flow<UserDataRemote?>
+    suspend fun updateFavouriteEventsState(uid: String, mapEventId: String)
+    fun getUserFavouriteEvents(uid: String): Flow<List<String>>
 }
