@@ -1,6 +1,7 @@
 package com.gorman.data.repository.user
 
 import android.util.Log
+import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuthException
 import com.gorman.auth.data.IAuthRepository
 import com.gorman.cache.data.DataStoreManager
@@ -28,19 +29,34 @@ internal class UserRepositoryImpl @Inject constructor(
     private val userDataDao: UserDataDao,
     private val dataStoreManager: DataStoreManager
 ) : IUserRepository {
-    override suspend fun signIn(email: String, password: String): Flow<UserData> {
+    override suspend fun signIn(email: String, password: String) {
         val result = authRepository.signIn(email, password)
         return result.fold(
             onSuccess = { user ->
                 Log.d("UserAuth", user.uid)
                 dataStoreManager.saveUserId(user.uid)
-                getUser(user.uid)
+                getUserFromRemote(user.uid)
             },
             onFailure = { e ->
                 Log.e("UserRepository", "Sign In Failed: ${e.message}")
                 throw e
             }
         )
+    }
+
+    private fun getUserFromRemote(uid: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                userRemoteDataSource.getUserFromRemote(uid).collect { remoteUser ->
+                    remoteUser?.let {
+                        userDataDao.saveUser(it.toDomain().toEntity())
+                        Log.d("UserRepository", "User synced from remote to local DB")
+                    }
+                }
+            } catch (e: FirebaseException) {
+                Log.e("UserRepository", "Network error during sync", e)
+            }
+        }
     }
 
     override suspend fun signUp(userData: UserData, password: String): Result<UserData> {
@@ -102,6 +118,11 @@ internal class UserRepositoryImpl @Inject constructor(
             }
     }
 
+    override suspend fun getUserData(): Flow<UserData> {
+        val uid = dataStoreManager.savedUserId.first() ?: error("No UID")
+        return userDataDao.getUserById(uid).map { it.toDomain() }
+    }
+
     private suspend fun saveUser(userData: UserData) {
         userRemoteDataSource.saveUserToRemote(userData.toRemote())
             .first()
@@ -112,21 +133,5 @@ internal class UserRepositoryImpl @Inject constructor(
                 Log.e("UserRepository", "Remote save failed", e)
                 throw e
             }
-    }
-
-    private fun getUser(uid: String): Flow<UserData> {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                userRemoteDataSource.getUserFromRemote(uid).collect { remoteUser ->
-                    remoteUser?.let {
-                        userDataDao.saveUser(it.toDomain().toEntity())
-                        Log.d("UserRepository", "User synced from remote to local DB")
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("UserRepository", "Network error during sync", e)
-            }
-        }
-        return userDataDao.getUserById(uid).map { it.toDomain() }
     }
 }

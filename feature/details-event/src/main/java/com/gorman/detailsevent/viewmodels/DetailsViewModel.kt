@@ -9,7 +9,6 @@ import com.gorman.detailsevent.states.DetailsScreenState
 import com.gorman.detailsevent.states.DetailsScreenUiEvent
 import com.gorman.ui.mappers.toUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -29,9 +28,11 @@ class DetailsViewModel @Inject constructor(
         mapEventsRepository.getEventById(id),
         userRepository.getUserFavouriteEvents()
     ) { event, favoriteEvents ->
-        val s = DetailsScreenState.Success(event.toUiState()
-            .copy(isFavourite = event.id in favoriteEvents)) as DetailsScreenState
-        Log.d("Ids check", "${s}, $favoriteEvents")
+        val s = DetailsScreenState.Success(
+            event.toUiState()
+                .copy(isFavourite = event.id in favoriteEvents)
+        ) as DetailsScreenState
+        Log.d("Ids check", "$s, $favoriteEvents")
         s
     }.catch { e ->
         emit(DetailsScreenState.Error(e))
