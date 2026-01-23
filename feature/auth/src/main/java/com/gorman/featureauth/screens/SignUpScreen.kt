@@ -30,6 +30,7 @@ import com.gorman.featureauth.components.FieldsBlockData
 import com.gorman.featureauth.components.TextFieldsBlock
 import com.gorman.featureauth.states.AuthScreenState
 import com.gorman.featureauth.states.AuthScreenUiEvent
+import com.gorman.featureauth.states.AuthSideEffects
 import com.gorman.featureauth.states.UserUiState
 import com.gorman.featureauth.viewmodels.AuthViewModel
 import com.gorman.ui.components.LoadingStub
@@ -38,6 +39,7 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 @Composable
 fun SignUpScreenEntry(
     onNavigateToMain: (UserUiState) -> Unit,
+    onNavigateToSignIn: () -> Unit,
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -45,9 +47,19 @@ fun SignUpScreenEntry(
     val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        if (uiState is AuthScreenState.Error) {
-            val error = (uiState as AuthScreenState.Error).e
-            Toast.makeText(context, error.localizedMessage ?: "Ошибка", Toast.LENGTH_LONG).show()
+        authViewModel.sideEffect.collect { effect ->
+            when(effect) {
+                is AuthSideEffects.ShowToast -> {
+                    Toast.makeText(context, effect.text, Toast.LENGTH_LONG).show()
+                }
+                is AuthSideEffects.OnNavigateToMain -> {
+                    onNavigateToMain(effect.userUiState)
+                }
+                AuthSideEffects.OnNavigateToSignIn -> {
+                    onNavigateToSignIn()
+                }
+                else -> {}
+            }
         }
     }
 
@@ -61,12 +73,6 @@ fun SignUpScreenEntry(
         )
         if (uiState is AuthScreenState.Loading) {
             LoadingStub()
-        }
-
-        if (uiState is AuthScreenState.Success) {
-            LaunchedEffect(Unit) {
-                onNavigateToMain((uiState as AuthScreenState.Success).userData)
-            }
         }
     }
 }
@@ -115,10 +121,7 @@ fun SignUpScreen(
                     if (email.value.isNotEmpty() && username.value.isNotEmpty()) {
                         onUiEvent(
                             AuthScreenUiEvent.OnSignUpClick(
-                                UserUiState(
-                                    email = email.value,
-                                    username = username.value
-                                ),
+                                UserUiState(email.value, username.value),
                                 password.value
                             )
                         )
