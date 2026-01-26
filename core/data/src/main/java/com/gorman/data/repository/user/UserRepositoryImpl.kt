@@ -42,6 +42,25 @@ internal class UserRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun signInAnonymously(): Result<UserData> {
+        return try {
+            authRepository.signInAnonymously().fold(
+                onSuccess = {
+                    dataStoreManager.saveUserId(it.uid)
+                    userDataDao.saveUser(it.toEntity())
+                    Result.success(it)
+                },
+                onFailure = { e ->
+                    Result.failure(Exception(e))
+                }
+            )
+        } catch (e: FirebaseAuthException) {
+            Result.failure(Exception(e))
+        } catch (e: IllegalStateException) {
+            Result.failure(Exception(e))
+        }
+    }
+
     private suspend fun getUserFromRemote(uid: String): Flow<UserData> {
         try {
             val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()

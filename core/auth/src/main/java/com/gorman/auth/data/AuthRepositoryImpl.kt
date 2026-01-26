@@ -3,6 +3,7 @@ package com.gorman.auth.data
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
+import com.gorman.domainmodel.UserData
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -24,6 +25,27 @@ class AuthRepositoryImpl @Inject constructor(
             }
         } catch (e: FirebaseAuthException) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun signInAnonymously(): Result<UserData> {
+        return try {
+            val authResult = firebaseAuth.signInAnonymously().await()
+            val user = authResult.user
+            if (user != null) {
+                val domainUser = UserData(
+                    uid = user.uid,
+                    email = "",
+                    username = "guest"
+                )
+                Result.success(domainUser)
+            } else {
+                Result.failure(Exception("User is null"))
+            }
+        } catch (e: FirebaseAuthException) {
+            Result.failure(Exception(e))
+        } catch (e: IllegalStateException) {
+            Result.failure(Exception(e))
         }
     }
 
