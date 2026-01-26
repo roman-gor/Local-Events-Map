@@ -17,6 +17,8 @@ import com.gorman.events.ui.states.MapUiEvent
 import com.gorman.events.ui.states.ScreenSideEffect
 import com.gorman.events.ui.states.ScreenState
 import com.gorman.events.ui.states.ScreenUiEvent
+import com.gorman.common.data.NetworkConnectivityObserver
+import com.gorman.events.ui.states.DataStatus
 import com.gorman.events.ui.utils.getEndOfDay
 import com.gorman.events.ui.utils.getEndOfWeek
 import com.gorman.events.ui.utils.getStartOfDay
@@ -46,7 +48,8 @@ import kotlin.ranges.contains
 @HiltViewModel
 class MapViewModel @Inject constructor(
     private val mapEventsRepository: IMapEventsRepository,
-    private val geoRepository: IGeoRepository
+    private val geoRepository: IGeoRepository,
+    private val networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
 
     private val _filters = MutableStateFlow(FiltersState())
@@ -60,22 +63,37 @@ class MapViewModel @Inject constructor(
     private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
 
+    private val isNetworkAvailable = networkObserver.observe()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     val uiState: StateFlow<ScreenState> = combine(
         mapEventsRepository.getAllEvents(),
         _filters,
         _cityData,
-        _selectedEventId
-    ) { events, filters, cityData, selectedEventId ->
+        _selectedEventId,
+        isNetworkAvailable
+    ) { events, filters, cityData, selectedEventId, hasInternet ->
         val filteredEvents = events.filter { event ->
             event.filter(filters, cityData)
         }.map { domainEvent ->
             domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
         }.toImmutableList()
+        val isOutdated = mapEventsRepository.isOutdated()
+        val status = when {
+            !hasInternet -> DataStatus.OFFLINE
+            isOutdated -> DataStatus.OUTDATED
+            else -> DataStatus.FRESH
+        }
         ScreenState.Success(
             eventsList = filteredEvents,
             filterState = filters,
             selectedMapEventId = selectedEventId,
-            cityData = cityData.toUiState()
+            cityData = cityData.toUiState(),
+            dataStatus = status
         ) as ScreenState
     }.catch { e ->
         emit(ScreenState.Error(e))
@@ -135,6 +153,11 @@ class MapViewModel @Inject constructor(
             ScreenUiEvent.PermissionsGranted -> {
                 fetchInitialLocation()
                 syncEvents()
+            }
+            is ScreenUiEvent.OnNavigateToDetailsScreen -> {
+                viewModelScope.launch {
+                    _sideEffect.send(ScreenSideEffect.OnNavigateToDetailsScreen(event.event))
+                }
             }
         }
     }
