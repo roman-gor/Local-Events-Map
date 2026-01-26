@@ -34,8 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gorman.common.constants.CityCoordinatesConstants
+import com.gorman.common.constants.toDisplayName
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.gorman.ui.utils.cityNameDefinition
 import kotlinx.collections.immutable.ImmutableList
 
 @SuppressLint("ComposeModifierMissing")
@@ -48,7 +48,7 @@ fun CitiesDropdownMenu(
     onCityClick: (CityCoordinatesConstants) -> Unit,
     citiesList: ImmutableList<CityCoordinatesConstants>
 ) {
-    val filterCitiesList = citiesList.filter { cityNameDefinition(it) != currentCity }
+    val filterCitiesList = citiesList.filter { it.toDisplayName() != currentCity }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -146,7 +146,7 @@ fun CityUiItem(
     city: CityCoordinatesConstants
 ) {
     Text(
-        text = cityNameDefinition(city),
+        text = city.toDisplayName(),
         fontSize = 16.sp,
         fontWeight = FontWeight.Medium,
         maxLines = 1,

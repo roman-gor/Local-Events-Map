@@ -31,16 +31,14 @@ fun getEndOfWeek(): Long {
     return calendar.timeInMillis
 }
 
-fun convertMillisToDate(millis: Long): String {
-    val formatter = DateTimeFormatter.ofPattern("d MMMM")
-    val instant = Instant.ofEpochMilli(millis)
-    val date = instant.atZone(ZoneId.systemDefault()).toLocalDate()
-    return date.format(formatter)
+enum class DateFormatStyle(val pattern: String) {
+    TIME_ONLY("HH:mm"),
+    DATE_ONLY("d MMMM YYYY")
 }
 
-fun convertMillisToTime(millis: Long): String {
-    val formatter = DateTimeFormatter.ofPattern("HH:mm")
-    val instant = Instant.ofEpochMilli(millis)
-    val time = instant.atZone(ZoneId.systemDefault()).toLocalTime()
-    return time.format(formatter)
+fun Long.format(style: DateFormatStyle): String {
+    val formatter = DateTimeFormatter.ofPattern(style.pattern)
+    return Instant.ofEpochMilli(this)
+        .atZone(ZoneId.systemDefault())
+        .format(formatter)
 }

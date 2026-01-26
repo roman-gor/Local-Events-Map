@@ -19,11 +19,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.rememberAsyncImagePainter
+import com.gorman.detailsevent.R
 import com.gorman.detailsevent.components.BottomBlock
 import com.gorman.detailsevent.components.MapEventInfoRow
 import com.gorman.detailsevent.components.TopBlock
@@ -47,7 +49,9 @@ fun DetailsEventScreenEntry(
 ) {
     val uiState by detailsViewModel.uiState.collectAsStateWithLifecycle()
     when (val state = uiState) {
-        is DetailsScreenState.Error -> ErrorDataScreen()
+        is DetailsScreenState.Error.NoNetwork -> ErrorDataScreen(stringResource(R.string.noNetwork))
+        is DetailsScreenState.Error.NotFound -> ErrorDataScreen(stringResource(R.string.eventNotFound))
+        is DetailsScreenState.Error.Unknown -> ErrorDataScreen(stringResource(R.string.errorDataLoading))
         DetailsScreenState.Loading -> LoadingStub()
         is DetailsScreenState.Success -> {
             Log.d("State", "${state.event}")

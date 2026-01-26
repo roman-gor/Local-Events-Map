@@ -25,9 +25,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.gorman.common.constants.CategoryConstants
+import com.gorman.common.constants.toDisplayName
 import com.gorman.events.R
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.gorman.ui.utils.categoryNameDefinition
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
@@ -73,7 +73,7 @@ fun CategoriesDropdownMenu(
                 containerColor = MaterialTheme.colorScheme.background
             ) {
                 categoriesOptions.items.forEach { category ->
-                    val title = categoryNameDefinition(category)
+                    val title = category.toDisplayName()
                     CategoryMenuItem(
                         checked = category.value in categoriesOptions.selectedItems,
                         onCheckedChange = { onItemClick(category.value) },
