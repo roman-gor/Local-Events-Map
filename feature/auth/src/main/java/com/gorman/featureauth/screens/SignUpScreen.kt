@@ -48,7 +48,7 @@ fun SignUpScreenEntry(
 
     LaunchedEffect(Unit) {
         authViewModel.sideEffect.collect { effect ->
-            when(effect) {
+            when (effect) {
                 is AuthSideEffects.ShowToast -> {
                     Toast.makeText(context, effect.text, Toast.LENGTH_LONG).show()
                 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,7 +48,7 @@ fun SignInScreenEntry(
 
     LaunchedEffect(Unit) {
         authViewModel.sideEffect.collect { effect ->
-            when(effect) {
+            when (effect) {
                 is AuthSideEffects.ShowToast -> {
                     Toast.makeText(context, effect.text, Toast.LENGTH_LONG).show()
                 }
@@ -122,6 +123,16 @@ fun SignInScreen(
             onSignInClick = { onUiEvent(AuthScreenUiEvent.OnSignInClick(email.value, password.value)) },
             modifier = Modifier.fillMaxWidth().height(55.dp)
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        TextButton(
+            onClick = { onUiEvent(AuthScreenUiEvent.OnGuestSignIn) }
+        ) {
+            Text(
+                text = stringResource(R.string.guestSignIn),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
         Spacer(modifier = Modifier.height(32.dp))
     }
 }

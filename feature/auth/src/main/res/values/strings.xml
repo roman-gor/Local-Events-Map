@@ -7,4 +7,5 @@
     <string name="repeatPassword">Повторите пароль</string>
     <string name="username">Имя пользователя</string>
     <string name="notMatchPasswords">Пароли не совпадают</string>
+    <string name="guestSignIn">Войти как гость</string>
 </resources>

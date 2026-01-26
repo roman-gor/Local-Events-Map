@@ -33,10 +33,11 @@ fun BottomButtons(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Button(
             onClick = {
+                onNavigateToSignUp()
             },
             modifier = Modifier
                 .wrapContentWidth()

@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.gorman.featureauth.screens.SignInScreenEntry
@@ -30,7 +31,7 @@ class MainActivity : ComponentActivity() {
                     SignInScreenEntry(
                         onNavigateToMain = {},
                         onNavigateToSignUp = {},
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize().padding(LocalEventsMapTheme.dimens.paddingLarge)
                     )
                 }
             }
