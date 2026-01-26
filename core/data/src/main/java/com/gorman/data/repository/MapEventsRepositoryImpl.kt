@@ -2,6 +2,7 @@ package com.gorman.data.repository
 
 import android.util.Log
 import androidx.room.withTransaction
+import com.gorman.cache.data.DataStoreManager
 import com.gorman.database.data.datasource.MapEventsDao
 import com.gorman.database.data.datasource.MapEventsDatabase
 import com.gorman.database.toDomain
@@ -11,14 +12,18 @@ import com.gorman.firebase.data.datasource.MapEventRemoteDataSource
 import com.gorman.firebase.toDomain
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
+private const val TTL_MS = 24 * 60 * 60 * 1000L
+
 internal class MapEventsRepositoryImpl @Inject constructor(
     private val mapEventsDao: MapEventsDao,
     private val mapEventRemoteDataSource: MapEventRemoteDataSource,
-    private val database: MapEventsDatabase
+    private val database: MapEventsDatabase,
+    private val dataStoreManager: DataStoreManager
 ) : IMapEventsRepository {
 
     override fun getAllEvents(): Flow<List<MapEvent>> {
@@ -57,6 +62,7 @@ internal class MapEventsRepositoryImpl @Inject constructor(
                         mapEventsDao.clearAll()
                     }
                 }
+                dataStoreManager.saveSyncTimestamp(System.currentTimeMillis())
                 Result.success(Unit)
             } else {
                 Result.failure(IOException("Error network connection"))
@@ -68,5 +74,11 @@ internal class MapEventsRepositoryImpl @Inject constructor(
             Log.e("Repository", "Sync failed ${e.message}")
             Result.failure(e)
         }
+    }
+
+    override suspend fun isOutdated(): Boolean {
+        val lastSyncTime = dataStoreManager.lastSyncTimestamp.first()
+        val currentTime = System.currentTimeMillis()
+        return lastSyncTime?.let { (currentTime - it) > TTL_MS } == true
     }
 }

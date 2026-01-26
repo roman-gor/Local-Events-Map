@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gorman.common.models.CityData
@@ -24,9 +25,11 @@ class DataStoreManager @Inject constructor(
     companion object {
         private val KEY_CITY_DATA = stringPreferencesKey("city_data")
         private val USER_ID = stringPreferencesKey("user_id")
+        private val KEY_LAST_SYNC = longPreferencesKey("key_last_sync")
     }
 
     val saveUserId: Flow<String?> = context.dataStore.data.map { prefs -> prefs[USER_ID] }
+    val lastSyncTimestamp: Flow<Long?> = context.dataStore.data.map { prefs -> prefs[KEY_LAST_SYNC] }
 
     val savedCity: Flow<CityData?> = context.dataStore.data.map { prefs ->
         val jsonString = prefs[KEY_CITY_DATA]
@@ -34,6 +37,12 @@ class DataStoreManager @Inject constructor(
             Json.decodeFromString<CityData>(jsonString)
         } else {
             null
+        }
+    }
+
+    suspend fun saveSyncTimestamp(timestamp: Long) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_LAST_SYNC] = timestamp
         }
     }
 

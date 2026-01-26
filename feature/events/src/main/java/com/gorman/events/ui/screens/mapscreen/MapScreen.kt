@@ -4,17 +4,22 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.PointF
 import android.os.Build
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -28,6 +33,7 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.events.R
 import com.gorman.events.ui.components.CitiesDropdownMenu
 import com.gorman.events.ui.components.LoadingStub
+import com.gorman.events.ui.components.StatusBanner
 import com.gorman.events.ui.components.cityNameDefinition
 import com.gorman.events.ui.screens.ErrorDataScreen
 import com.gorman.events.ui.screens.PermissionRequestScreen
@@ -47,14 +53,17 @@ import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraListener
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.CameraUpdateReason
+import com.yandex.mapkit.map.ClusterListener
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
+import com.yandex.runtime.ui_view.ViewProvider
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 
+@SuppressLint("ComposeViewModelForwarding")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -163,6 +172,9 @@ fun MapContent(
                         state.isEventSelected = event.id != uiState.selectedMapEventId
                     },
                     onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
+                    onNavigateToDetailsScreen = { event ->
+                        onUiEvent(ScreenUiEvent.OnNavigateToDetailsScreen(event))
+                    }
                 ),
                 uiState = uiState,
                 mapController = mapController,
@@ -197,14 +209,20 @@ fun MapScreen(
             eventsList = uiState.eventsList,
             initialCityPoint = uiState.cityData.cityCoordinates
         )
-        uiState.cityData.city?.let {
-            CitiesDropdownMenu(
-                expanded = state.citiesMenuExpanded,
-                onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
-                currentCity = cityNameDefinition(it),
-                onCityClick = { city -> mapScreenActions.onCitySubmit(city) },
-                citiesList = CityCoordinatesConstants.cityCoordinatesList.toImmutableList()
-            )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            uiState.cityData.city?.let {
+                CitiesDropdownMenu(
+                    expanded = state.citiesMenuExpanded,
+                    onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
+                    currentCity = cityNameDefinition(it),
+                    onCityClick = { city -> mapScreenActions.onCitySubmit(city) },
+                    citiesList = CityCoordinatesConstants.cityCoordinatesList.toImmutableList()
+                )
+            }
+            uiState.dataStatus?.let { StatusBanner(it) }
         }
         MapEventsBottomSheetContent(
             data = BottomSheetData(
@@ -243,7 +261,7 @@ fun MapScreen(
                 onMapEventsListExpanded = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
                 onFiltersExpanded = { state.filtersExpanded = !state.filtersExpanded },
                 isEventSelected = state.isEventSelected,
-                onMapEventSelectedItemClick = { /*TODO(NavigationToDetailsScreen)*/ }
+                onMapEventSelectedItemClick = { mapScreenActions.onNavigateToDetailsScreen(it) }
             )
         )
     }
@@ -277,6 +295,10 @@ fun YandexMapView(
         }
     }
 
+    val lastEventsList = remember { mutableStateOf<List<MapUiEvent>?>(null) }
+    val lastDarkMode = remember { mutableStateOf<Boolean?>(null) }
+    val lastSelectedEventId = remember { mutableStateOf<String?>(null) }
+
     YandexMapEffects(
         mapView = mapView,
         mapController = mapController,
@@ -289,19 +311,45 @@ fun YandexMapView(
         modifier = Modifier
             .fillMaxSize()
             .clip(LocalEventsMapTheme.shapes.medium),
-        update = {
-            mapView.updateMapState(
-                isDarkMode = isDarkMode,
-                eventsList = eventsList,
-                selectedIcon = selectedIcon,
-                normalIcon = normalIcon,
-                tapListener = tapListener
-            )
-            initialCityPoint?.let {
-                mapView.mapWindow.map.mapObjects.addPlacemark().apply {
-                    geometry = it
-                    setIcon(userLocationIcon)
+        update = { view ->
+            val currentSelectedId = eventsList.find { it.isSelected }?.id
+
+            val dataChanged = lastEventsList.value != eventsList
+            val themeChanged = lastDarkMode.value != isDarkMode
+
+            if (dataChanged || themeChanged) {
+                view.updateMapState(
+                    isDarkMode = isDarkMode,
+                    eventsList = eventsList,
+                    selectedIcon = selectedIcon,
+                    normalIcon = normalIcon,
+                    tapListener = tapListener
+                )
+
+                initialCityPoint?.let {
+                    view.mapWindow.map.mapObjects.addPlacemark().apply {
+                        geometry = it
+                        setIcon(userLocationIcon)
+                    }
                 }
+
+                lastEventsList.value = eventsList
+                lastDarkMode.value = isDarkMode
+            }
+
+            if (currentSelectedId != lastSelectedEventId.value) {
+                val selectedEvent = eventsList.firstOrNull { it.isSelected }
+                if (selectedEvent != null) {
+                    val coordinates = selectedEvent.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
+                    if (coordinates != null && coordinates.size >= 2) {
+                        view.mapWindow.map.move(
+                            CameraPosition(Point(coordinates[0], coordinates[1]), 15.0f, 0.0f, 0.0f),
+                            Animation(Animation.Type.SMOOTH, 0.5f),
+                            null
+                        )
+                    }
+                }
+                lastSelectedEventId.value = currentSelectedId
             }
         }
     )
@@ -352,9 +400,42 @@ private fun MapView.updateMapState(
     normalIcon: ImageProvider,
     tapListener: MapObjectTapListener
 ) {
+    val context = this.context
     this.mapWindow.map.isNightModeEnabled = isDarkMode
     val mapObjects = this.mapWindow.map.mapObjects
     mapObjects.clear()
+
+    val clusterListener = ClusterListener { cluster ->
+        val textView = TextView(context).apply {
+            text = cluster.size.toString()
+            textSize = 14f
+            setTextColor(context.getColor(R.color.onPrimary))
+            gravity = android.view.Gravity.CENTER
+
+            background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(context.getColor(R.color.primary))
+                setSize(100, 100)
+            }
+
+            setPadding(20, 20, 20, 20)
+        }
+
+        cluster.appearance.setView(ViewProvider(textView))
+        cluster.appearance.zIndex = 100f
+
+        cluster.addClusterTapListener { _ ->
+            val target = cluster.appearance.geometry
+            this.mapWindow.map.move(
+                CameraPosition(target, this.mapWindow.map.cameraPosition.zoom + 2, 0f, 0f),
+                Animation(Animation.Type.SMOOTH, 0.5f),
+                null
+            )
+            true
+        }
+    }
+
+    val clusterizedCollection = mapObjects.addClusterizedPlacemarkCollection(clusterListener)
 
     val iconStyle = IconStyle().apply {
         anchor = PointF(0.5f, 1.0f)
@@ -363,9 +444,10 @@ private fun MapView.updateMapState(
 
     eventsList.forEach { event ->
         val coordinates = event.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
-        if (coordinates != null && coordinates.size == 2) {
+        if (coordinates != null && coordinates.size >= 2) {
             val point = Point(coordinates[0], coordinates[1])
-            mapObjects.addPlacemark().apply {
+
+            clusterizedCollection.addPlacemark().apply {
                 geometry = point
                 setIcon(if (event.isSelected) selectedIcon else normalIcon, iconStyle)
                 userData = event.id
@@ -374,10 +456,12 @@ private fun MapView.updateMapState(
         }
     }
 
+    clusterizedCollection.clusterPlacemarks(60.0, 15)
+
     val selectedEvent = eventsList.firstOrNull { it.isSelected }
     if (selectedEvent != null) {
         val coordinates = selectedEvent.coordinates?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
-        if (coordinates != null && coordinates.size == 2) {
+        if (coordinates != null && coordinates.size >= 2) {
             this.mapWindow.map.move(
                 CameraPosition(Point(coordinates[0], coordinates[1]), 15.0f, 0.0f, 0.0f),
                 Animation(Animation.Type.SMOOTH, 0.5f),
