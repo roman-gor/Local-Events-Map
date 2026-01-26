@@ -9,4 +9,5 @@ interface IMapEventsRepository {
     suspend fun updateFavouriteState(id: String): Result<Unit>
     fun getEventsByName(name: String): Flow<List<MapEvent>>
     suspend fun syncWith(): Result<Unit>
+    suspend fun isOutdated(): Boolean
 }

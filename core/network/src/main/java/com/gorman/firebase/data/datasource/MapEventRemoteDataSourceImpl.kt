@@ -17,8 +17,10 @@ import java.io.IOException
 import javax.inject.Inject
 
 class MapEventRemoteDataSourceImpl @Inject constructor(
-    private val database: DatabaseReference
+    databaseReference: DatabaseReference
 ) : MapEventRemoteDataSource {
+
+    private val database = databaseReference.child("Events")
     private fun DatabaseReference.snapshotsFlow(): Flow<DataSnapshot> = callbackFlow {
         val eventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
