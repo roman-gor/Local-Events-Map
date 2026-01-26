@@ -36,7 +36,7 @@ class UserRemoteDataSourceImpl @Inject constructor(
 
     override fun saveUserToRemote(user: UserDataRemote): Flow<Result<Unit>> = flow {
         try {
-            val uuid = user.uid ?: error(IllegalArgumentException("User UUID is null"))
+            val uuid = user.uid
             database.child(uuid).setValue(user).await()
         } catch (e: FirebaseException) {
             emit(Result.failure(e))
