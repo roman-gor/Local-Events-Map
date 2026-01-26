@@ -32,6 +32,7 @@ class AuthViewModel @Inject constructor(
         when (uiEvent) {
             is AuthScreenUiEvent.OnSignInClick -> signIn(uiEvent.email, uiEvent.password)
             is AuthScreenUiEvent.OnSignUpClick -> signUp(uiEvent.user, uiEvent.password)
+            AuthScreenUiEvent.OnGuestSignIn -> guestSignIn()
             AuthScreenUiEvent.OnNavigateToSignInClicked -> {
                 viewModelScope.launch {
                     _sideEffect.send(AuthSideEffects.OnNavigateToSignIn)
@@ -53,6 +54,28 @@ class AuthViewModel @Inject constructor(
                 _sideEffect.send(AuthSideEffects.OnNavigateToMain(user))
                 _uiState.value = AuthScreenState.Success
                 Log.d("Auth VM", "Successfully Sign In")
+            } catch (e: IllegalStateException) {
+                _uiState.value = AuthScreenState.Error(e)
+                Log.d("Auth VM", "Sign In Failed: ${e.message}")
+            }
+        }
+    }
+
+    private fun guestSignIn() {
+        viewModelScope.launch {
+            _uiState.value = AuthScreenState.Loading
+            try {
+                userRepository.signInAnonymously().fold(
+                    onSuccess = {
+                        _sideEffect.send(AuthSideEffects.OnNavigateToMain(it.toUiState()))
+                        _uiState.value = AuthScreenState.Success
+                        Log.d("Auth VM", "Successfully Sign In")
+                    },
+                    onFailure = { e ->
+                        _uiState.value = AuthScreenState.Error(e)
+                        Log.d("AuthViewModel", "Guest Sign In Failed: ${e.message}")
+                    }
+                )
             } catch (e: IllegalStateException) {
                 _uiState.value = AuthScreenState.Error(e)
                 Log.d("Auth VM", "Sign In Failed: ${e.message}")
