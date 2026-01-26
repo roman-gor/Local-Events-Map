@@ -1,5 +1,6 @@
 package com.gorman.events.ui.states
 
+import com.gorman.ui.states.MapUiEvent
 import com.yandex.mapkit.geometry.Point
 
 sealed interface ScreenSideEffect {

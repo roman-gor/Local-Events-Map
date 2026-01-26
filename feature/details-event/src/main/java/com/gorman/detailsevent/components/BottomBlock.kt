@@ -9,8 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
-import com.gorman.ui.utils.categoryNameDefinition
-import com.gorman.ui.utils.cityNameDefinition
+import com.gorman.common.constants.categoryNameDefinition
+import com.gorman.common.constants.cityNameDefinition
 
 @Composable
 fun BottomBlock(

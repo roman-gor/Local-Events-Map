@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.core.net.toUri
+import com.gorman.detailsevent.R
 
 fun openBrowser(context: Context, url: String?) {
     if (url.isNullOrBlank()) return
@@ -12,7 +13,7 @@ fun openBrowser(context: Context, url: String?) {
         val intent = Intent(Intent.ACTION_VIEW, url.toUri())
         context.startActivity(intent)
     } catch (_: Exception) {
-        Toast.makeText(context, "Не удалось открыть ссылку", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.linkOpenError), Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -33,6 +34,6 @@ fun openMap(context: Context, coordinates: String?) {
         val intent = Intent(Intent.ACTION_VIEW, uri)
         context.startActivity(intent)
     } catch (_: Exception) {
-        Toast.makeText(context, "Приложение карт не найдено", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.mapsAppError), Toast.LENGTH_SHORT).show()
     }
 }

@@ -52,7 +52,7 @@ fun ActionsRow(
             IconButton(onClick = { detailsActions.onFavouriteClick() }) {
                 Icon(
                     imageVector = selectedIcon,
-                    contentDescription = "Selected Icon",
+                    contentDescription = "Heart Icon",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(iconSize)
                 )
@@ -61,7 +61,7 @@ fun ActionsRow(
             IconButton(onClick = { detailsActions.onLocationClick() }) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Selected Icon",
+                    contentDescription = "Location Marker Icon",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(iconSize)
                 )
@@ -70,7 +70,7 @@ fun ActionsRow(
             IconButton(onClick = { detailsActions.onShareClick() }) {
                 Icon(
                     imageVector = Icons.Default.Share,
-                    contentDescription = "Selected Icon",
+                    contentDescription = "Share Icon",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(iconSize)
                 )
@@ -79,7 +79,7 @@ fun ActionsRow(
             IconButton(onClick = { detailsActions.onLinkClick() }) {
                 Icon(
                     painter = painterResource(R.drawable.ic_link),
-                    contentDescription = "Selected Icon",
+                    contentDescription = "Link Icon",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(iconSize)
                 )

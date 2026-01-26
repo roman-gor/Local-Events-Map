@@ -15,14 +15,14 @@ import com.gorman.ui.R
 
 @SuppressLint("ComposeModifierMissing")
 @Composable
-fun ErrorDataScreen() {
+fun ErrorDataScreen(text: String) {
     Box(
         modifier = Modifier.fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = stringResource(R.string.errorDataLoading),
+            text = text,
             fontSize = 18.sp
         )
     }

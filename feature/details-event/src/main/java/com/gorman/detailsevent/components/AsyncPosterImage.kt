@@ -28,7 +28,7 @@ fun AsyncPosterImage(
             is AsyncImagePainter.State.Error -> {
                 Image(
                     painter = painterResource(R.drawable.ic_placeholder),
-                    contentDescription = null,
+                    contentDescription = "Image Placeholder",
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
                 )
             }
@@ -36,7 +36,7 @@ fun AsyncPosterImage(
             is AsyncImagePainter.State.Success -> {
                 Image(
                     painter = state.painter,
-                    contentDescription = null,
+                    contentDescription = "Event image",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )

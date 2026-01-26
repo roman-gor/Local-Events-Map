@@ -30,27 +30,7 @@ class MainActivity : ComponentActivity() {
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 ) {
                     DetailsEventScreenEntry(
-                        mapUiEvent = MapUiEvent(
-                            name = "Открытие библиотеки",
-                            description = "Будет проходить открытие библиотеки: экскурсия и призы" +
-                                " Будет проходить открытие библиотеки: экскурсия и призы" +
-                                " Будет проходить открытие библиотеки: экскурсия и призы" +
-                                " Будет проходить открытие библиотеки: экскурсия и призы" +
-                                " Будет проходить открытие библиотеки: экскурсия и призы" +
-                                " Будет проходить открытие библиотеки: экскурсия и призы" +
-                                " Будет проходить открытие библиотеки: экскурсия и призы" +
-                                " Будет проходить открытие библиотеки: экскурсия и призы" +
-                                " Будет проходить открытие библиотеки: экскурсия и призы",
-                            date = 1769241600000L,
-                            link = "https://bsuir.by",
-                            address = "пр. Независимости, 62",
-                            cityName = "minsk",
-                            category = "education",
-                            coordinates = "53.6822, 23.8330",
-                            isSelected = true,
-                            isFavourite = false,
-                            id = "event2"
-                        ),
+                        mapUiEvent = MapUiEvent(),
                         modifier = Modifier.fillMaxSize().systemBarsPadding()
                     )
                 }

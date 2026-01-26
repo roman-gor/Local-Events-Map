@@ -20,7 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.gorman.ui.utils.convertMillisToDate
+import com.gorman.ui.utils.DateFormatStyle
+import com.gorman.ui.utils.format
 
 @SuppressLint("ComposeModifierMissing")
 @Composable
@@ -28,7 +29,7 @@ fun MapEventItem(
     mapEvent: MapUiEvent,
     onEventClick: (MapUiEvent) -> Unit
 ) {
-    val date = mapEvent.date?.let { convertMillisToDate(it) }
+    val date = mapEvent.date?.format(DateFormatStyle.DATE_ONLY)
     val containerColor = if (mapEvent.isSelected) { MaterialTheme.colorScheme.primary } else {
         MaterialTheme.colorScheme.background
     }

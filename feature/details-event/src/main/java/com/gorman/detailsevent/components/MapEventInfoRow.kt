@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.gorman.ui.utils.convertMillisToDate
-import com.gorman.ui.utils.convertMillisToTime
+import com.gorman.ui.utils.DateFormatStyle
+import com.gorman.ui.utils.format
 
 @Composable
 fun MapEventInfoRow(
@@ -25,8 +25,8 @@ fun MapEventInfoRow(
     timestamp: Long?,
     modifier: Modifier = Modifier
 ) {
-    val date = timestamp?.let { convertMillisToDate(it) }
-    val time = timestamp?.let { convertMillisToTime(it) }
+    val date = timestamp?.format(DateFormatStyle.DATE_ONLY)
+    val time = timestamp?.format(DateFormatStyle.TIME_ONLY)
     Card(
         modifier = modifier,
         shape = LocalEventsMapTheme.shapes.medium,

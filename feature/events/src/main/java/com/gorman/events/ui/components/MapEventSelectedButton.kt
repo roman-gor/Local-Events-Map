@@ -20,7 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.gorman.ui.utils.convertMillisToDate
+import com.gorman.ui.utils.DateFormatStyle
+import com.gorman.ui.utils.format
 
 @Composable
 fun MapEventSelectedButton(
@@ -28,7 +29,7 @@ fun MapEventSelectedButton(
     mapEvent: MapUiEvent,
     modifier: Modifier = Modifier
 ) {
-    val date = mapEvent.date?.let { convertMillisToDate(it) }
+    val date = mapEvent.date?.format(DateFormatStyle.DATE_ONLY)
     Button(
         onClick = { onMapEventButtonClick(mapEvent) },
         modifier = modifier,

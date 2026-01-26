@@ -23,9 +23,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.gorman.common.constants.CityCoordinatesConstants
+import com.gorman.common.constants.toDisplayName
 import com.gorman.events.R
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.gorman.ui.utils.cityNameDefinition
 
 @SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +65,7 @@ fun CitySelectDropdownMenu(
                 containerColor = MaterialTheme.colorScheme.background
             ) {
                 CityCoordinatesConstants.cityCoordinatesList.forEach { city ->
-                    val cityName = cityNameDefinition(city)
+                    val cityName = city.toDisplayName()
                     DropdownMenuItem(
                         text = {
                             Text(

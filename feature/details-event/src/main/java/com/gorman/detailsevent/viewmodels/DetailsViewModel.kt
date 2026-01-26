@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import okio.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,7 +27,12 @@ class DetailsViewModel @Inject constructor(
         .map { flowEvent ->
             DetailsScreenState.Success(flowEvent.toUiState()) as DetailsScreenState
         }.catch { e ->
-            emit(DetailsScreenState.Error(e))
+            when (e) {
+                is IOException -> emit(DetailsScreenState.Error.NoNetwork(e.message))
+                is IllegalStateException -> emit(DetailsScreenState.Error.NotFound(id))
+                is NoSuchElementException -> emit(DetailsScreenState.Error.NotFound(id))
+                else -> emit(DetailsScreenState.Error.Unknown(e))
+            }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
