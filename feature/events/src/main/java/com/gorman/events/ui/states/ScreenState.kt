@@ -13,7 +13,8 @@ sealed interface ScreenState {
         val eventsList: ImmutableList<MapUiEvent> = persistentListOf(),
         val filterState: FiltersState = FiltersState(),
         val selectedMapEventId: String? = null,
-        val cityData: CityUiData = CityUiData()
+        val cityData: CityUiData = CityUiData(),
+        val dataStatus: DataStatus? = null
     ) : ScreenState
 }
 
@@ -30,4 +31,5 @@ sealed interface ScreenUiEvent {
     data class OnCostChanged(val isFree: Boolean) : ScreenUiEvent
     data class OnDistanceChanged(val distance: Int?) : ScreenUiEvent
     data class OnEventSelected(val id: String) : ScreenUiEvent
+    data class OnNavigateToDetailsScreen(val event: MapUiEvent) : ScreenUiEvent
 }
