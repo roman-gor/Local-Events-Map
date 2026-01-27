@@ -10,8 +10,7 @@ import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.search.Address
 import com.yandex.mapkit.search.Response
-import com.yandex.mapkit.search.SearchFactory
-import com.yandex.mapkit.search.SearchManagerType
+import com.yandex.mapkit.search.SearchManager
 import com.yandex.mapkit.search.SearchOptions
 import com.yandex.mapkit.search.SearchType
 import com.yandex.mapkit.search.Session
@@ -21,12 +20,11 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import kotlin.coroutines.resume
 
-class GeoRepositoryImpl @Inject constructor(
+class GeoRepository @Inject constructor(
     private val locationProvider: LocationProvider,
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
+    private val searchManager: SearchManager
 ) : IGeoRepository {
-    private val searchManager = SearchFactory.getInstance()
-        .createSearchManager(SearchManagerType.COMBINED)
 
     override suspend fun getCityByPoint(location: Point): CityData? = suspendCancellableCoroutine { continuation ->
         val searchOptions = SearchOptions().apply {
@@ -115,7 +113,7 @@ class GeoRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUserLocation(): Point? =
+    override suspend fun getUserLocation(): Result<Point> =
         locationProvider.getLastKnownLocation()
 
     override fun getDistanceFromPoints(

@@ -167,12 +167,11 @@ class MapViewModel @Inject constructor(
         isInitialLocationFetched = true
 
         viewModelScope.launch {
-            val location = geoRepository.getUserLocation()
-            if (location != null) {
+            geoRepository.getUserLocation().onSuccess { location ->
                 val userCityData = geoRepository.getCityByPoint(location)
                 userCityData?.let { geoRepository.saveCity(it) }
                 _sideEffect.send(ScreenSideEffect.MoveCamera(location))
-            } else {
+            }.onFailure {
                 searchForCity(CityCoordinatesConstants.MINSK)
             }
         }

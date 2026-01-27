@@ -22,15 +22,12 @@ dependencyResolutionManagement {
 
 rootProject.name = "LocalEventsMap"
 include(":app")
-include(":core")
 include(":core:common")
 include(":core:network")
 include(":core:ui")
 include(":core:database")
 include(":core:domain-model")
-include(":feature")
 include(":feature:events")
 include(":core:data")
 include(":core:cache")
-include(":sync")
 include(":sync:work")

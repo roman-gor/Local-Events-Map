@@ -9,14 +9,6 @@ enum class CityCoordinatesConstants(val cityName: String) {
     MOGILEV("magiliow");
 
     companion object {
-        val cityCoordinatesList = listOf(
-            MINSK,
-            BREST,
-            GRODNO,
-            GOMEL,
-            VITEBSK,
-            MOGILEV
-        )
         fun fromCityName(name: String?): CityCoordinatesConstants? {
             return entries.find { it.cityName.equals(name, ignoreCase = true) }
         }
