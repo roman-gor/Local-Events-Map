@@ -7,15 +7,4 @@ enum class CategoryConstants(val value: String) {
     ART("art"),
     FOOD("food"),
     CINEMA("cinema");
-
-    companion object {
-        val categoriesList = listOf(
-            MUSIC,
-            SPORT,
-            EDUCATION,
-            ART,
-            FOOD,
-            CINEMA
-        )
-    }
 }

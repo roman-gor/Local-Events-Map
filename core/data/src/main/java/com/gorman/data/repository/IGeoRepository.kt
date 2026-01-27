@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 interface IGeoRepository {
     suspend fun getCityByPoint(location: Point): CityData?
     suspend fun getPointByCity(city: CityCoordinatesConstants): CityData?
-    suspend fun getUserLocation(): Point?
+    suspend fun getUserLocation(): Result<Point>
     fun getDistanceFromPoints(point1: Point, point2: Point): Int
     fun getSavedCity(): Flow<CityData?>
     suspend fun saveCity(cityData: CityData)

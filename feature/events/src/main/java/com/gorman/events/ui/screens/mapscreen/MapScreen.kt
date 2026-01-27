@@ -68,6 +68,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreenEntry(
+    modifier: Modifier = Modifier,
     mapViewModel: MapViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current

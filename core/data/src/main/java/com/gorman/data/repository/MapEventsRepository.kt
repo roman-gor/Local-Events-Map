@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 private const val TTL_MS = 24 * 60 * 60 * 1000L
 
-internal class MapEventsRepositoryImpl @Inject constructor(
+internal class MapEventsRepository @Inject constructor(
     private val mapEventsDao: MapEventsDao,
     private val mapEventRemoteDataSource: MapEventRemoteDataSource,
     private val database: MapEventsDatabase,
