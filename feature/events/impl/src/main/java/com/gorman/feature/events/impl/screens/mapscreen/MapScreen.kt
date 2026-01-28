@@ -21,36 +21,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LifecycleStartEffect
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CityCoordinatesConstants
+import com.gorman.common.constants.toDisplayName
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.components.CitiesDropdownMenu
-import com.gorman.feature.events.impl.components.LoadingStub
 import com.gorman.feature.events.impl.components.StatusBanner
-import com.gorman.feature.events.impl.components.cityNameDefinition
-import com.gorman.feature.events.impl.screens.ErrorDataScreen
 import com.gorman.feature.events.impl.screens.PermissionRequestScreen
 import com.gorman.feature.events.impl.states.FilterActions
 import com.gorman.feature.events.impl.states.MapScreenActions
-import com.gorman.feature.events.impl.states.MapUiEvent
 import com.gorman.feature.events.impl.states.ScreenState
 import com.gorman.feature.events.impl.states.ScreenUiEvent
 import com.gorman.feature.events.impl.states.YandexMapActions
 import com.gorman.feature.events.impl.utils.MapController
 import com.gorman.feature.events.impl.utils.rememberMapController
 import com.gorman.feature.events.impl.viewmodels.MapViewModel
+import com.gorman.ui.components.ErrorDataScreen
+import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.Animation
-import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraListener
 import com.yandex.mapkit.map.CameraPosition
@@ -152,7 +149,7 @@ fun MapContent(
     val state = rememberMapScreenLocalState()
 
     when (uiState) {
-        is ScreenState.Error -> ErrorDataScreen()
+        is ScreenState.Error -> ErrorDataScreen(stringResource(com.gorman.ui.R.string.errorDataLoading))
         ScreenState.Loading -> LoadingStub()
         is ScreenState.Success -> {
             MapScreen(
@@ -226,7 +223,7 @@ fun MapScreen(
                 CitiesDropdownMenu(
                     expanded = state.citiesMenuExpanded,
                     onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
-                    currentCity = cityNameDefinition(it),
+                    currentCity = it.toDisplayName(),
                     onCityClick = { city -> mapScreenActions.onCitySubmit(city) },
                     citiesList = CityCoordinatesConstants.entries.toImmutableList()
                 )

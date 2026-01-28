@@ -26,7 +26,7 @@ import com.gorman.feature.events.impl.components.FunctionalButton
 import com.gorman.feature.events.impl.components.MapEventNameOutlineTextField
 import com.gorman.feature.events.impl.components.MapEventSelectedButton
 import com.gorman.feature.events.impl.states.MapScreenActions
-import com.gorman.feature.events.impl.states.MapUiEvent
+import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @SuppressLint("ComposeModifierMissing")
