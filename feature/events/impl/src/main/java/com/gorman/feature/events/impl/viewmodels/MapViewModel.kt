@@ -1,4 +1,4 @@
-package com.gorman.events.ui.viewmodels
+package com.gorman.feature.events.impl.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -17,14 +17,15 @@ import com.gorman.feature.events.impl.mappers.toUiState
 import com.gorman.feature.events.impl.states.DataStatus
 import com.gorman.feature.events.impl.states.DateFilterState
 import com.gorman.feature.events.impl.states.FiltersState
-import com.gorman.feature.events.impl.states.MapUiEvent
 import com.gorman.feature.events.impl.states.ScreenSideEffect
 import com.gorman.feature.events.impl.states.ScreenState
 import com.gorman.feature.events.impl.states.ScreenUiEvent
-import com.gorman.feature.events.impl.utils.getEndOfDay
-import com.gorman.feature.events.impl.utils.getEndOfWeek
-import com.gorman.feature.events.impl.utils.getStartOfDay
 import com.gorman.navigation.navigator.Navigator
+import com.gorman.ui.mappers.toUiState
+import com.gorman.ui.states.MapUiEvent
+import com.gorman.ui.utils.getEndOfDay
+import com.gorman.ui.utils.getEndOfWeek
+import com.gorman.ui.utils.getStartOfDay
 import com.yandex.mapkit.MapKit
 import com.yandex.mapkit.geometry.Point
 import dagger.hilt.android.lifecycle.HiltViewModel

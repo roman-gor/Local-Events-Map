@@ -3,7 +3,7 @@ package com.gorman.detailsevent.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gorman.data.repository.IMapEventsRepository
+import com.gorman.data.repository.mapevent.IMapEventsRepository
 import com.gorman.detailsevent.states.DetailsScreenState
 import com.gorman.detailsevent.states.DetailsScreenUiEvent
 import com.gorman.ui.mappers.toUiState

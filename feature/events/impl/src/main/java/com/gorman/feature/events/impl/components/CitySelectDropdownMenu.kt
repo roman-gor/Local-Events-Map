@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.gorman.common.constants.CityCoordinatesConstants
+import com.gorman.common.constants.toDisplayName
 import com.gorman.feature.events.impl.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
@@ -64,7 +65,7 @@ fun CitySelectDropdownMenu(
                 containerColor = MaterialTheme.colorScheme.background
             ) {
                 CityCoordinatesConstants.entries.forEach { city ->
-                    val cityName = cityNameDefinition(city)
+                    val cityName = city.toDisplayName()
                     DropdownMenuItem(
                         text = {
                             Text(

@@ -28,6 +28,7 @@ enum class CityCoordinatesConstants(val cityName: String) {
     }
 }
 
+@Composable
 fun CityCoordinatesConstants.toDisplayName(): String {
     return when(this) {
         CityCoordinatesConstants.MINSK -> stringResource(R.string.minsk)

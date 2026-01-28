@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gorman.feature.events.impl.states.MapUiEvent
+import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.gorman.ui.utils.DateFormatStyle
 import com.gorman.ui.utils.format

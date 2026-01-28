@@ -13,6 +13,7 @@ enum class CategoryConstants(val value: String) {
     CINEMA("cinema")
 }
 
+@Composable
 fun CategoryConstants.toDisplayName(): String {
     return when (this) {
         CategoryConstants.EDUCATION -> stringResource(R.string.education)

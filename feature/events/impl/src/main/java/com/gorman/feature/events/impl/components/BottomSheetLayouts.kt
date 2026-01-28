@@ -37,7 +37,7 @@ import com.gorman.feature.events.impl.states.DateFilterState
 import com.gorman.feature.events.impl.states.FilterActions
 import com.gorman.feature.events.impl.states.FilterOptions
 import com.gorman.feature.events.impl.states.FiltersState
-import com.gorman.feature.events.impl.states.MapUiEvent
+import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 
