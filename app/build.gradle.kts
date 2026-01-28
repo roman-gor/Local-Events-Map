@@ -53,6 +53,7 @@ dependencies {
 
     implementation(project(":feature:events"))
     implementation(project(":sync:work"))
+    implementation(project(":core:ui"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

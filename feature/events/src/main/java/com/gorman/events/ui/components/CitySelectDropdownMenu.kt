@@ -63,7 +63,7 @@ fun CitySelectDropdownMenu(
                 shape = LocalEventsMapTheme.shapes.medium,
                 containerColor = MaterialTheme.colorScheme.background
             ) {
-                CityCoordinatesConstants.cityCoordinatesList.forEach { city ->
+                CityCoordinatesConstants.entries.forEach { city ->
                     val cityName = cityNameDefinition(city)
                     DropdownMenuItem(
                         text = {
