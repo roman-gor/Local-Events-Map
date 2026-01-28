@@ -19,11 +19,13 @@ import com.gorman.feature.events.impl.states.DateFilterState
 import com.gorman.feature.events.impl.states.FiltersState
 import com.gorman.feature.events.impl.states.MapUiEvent
 import com.gorman.feature.events.impl.states.ScreenSideEffect
+import com.gorman.feature.events.impl.states.ScreenSideEffect.*
 import com.gorman.feature.events.impl.states.ScreenState
 import com.gorman.feature.events.impl.states.ScreenUiEvent
 import com.gorman.feature.events.impl.utils.getEndOfDay
 import com.gorman.feature.events.impl.utils.getEndOfWeek
 import com.gorman.feature.events.impl.utils.getStartOfDay
+import com.yandex.mapkit.MapKit
 import com.yandex.mapkit.geometry.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
@@ -49,6 +51,7 @@ import kotlin.ranges.contains
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
+    private val mapKit: MapKit,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
@@ -140,6 +143,8 @@ class MapViewModel @Inject constructor(
 
     fun onUiEvent(event: ScreenUiEvent) {
         when (event) {
+            ScreenUiEvent.MapKitOnStart -> mapKit.onStart()
+            ScreenUiEvent.MapKitOnStop -> mapKit.onStop()
             is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
             is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
@@ -160,7 +165,7 @@ class MapViewModel @Inject constructor(
             }
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {
                 viewModelScope.launch {
-                    _sideEffect.send(ScreenSideEffect.OnNavigateToDetailsScreen(event.event))
+                    _sideEffect.send(OnNavigateToDetailsScreen(event.event))
                 }
             }
         }

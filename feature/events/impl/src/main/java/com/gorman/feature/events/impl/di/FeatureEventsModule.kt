@@ -1,7 +1,8 @@
-package com.gorman.feature.events.impl.navigation
+package com.gorman.feature.events.impl.di
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.gorman.feature.events.impl.navigation.featureEventsEntryBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

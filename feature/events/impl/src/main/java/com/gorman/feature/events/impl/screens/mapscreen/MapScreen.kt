@@ -23,6 +23,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
@@ -69,6 +72,7 @@ fun MapScreenEntry(
     mapViewModel: MapViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -137,7 +141,23 @@ fun MapContent(
     mapController: MapController,
     modifier: Modifier = Modifier
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> onUiEvent(ScreenUiEvent.MapKitOnStart)
+                Lifecycle.Event.ON_STOP -> onUiEvent(ScreenUiEvent.MapKitOnStop)
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val state = rememberMapScreenLocalState()
+
     when (uiState) {
         is ScreenState.Error -> ErrorDataScreen()
         ScreenState.Loading -> LoadingStub()
@@ -361,11 +381,9 @@ private fun YandexMapEffects(
     DisposableEffect(mapView) {
         mapController.attach(mapView)
         mapView.onStart()
-        MapKitFactory.getInstance().onStart()
 
         onDispose {
             mapView.onStop()
-            MapKitFactory.getInstance().onStop()
             mapController.detach()
         }
     }

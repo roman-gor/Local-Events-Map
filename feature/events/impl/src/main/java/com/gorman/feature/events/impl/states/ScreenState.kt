@@ -18,6 +18,10 @@ sealed interface ScreenState {
 }
 
 sealed interface ScreenUiEvent {
+
+    data object MapKitOnStart : ScreenUiEvent
+    data object MapKitOnStop : ScreenUiEvent
+
     data object PermissionsGranted : ScreenUiEvent
 
     data class OnCameraIdle(val point: Point) : ScreenUiEvent
