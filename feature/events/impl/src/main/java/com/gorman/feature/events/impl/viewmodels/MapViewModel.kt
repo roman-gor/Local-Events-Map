@@ -165,7 +165,7 @@ class MapViewModel @Inject constructor(
                 syncEvents()
             }
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {
-                //TODO(navigator.goTo())
+                // TODO(navigator.goTo())
             }
         }
     }

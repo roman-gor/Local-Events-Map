@@ -14,7 +14,7 @@ import dagger.multibindings.IntoSet
 object FeatureEventsModule {
     @IntoSet
     @Provides
-    fun provideFeatureEventsEntryBuilder() : EntryProviderScope<NavKey>.() -> Unit = {
+    fun provideFeatureEventsEntryBuilder(): EntryProviderScope<NavKey>.() -> Unit = {
         featureEventsEntryBuilder()
     }
 }
