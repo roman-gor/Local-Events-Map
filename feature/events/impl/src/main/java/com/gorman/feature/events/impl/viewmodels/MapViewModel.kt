@@ -19,7 +19,6 @@ import com.gorman.feature.events.impl.states.DateFilterState
 import com.gorman.feature.events.impl.states.FiltersState
 import com.gorman.feature.events.impl.states.MapUiEvent
 import com.gorman.feature.events.impl.states.ScreenSideEffect
-import com.gorman.feature.events.impl.states.ScreenSideEffect.*
 import com.gorman.feature.events.impl.states.ScreenState
 import com.gorman.feature.events.impl.states.ScreenUiEvent
 import com.gorman.feature.events.impl.utils.getEndOfDay
@@ -165,7 +164,7 @@ class MapViewModel @Inject constructor(
             }
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {
                 viewModelScope.launch {
-                    _sideEffect.send(OnNavigateToDetailsScreen(event.event))
+                    _sideEffect.send(ScreenSideEffect.OnNavigateToDetailsScreen(event.event))
                 }
             }
         }
