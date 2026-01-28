@@ -25,6 +25,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -141,18 +142,10 @@ fun MapContent(
     mapController: MapController,
     modifier: Modifier = Modifier
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_START -> onUiEvent(ScreenUiEvent.MapKitOnStart)
-                Lifecycle.Event.ON_STOP -> onUiEvent(ScreenUiEvent.MapKitOnStop)
-                else -> {}
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
+    LifecycleStartEffect(Unit) {
+        onUiEvent(ScreenUiEvent.MapKitOnStart)
+        onStopOrDispose {
+            onUiEvent(ScreenUiEvent.MapKitOnStop)
         }
     }
 
