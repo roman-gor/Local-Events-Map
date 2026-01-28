@@ -55,6 +55,7 @@ dependencies {
 
     implementation(project(":feature:events:impl"))
     implementation(project(":sync:work"))
+    implementation(project(":core:navigation"))
     implementation(project(":core:ui"))
 
     implementation(libs.androidx.core.ktx)

@@ -19,12 +19,12 @@ import com.gorman.feature.events.impl.states.DateFilterState
 import com.gorman.feature.events.impl.states.FiltersState
 import com.gorman.feature.events.impl.states.MapUiEvent
 import com.gorman.feature.events.impl.states.ScreenSideEffect
-import com.gorman.feature.events.impl.states.ScreenSideEffect.*
 import com.gorman.feature.events.impl.states.ScreenState
 import com.gorman.feature.events.impl.states.ScreenUiEvent
 import com.gorman.feature.events.impl.utils.getEndOfDay
 import com.gorman.feature.events.impl.utils.getEndOfWeek
 import com.gorman.feature.events.impl.utils.getStartOfDay
+import com.gorman.navigation.navigator.Navigator
 import com.yandex.mapkit.MapKit
 import com.yandex.mapkit.geometry.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -52,6 +52,7 @@ import kotlin.ranges.contains
 @HiltViewModel
 class MapViewModel @Inject constructor(
     private val mapKit: MapKit,
+    private val navigator: Navigator,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
@@ -164,9 +165,7 @@ class MapViewModel @Inject constructor(
                 syncEvents()
             }
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {
-                viewModelScope.launch {
-                    _sideEffect.send(OnNavigateToDetailsScreen(event.event))
-                }
+                //TODO(navigator.goTo())
             }
         }
     }
