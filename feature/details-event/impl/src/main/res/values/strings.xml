@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="linkOpenError">Не удалось открыть ссылку</string>
+    <string name="mapsAppError">Приложение карт не найдено</string>
+    <string name="errorDataLoading">Ошибка при загрузке данных</string>
+    <string name="eventNotFound">Событие не найдено</string>
+    <string name="noNetwork">Отсутствует подключение к Интернету</string>
+</resources>
