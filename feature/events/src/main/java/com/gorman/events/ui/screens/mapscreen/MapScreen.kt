@@ -3,16 +3,12 @@ package com.gorman.events.ui.screens.mapscreen
 import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.PointF
-import android.os.Build
 import android.widget.TextView
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -64,7 +60,6 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 
 @SuppressLint("ComposeViewModelForwarding")
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreenEntry(
@@ -94,6 +89,7 @@ fun MapScreenEntry(
     when (permissionsState.allPermissionsGranted) {
         true -> {
             MapContent(
+                modifier = modifier,
                 uiState = uiState,
                 onUiEvent = mapViewModel::onUiEvent,
                 mapController = mapController
@@ -121,6 +117,7 @@ fun MapScreenEntry(
                     )
                 } else {
                     MapContent(
+                        modifier = modifier,
                         uiState = uiState,
                         onUiEvent = mapViewModel::onUiEvent,
                         mapController = mapController
@@ -131,12 +128,12 @@ fun MapScreenEntry(
     }
 }
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun MapContent(
     uiState: ScreenState,
     onUiEvent: (ScreenUiEvent) -> Unit,
-    mapController: MapController
+    mapController: MapController,
+    modifier: Modifier = Modifier
 ) {
     val state = rememberMapScreenLocalState()
     when (uiState) {
@@ -179,9 +176,7 @@ fun MapContent(
                 ),
                 uiState = uiState,
                 mapController = mapController,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = MaterialTheme.colorScheme.background),
+                modifier = modifier,
                 state = state
             )
         }
@@ -210,17 +205,14 @@ fun MapScreen(
             eventsList = uiState.eventsList,
             initialCityPoint = uiState.cityData.cityCoordinates
         )
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             uiState.cityData.city?.let {
                 CitiesDropdownMenu(
                     expanded = state.citiesMenuExpanded,
                     onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
                     currentCity = cityNameDefinition(it),
                     onCityClick = { city -> mapScreenActions.onCitySubmit(city) },
-                    citiesList = CityCoordinatesConstants.cityCoordinatesList.toImmutableList()
+                    citiesList = CityCoordinatesConstants.entries.toImmutableList()
                 )
             }
             uiState.dataStatus?.let { StatusBanner(it) }

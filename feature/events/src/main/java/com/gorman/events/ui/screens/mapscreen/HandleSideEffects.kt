@@ -24,7 +24,6 @@ fun HandleSideEffects(
                     Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
                 }
                 is ScreenSideEffect.OnNavigateToDetailsScreen -> {
-
                 }
             }
         }

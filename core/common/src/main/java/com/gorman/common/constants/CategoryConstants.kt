@@ -6,5 +6,5 @@ enum class CategoryConstants(val value: String) {
     EDUCATION("education"),
     ART("art"),
     FOOD("food"),
-    CINEMA("cinema");
+    CINEMA("cinema")
 }
