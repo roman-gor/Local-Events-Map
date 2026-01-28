@@ -10,13 +10,11 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class FirebaseRepositoryModule {
     @Binds
-    @Singleton
     abstract fun bindFirebaseApi(impl: MapEventRemoteDataSourceImpl): MapEventRemoteDataSource
 }
 
@@ -24,7 +22,6 @@ abstract class FirebaseRepositoryModule {
 @InstallIn(SingletonComponent::class)
 object FirebaseMainModule {
     @Provides
-    @Singleton
     fun provideFirebaseDatabase(): FirebaseDatabase {
         return FirebaseDatabase.getInstance()
     }
