@@ -53,6 +53,9 @@ internal fun Project.configureAndroidCompose(
             add("androidTestImplementation", platform(bom))
 
             add("implementation", libs.findBundle("compose").get())
+            add("implementation", libs.findBundle("navigation").get())
+            add("implementation", libs.findBundle("lifecycle").get())
+            add("implementation", libs.findBundle("adaptive.material").get())
             add("debugImplementation", libs.findLibrary("androidx.compose.ui.tooling").get())
 
             add("lintChecks", libs.findLibrary("compose.lint.checks").get())

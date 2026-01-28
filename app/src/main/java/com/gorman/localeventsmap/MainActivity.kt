@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.gorman.events.ui.screens.mapscreen.MapScreenEntry
+import com.gorman.feature.events.impl.screens.mapscreen.MapScreenEntry
 import com.gorman.localeventsmap.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.AndroidEntryPoint
