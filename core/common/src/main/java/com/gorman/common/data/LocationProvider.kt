@@ -1,6 +1,5 @@
 package com.gorman.common.data
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.common.api.ApiException
@@ -19,11 +18,10 @@ class LocationProvider @Inject constructor(
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
-    @SuppressLint("MissingPermission")
-    suspend fun getLastKnownLocation(): Point? {
+    suspend fun getLastKnownLocation(): Result<Point> {
         return try {
             val lastLoc = fusedLocationClient.lastLocation.await()
-            if (lastLoc != null) return Point(lastLoc.latitude, lastLoc.longitude)
+            if (lastLoc != null) Result.success(Point(lastLoc.latitude, lastLoc.longitude))
 
             val currentLoc = fusedLocationClient.getCurrentLocation(
                 com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
@@ -33,13 +31,18 @@ class LocationProvider @Inject constructor(
                 "LocationProvider",
                 "Coordinates: ${currentLoc.latitude} / ${currentLoc.longitude}"
             )
-            currentLoc?.let { Point(it.latitude, it.longitude) }
+            val point = currentLoc?.let { Point(it.latitude, it.longitude) }
+            if (point != null) {
+                Result.success(point)
+            } else {
+                Result.failure(Exception("Point Location is null"))
+            }
         } catch (e: ApiException) {
             Log.e("LocationProvider", "GMS API error: ${e.statusCode} - ${e.message}")
-            null
+            Result.failure(e)
         } catch (e: SecurityException) {
             Log.e("LocationProvider", "Permission denied: ${e.message}")
-            null
+            Result.failure(e)
         }
     }
 }
