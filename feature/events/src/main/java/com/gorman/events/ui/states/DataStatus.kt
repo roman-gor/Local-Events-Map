@@ -1,7 +1,7 @@
 package com.gorman.events.ui.states
 
 enum class DataStatus {
-    FRESH,
+    OFFLINE,
     OUTDATED,
-    OFFLINE
+    FRESH
 }

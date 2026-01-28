@@ -1,4 +1,4 @@
-package com.gorman.data.repository
+package com.gorman.data.repository.mapevent
 
 import com.gorman.domainmodel.MapEvent
 import kotlinx.coroutines.flow.Flow

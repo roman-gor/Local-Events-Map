@@ -7,8 +7,10 @@ import com.google.android.gms.common.api.ApiException
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
-import com.gorman.data.repository.IGeoRepository
-import com.gorman.data.repository.IMapEventsRepository
+import com.gorman.data.repository.geo.IGeoRepository
+import com.gorman.data.repository.mapevent.IMapEventsRepository
+import com.gorman.data.usecases.GetCityByPointUseCase
+import com.gorman.data.usecases.GetPointByCityUseCase
 import com.gorman.domainmodel.MapEvent
 import com.gorman.events.ui.components.DateFilterType
 import com.gorman.events.ui.mappers.toUiState
@@ -49,7 +51,9 @@ import kotlin.ranges.contains
 class MapViewModel @Inject constructor(
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
-    private val networkObserver: NetworkConnectivityObserver
+    private val getCityByPointUseCase: GetCityByPointUseCase,
+    private val getPointByCityUseCase: GetPointByCityUseCase,
+    networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
 
     private val _filters = MutableStateFlow(FiltersState())
@@ -168,7 +172,7 @@ class MapViewModel @Inject constructor(
 
         viewModelScope.launch {
             geoRepository.getUserLocation().onSuccess { location ->
-                val userCityData = geoRepository.getCityByPoint(location)
+                val userCityData = getCityByPointUseCase(location)
                 userCityData?.let { geoRepository.saveCity(it) }
                 _sideEffect.send(ScreenSideEffect.MoveCamera(location))
             }.onFailure {
@@ -255,7 +259,7 @@ class MapViewModel @Inject constructor(
         cameraMoveJob?.cancel()
         cameraMoveJob = viewModelScope.launch {
             delay(100L)
-            val resultCityData = geoRepository.getCityByPoint(cameraPosition)
+            val resultCityData = getCityByPointUseCase(cameraPosition)
             resultCityData?.let {
                 updateCityIfChanged(it)
             }
@@ -264,7 +268,7 @@ class MapViewModel @Inject constructor(
 
     fun searchForCity(city: CityCoordinatesConstants) {
         viewModelScope.launch {
-            val resultCityData = geoRepository.getPointByCity(city)
+            val resultCityData = getPointByCityUseCase(city)
             resultCityData?.let {
                 geoRepository.saveCity(it)
                 it.toUiState().cityCoordinates?.let { point ->
