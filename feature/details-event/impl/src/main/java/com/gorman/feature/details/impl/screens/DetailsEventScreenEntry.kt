@@ -1,4 +1,4 @@
-package com.gorman.detailsevent.screens
+package com.gorman.feature.details.impl.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -25,17 +25,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.rememberAsyncImagePainter
-import com.gorman.detailsevent.R
-import com.gorman.detailsevent.components.BottomBlock
-import com.gorman.detailsevent.components.MapEventInfoRow
-import com.gorman.detailsevent.components.TopBlock
-import com.gorman.detailsevent.contextUtils.openBrowser
-import com.gorman.detailsevent.contextUtils.openMap
-import com.gorman.detailsevent.contextUtils.shareContent
-import com.gorman.detailsevent.states.DetailsActions
-import com.gorman.detailsevent.states.DetailsScreenState
-import com.gorman.detailsevent.states.DetailsScreenUiEvent
-import com.gorman.detailsevent.viewmodels.DetailsViewModel
+import com.gorman.feature.details.impl.R
+import com.gorman.feature.details.impl.components.BottomBlock
+import com.gorman.feature.details.impl.components.MapEventInfoRow
+import com.gorman.feature.details.impl.components.TopBlock
+import com.gorman.feature.details.impl.contextUtils.openBrowser
+import com.gorman.feature.details.impl.contextUtils.openMap
+import com.gorman.feature.details.impl.contextUtils.shareContent
+import com.gorman.feature.details.impl.states.DetailsActions
+import com.gorman.feature.details.impl.states.DetailsScreenState
+import com.gorman.feature.details.impl.states.DetailsScreenUiEvent
+import com.gorman.feature.details.impl.viewmodels.DetailsViewModel
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.states.MapUiEvent
@@ -43,7 +43,6 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun DetailsEventScreenEntry(
-    mapUiEvent: MapUiEvent,
     modifier: Modifier = Modifier,
     detailsViewModel: DetailsViewModel = hiltViewModel()
 ) {
@@ -56,7 +55,7 @@ fun DetailsEventScreenEntry(
         is DetailsScreenState.Success -> {
             Log.d("State", "${state.event}")
             DetailsEventScreen(
-                mapUiEvent = mapUiEvent,
+                mapUiEvent = state.event,
                 onUiEvent = detailsViewModel::onUiEvent,
                 modifier = modifier
             )

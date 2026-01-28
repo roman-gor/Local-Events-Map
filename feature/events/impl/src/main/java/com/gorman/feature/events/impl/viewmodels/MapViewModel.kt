@@ -12,6 +12,7 @@ import com.gorman.data.repository.mapevent.IMapEventsRepository
 import com.gorman.data.usecases.GetCityByPointUseCase
 import com.gorman.data.usecases.GetPointByCityUseCase
 import com.gorman.domainmodel.MapEvent
+import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.events.impl.components.DateFilterType
 import com.gorman.feature.events.impl.mappers.toUiState
 import com.gorman.feature.events.impl.states.DataStatus
@@ -166,7 +167,7 @@ class MapViewModel @Inject constructor(
                 syncEvents()
             }
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {
-                //TODO(navigator.goTo())
+                navigator.goTo(DetailsScreenNavKey(event.event.id))
             }
         }
     }

@@ -1,8 +1,8 @@
-package com.gorman.feature.events.impl.di
+package com.gorman.feature.details.impl.di
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gorman.feature.events.impl.navigation.featureEventsEntryBuilder
+import com.gorman.feature.details.impl.navigation.featureDetailsEntryBuilder
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,10 +11,10 @@ import dagger.multibindings.IntoSet
 
 @Module
 @InstallIn(ActivityRetainedComponent::class)
-object FeatureEventsModule {
+object FeatureDetailsModule {
     @IntoSet
     @Provides
-    fun provideFeatureEventsEntryBuilder(): EntryProviderScope<NavKey>.() -> Unit = {
-        featureEventsEntryBuilder()
+    fun provideFeatureDetailsEntryBuilder(): EntryProviderScope<NavKey>.() -> Unit = {
+        featureDetailsEntryBuilder()
     }
 }

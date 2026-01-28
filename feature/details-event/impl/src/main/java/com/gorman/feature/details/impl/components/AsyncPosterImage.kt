@@ -1,4 +1,4 @@
-package com.gorman.detailsevent.components
+package com.gorman.feature.details.impl.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import coil3.compose.AsyncImagePainter
-import com.gorman.detailsevent.R
+import com.gorman.feature.details.impl.R
 
 @Composable
 fun AsyncPosterImage(

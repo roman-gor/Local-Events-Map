@@ -1,4 +1,4 @@
-package com.gorman.detailsevent.components
+package com.gorman.feature.details.impl.components
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
