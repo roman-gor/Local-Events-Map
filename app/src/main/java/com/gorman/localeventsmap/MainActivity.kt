@@ -1,38 +1,45 @@
 package com.gorman.localeventsmap
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.gorman.detailsevent.screens.DetailsEventScreenEntry
-import com.gorman.ui.states.MapUiEvent
-import com.gorman.ui.theme.LocalEventsMapTheme
-import com.yandex.mapkit.MapKitFactory
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
+import com.gorman.localeventsmap.ui.theme.LocalEventsMapTheme
+import com.gorman.navigation.navigator.Navigator
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    @Inject
+    lateinit var navigator: Navigator
+    @Inject
+    lateinit var entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MapKitFactory.getInstance().onStart()
             LocalEventsMapTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
-                ) {
-                    DetailsEventScreenEntry(
-                        mapUiEvent = MapUiEvent(),
-                        modifier = Modifier.fillMaxSize().systemBarsPadding()
+                ) { innerPaddings ->
+                    LocalEventsMapNavigation(
+                        modifier = Modifier.fillMaxSize(),
+                        navigator = navigator,
+                        entryBuilders = entryBuilders
                     )
+                    Box(modifier = Modifier.padding(innerPaddings))
                 }
             }
         }

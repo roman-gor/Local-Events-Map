@@ -1,8 +1,8 @@
 package com.gorman.common.constants
 
 import androidx.compose.runtime.Composable
-import com.gorman.common.R
 import androidx.compose.ui.res.stringResource
+import com.gorman.common.R
 import java.lang.IllegalArgumentException
 
 enum class CityCoordinatesConstants(val cityName: String) {
@@ -30,7 +30,7 @@ enum class CityCoordinatesConstants(val cityName: String) {
 
 @Composable
 fun CityCoordinatesConstants.toDisplayName(): String {
-    return when(this) {
+    return when (this) {
         CityCoordinatesConstants.MINSK -> stringResource(R.string.minsk)
         CityCoordinatesConstants.BREST -> stringResource(R.string.brest)
         CityCoordinatesConstants.GRODNA -> stringResource(R.string.grodno)
@@ -44,7 +44,7 @@ fun CityCoordinatesConstants.toDisplayName(): String {
 fun cityNameDefinition(city: String): String {
     val cityEnum = try {
         CityCoordinatesConstants.valueOf(city.uppercase())
-    } catch(_: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
         CityCoordinatesConstants.MINSK
     }
     return cityEnum.toDisplayName()

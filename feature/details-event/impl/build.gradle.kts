@@ -7,17 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "com.gorman.feature.events.impl"
+    namespace = "com.gorman.feature.details.impl"
 }
 
 dependencies {
-
     implementation(project(":feature"))
     implementation(project(":feature:details-event:api"))
-    implementation(project(":feature:events:api"))
     implementation(project(":core:navigation"))
 
-    implementation(libs.yandex.android)
+    implementation(libs.bundles.coil)
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.core.ktx)

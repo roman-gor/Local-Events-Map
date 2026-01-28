@@ -1,4 +1,4 @@
-package com.gorman.detailsevent.components
+package com.gorman.feature.details.impl.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImagePainter
-import com.gorman.detailsevent.states.DetailsActions
+import com.gorman.feature.details.impl.states.DetailsActions
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable

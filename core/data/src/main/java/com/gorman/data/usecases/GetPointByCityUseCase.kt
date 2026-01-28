@@ -17,7 +17,8 @@ import kotlin.coroutines.resume
 class GetPointByCityUseCase @Inject constructor(
     private val searchManager: SearchManager
 ) {
-    suspend operator fun invoke(city: CityCoordinatesConstants
+    suspend operator fun invoke(
+        city: CityCoordinatesConstants
     ): CityData? = suspendCancellableCoroutine { continuation ->
         val searchOptions = SearchOptions().apply {
             searchTypes = SearchType.GEO.value

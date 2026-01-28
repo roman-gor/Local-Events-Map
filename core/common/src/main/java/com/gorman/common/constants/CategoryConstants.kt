@@ -1,8 +1,8 @@
 package com.gorman.common.constants
 
 import androidx.compose.runtime.Composable
-import com.gorman.common.R
 import androidx.compose.ui.res.stringResource
+import com.gorman.common.R
 
 enum class CategoryConstants(val value: String) {
     MUSIC("music"),

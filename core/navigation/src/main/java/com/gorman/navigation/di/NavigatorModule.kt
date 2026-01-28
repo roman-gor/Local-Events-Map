@@ -13,5 +13,5 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
 object NavigatorModule {
     @Provides
     @ActivityRetainedScoped
-    fun provideNavigator() : Navigator = Navigator(startDestination = HomeScreenNavKey)
+    fun provideNavigator(): Navigator = Navigator(startDestination = HomeScreenNavKey)
 }
