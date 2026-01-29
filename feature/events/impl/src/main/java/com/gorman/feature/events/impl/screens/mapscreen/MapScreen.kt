@@ -151,7 +151,8 @@ fun MapContent(
     when (uiState) {
         is ScreenState.Error -> ErrorDataScreen(
             text = stringResource(com.gorman.ui.R.string.errorDataLoading),
-            onRetryClick = {})
+            onRetryClick = {}
+        )
         ScreenState.Loading -> LoadingStub()
         is ScreenState.Success -> {
             MapScreen(

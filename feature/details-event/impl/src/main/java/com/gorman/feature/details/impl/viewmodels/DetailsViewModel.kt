@@ -46,17 +46,17 @@ class DetailsViewModel @AssistedInject constructor(
         Log.d("Ids check", "$s, $favoriteEvents")
         s
     }.catch { e ->
-            when (e) {
-                is IOException -> emit(DetailsScreenState.Error.NoNetwork(e.message))
-                is IllegalStateException -> emit(DetailsScreenState.Error.NotFound(_id))
-                is NoSuchElementException -> emit(DetailsScreenState.Error.NotFound(_id))
-                else -> emit(DetailsScreenState.Error.Unknown(e))
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DetailsScreenState.Loading
-        )
+        when (e) {
+            is IOException -> emit(DetailsScreenState.Error.NoNetwork(e.message))
+            is IllegalStateException -> emit(DetailsScreenState.Error.NotFound(_id))
+            is NoSuchElementException -> emit(DetailsScreenState.Error.NotFound(_id))
+            else -> emit(DetailsScreenState.Error.Unknown(e))
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = DetailsScreenState.Loading
+    )
 
     fun onUiEvent(uiEvent: DetailsScreenUiEvent) {
         when (uiEvent) {
