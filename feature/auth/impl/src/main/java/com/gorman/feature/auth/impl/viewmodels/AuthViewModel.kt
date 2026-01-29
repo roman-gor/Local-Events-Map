@@ -1,15 +1,19 @@
-package com.gorman.featureauth.viewmodels
+package com.gorman.feature.auth.impl.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gorman.data.repository.user.IUserRepository
-import com.gorman.featureauth.mappers.toDomain
-import com.gorman.featureauth.mappers.toUiState
-import com.gorman.featureauth.states.AuthScreenState
-import com.gorman.featureauth.states.AuthScreenUiEvent
-import com.gorman.featureauth.states.AuthSideEffects
-import com.gorman.featureauth.states.UserUiState
+import com.gorman.feature.auth.api.SignInScreenNavKey
+import com.gorman.feature.auth.api.SignUpScreenNavKey
+import com.gorman.feature.auth.impl.mappers.toDomain
+import com.gorman.feature.auth.impl.mappers.toUiState
+import com.gorman.feature.auth.impl.states.AuthScreenState
+import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
+import com.gorman.feature.auth.impl.states.AuthSideEffects
+import com.gorman.feature.auth.impl.states.UserUiState
+import com.gorman.feature.events.api.HomeScreenNavKey
+import com.gorman.navigation.navigator.Navigator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val userRepository: IUserRepository
+    private val userRepository: IUserRepository,
+    private val navigator: Navigator
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<AuthScreenState>(AuthScreenState.Idle)
     val uiState = _uiState.asStateFlow()
@@ -33,16 +38,8 @@ class AuthViewModel @Inject constructor(
             is AuthScreenUiEvent.OnSignInClick -> signIn(uiEvent.email, uiEvent.password)
             is AuthScreenUiEvent.OnSignUpClick -> signUp(uiEvent.user, uiEvent.password)
             AuthScreenUiEvent.OnGuestSignIn -> guestSignIn()
-            AuthScreenUiEvent.OnNavigateToSignInClicked -> {
-                viewModelScope.launch {
-                    _sideEffect.send(AuthSideEffects.OnNavigateToSignIn)
-                }
-            }
-            AuthScreenUiEvent.OnNavigateToSignUpClicked -> {
-                viewModelScope.launch {
-                    _sideEffect.send(AuthSideEffects.OnNavigateToSignUp)
-                }
-            }
+            AuthScreenUiEvent.OnNavigateToSignInClicked -> navigator.goTo(SignInScreenNavKey)
+            AuthScreenUiEvent.OnNavigateToSignUpClicked -> navigator.goTo(SignUpScreenNavKey)
         }
     }
 
@@ -50,8 +47,8 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = AuthScreenState.Loading
             try {
-                val user = userRepository.signIn(email, password).first().toUiState()
-                _sideEffect.send(AuthSideEffects.OnNavigateToMain(user))
+                userRepository.signIn(email, password)
+                navigator.goTo(HomeScreenNavKey)
                 _uiState.value = AuthScreenState.Success
                 Log.d("Auth VM", "Successfully Sign In")
             } catch (e: IllegalStateException) {
@@ -67,7 +64,7 @@ class AuthViewModel @Inject constructor(
             try {
                 userRepository.signInAnonymously().fold(
                     onSuccess = {
-                        _sideEffect.send(AuthSideEffects.OnNavigateToMain(it.toUiState()))
+                        navigator.goTo(HomeScreenNavKey)
                         _uiState.value = AuthScreenState.Success
                         Log.d("Auth VM", "Successfully Sign In")
                     },
@@ -88,7 +85,7 @@ class AuthViewModel @Inject constructor(
             _uiState.value = AuthScreenState.Loading
             userRepository.signUp(user.toDomain(), password)
                 .onSuccess {
-                    _sideEffect.send(AuthSideEffects.OnNavigateToMain(it.toUiState()))
+                    navigator.goTo(HomeScreenNavKey)
                     _uiState.value = AuthScreenState.Success
                 }
                 .onFailure { e ->

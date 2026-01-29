@@ -1,4 +1,5 @@
 package com.gorman.feature.auth.api
 
-object SignUpScreenNavKey {
-}
+import androidx.navigation3.runtime.NavKey
+
+object SignUpScreenNavKey : NavKey

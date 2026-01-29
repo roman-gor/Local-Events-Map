@@ -1,4 +1,4 @@
-package com.gorman.featureauth.screens
+package com.gorman.feature.auth.impl.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -25,21 +25,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gorman.featureauth.R
-import com.gorman.featureauth.components.FieldsBlockData
-import com.gorman.featureauth.components.TextFieldsBlock
-import com.gorman.featureauth.states.AuthScreenState
-import com.gorman.featureauth.states.AuthScreenUiEvent
-import com.gorman.featureauth.states.AuthSideEffects
-import com.gorman.featureauth.states.UserUiState
-import com.gorman.featureauth.viewmodels.AuthViewModel
+import com.gorman.feature.auth.impl.R
+import com.gorman.feature.auth.impl.components.FieldsBlockData
+import com.gorman.feature.auth.impl.components.TextFieldsBlock
+import com.gorman.feature.auth.impl.states.AuthScreenState
+import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
+import com.gorman.feature.auth.impl.states.AuthSideEffects
+import com.gorman.feature.auth.impl.states.UserUiState
+import com.gorman.feature.auth.impl.viewmodels.AuthViewModel
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun SignUpScreenEntry(
-    onNavigateToMain: (UserUiState) -> Unit,
-    onNavigateToSignIn: () -> Unit,
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -52,13 +50,6 @@ fun SignUpScreenEntry(
                 is AuthSideEffects.ShowToast -> {
                     Toast.makeText(context, effect.text, Toast.LENGTH_LONG).show()
                 }
-                is AuthSideEffects.OnNavigateToMain -> {
-                    onNavigateToMain(effect.userUiState)
-                }
-                AuthSideEffects.OnNavigateToSignIn -> {
-                    onNavigateToSignIn()
-                }
-                else -> {}
             }
         }
     }

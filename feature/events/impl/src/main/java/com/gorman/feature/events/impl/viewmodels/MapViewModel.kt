@@ -8,7 +8,7 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
 import com.gorman.data.repository.geo.IGeoRepository
-import com.gorman.data.repository.mapevent.IMapEventsRepository
+import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.usecases.GetCityByPointUseCase
 import com.gorman.data.usecases.GetPointByCityUseCase
 import com.gorman.domainmodel.MapEvent

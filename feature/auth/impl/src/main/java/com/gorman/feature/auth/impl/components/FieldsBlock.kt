@@ -1,4 +1,4 @@
-package com.gorman.featureauth.components
+package com.gorman.feature.auth.impl.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.gorman.featureauth.R
+import com.gorman.feature.auth.impl.R
 
 @Composable
 fun TextFieldsBlock(

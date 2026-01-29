@@ -53,11 +53,15 @@ android {
 
 dependencies {
 
+    implementation(project(":feature:events:api"))
     implementation(project(":feature:events:impl"))
     implementation(project(":feature:details-event:impl"))
+    implementation(project(":feature:auth:api"))
+    implementation(project(":feature:auth:impl"))
     implementation(project(":sync:work"))
     implementation(project(":core:navigation"))
     implementation(project(":core:ui"))
+    implementation(project(":core:cache"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.hilt.ext.work)

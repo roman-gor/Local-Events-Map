@@ -1,4 +1,4 @@
-package com.gorman.featureauth.states
+package com.gorman.feature.auth.impl.states
 
 sealed interface AuthScreenState {
     object Idle : AuthScreenState
