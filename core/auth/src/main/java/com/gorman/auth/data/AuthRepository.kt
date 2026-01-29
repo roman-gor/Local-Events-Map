@@ -1,9 +1,6 @@
 package com.gorman.auth.data
 
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.gorman.domainmodel.UserData
 import kotlinx.coroutines.tasks.await
@@ -16,6 +13,7 @@ class AuthRepository @Inject constructor(
     override val currentUser: FirebaseUser?
         get() = firebaseAuth.currentUser
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun signIn(email: String, password: String): Result<FirebaseUser> {
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
@@ -30,6 +28,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun signInAnonymously(): Result<UserData> {
         return try {
             val authResult = firebaseAuth.signInAnonymously().await()
@@ -49,6 +48,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun signUp(email: String, password: String): Result<FirebaseUser> {
         return try {
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()

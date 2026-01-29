@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,6 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.gorman.feature.auth.impl.R
 import com.gorman.feature.auth.impl.components.FieldsBlockData
 import com.gorman.feature.auth.impl.components.TextFieldsBlock
@@ -32,6 +36,8 @@ import com.gorman.feature.auth.impl.states.AuthScreenState
 import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
 import com.gorman.feature.auth.impl.states.AuthSideEffects
 import com.gorman.feature.auth.impl.states.UserUiState
+import com.gorman.feature.auth.impl.utils.isEmailValid
+import com.gorman.feature.auth.impl.utils.isPasswordValid
 import com.gorman.feature.auth.impl.viewmodels.AuthViewModel
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.theme.LocalEventsMapTheme
@@ -44,39 +50,65 @@ fun SignUpScreenEntry(
     val context = LocalContext.current
     val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
 
+    val (networkErrorText, incorrectDataText, emailInUseError) = listOf(
+        stringResource(R.string.networkErrorText),
+        stringResource(R.string.incorrectUserData),
+        stringResource(R.string.emailInUseError)
+    )
+
     LaunchedEffect(Unit) {
         authViewModel.sideEffect.collect { effect ->
             when (effect) {
                 is AuthSideEffects.ShowToast -> {
                     Toast.makeText(context, effect.text, Toast.LENGTH_LONG).show()
                 }
+                is AuthSideEffects.ShowError -> {
+                    when (effect.e) {
+                        is FirebaseAuthInvalidCredentialsException -> {
+                            authViewModel.onUiEvent(AuthScreenUiEvent.ShowToast(incorrectDataText))
+                        }
+                        is FirebaseNetworkException -> {
+                            authViewModel.onUiEvent(AuthScreenUiEvent.ShowToast(networkErrorText))
+                        }
+                        is FirebaseAuthUserCollisionException -> {
+                            authViewModel.onUiEvent(AuthScreenUiEvent.ShowToast(emailInUseError))
+                        }
+                    }
+                }
             }
         }
     }
 
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.TopCenter
-    ) {
-        SignUpScreen(
-            modifier = Modifier.fillMaxWidth(),
-            onUiEvent = authViewModel::onUiEvent
-        )
-        if (uiState is AuthScreenState.Loading) {
-            LoadingStub()
+    when (val state = uiState) {
+        AuthScreenState.Loading -> LoadingStub()
+        is AuthScreenState.Idle -> {
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.TopCenter
+            ) {
+                SignUpScreen(
+                    uiState = state,
+                    modifier = Modifier.fillMaxWidth(),
+                    onUiEvent = authViewModel::onUiEvent
+                )
+            }
         }
+        else -> {}
     }
 }
 
 @Composable
 fun SignUpScreen(
+    uiState: AuthScreenState.Idle,
     modifier: Modifier = Modifier,
     onUiEvent: (AuthScreenUiEvent) -> Unit
 ) {
-    val email = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
-    val repeatPassword = remember { mutableStateOf("") }
-    val username = remember { mutableStateOf("") }
+    val email = uiState.user.email ?: ""
+    val password = uiState.password
+    var repeatPassword by remember { mutableStateOf("") }
+    val username = uiState.user.username ?: ""
+    val incorrectEmailText = stringResource(R.string.incorrectEmail)
+    val incorrectPasswordText = stringResource(R.string.incorrectPassword)
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -93,30 +125,34 @@ fun SignUpScreen(
         TextFieldsBlock(
             modifier = Modifier.fillMaxWidth(),
             fieldsBlockData = FieldsBlockData(
-                email = email.value,
-                password = password.value,
-                repeatPassword = repeatPassword.value,
-                username = username.value,
-                onChangeEmail = { email.value = it },
-                onChangePassword = { password.value = it },
-                onChangeRepeatPassword = { repeatPassword.value = it },
-                onChangeUsername = { username.value = it }
+                email = email,
+                password = password,
+                repeatPassword = repeatPassword,
+                username = username,
+                onChangeEmail = { onUiEvent(AuthScreenUiEvent.OnEmailChange(it)) },
+                onChangePassword = { onUiEvent(AuthScreenUiEvent.OnPasswordChange(it)) },
+                onChangeRepeatPassword = { repeatPassword = it },
+                onChangeUsername = { onUiEvent(AuthScreenUiEvent.OnUsernameChange(it)) }
             )
         )
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-                if (password.value == repeatPassword.value && password.value.isNotEmpty() &&
-                    repeatPassword.value.isNotEmpty()
+                if (isEmailValid(email) && password == repeatPassword && isPasswordValid(password) &&
+                    repeatPassword.isNotEmpty()
                 ) {
-                    if (email.value.isNotEmpty() && username.value.isNotEmpty()) {
+                    if (username.isNotEmpty()) {
                         onUiEvent(
                             AuthScreenUiEvent.OnSignUpClick(
-                                UserUiState(email.value, username.value),
-                                password.value
+                                UserUiState(email = email, username = username),
+                                password
                             )
                         )
                     }
+                } else if (!isEmailValid(email)) {
+                    onUiEvent(AuthScreenUiEvent.ShowToast(incorrectEmailText))
+                } else {
+                    onUiEvent(AuthScreenUiEvent.ShowToast(incorrectPasswordText))
                 }
             },
             modifier = Modifier.wrapContentWidth()
