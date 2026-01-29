@@ -3,6 +3,7 @@ package com.gorman.data.repository.user
 import android.util.Log
 import com.google.firebase.FirebaseApiNotAvailableException
 import com.google.firebase.FirebaseException
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthException
 import com.gorman.auth.data.IAuthRepository
@@ -78,25 +79,29 @@ internal class UserRepository @Inject constructor(
             Result.failure(e)
         } catch (e: FirebaseTooManyRequestsException) {
             Result.failure(e)
+        } catch (e: FirebaseNetworkException) {
+            Result.failure(e)
         }
     }
 
     override suspend fun signUp(userData: UserData, password: String): Result<Unit> {
-        return try {
-            val email = userData.email ?: error("Email is null")
-            val authResult = authRepository.signUp(email, password).getOrThrow()
-            val uid = authResult.uid
+        val email = userData.email ?: error("Email is null")
+        return authRepository.signUp(email, password).fold(
+            onSuccess = { authResult ->
+                val uid = authResult.uid
 
-            val newUser = userData.copy(uid = uid)
+                val newUser = userData.copy(uid = uid)
 
-            saveUser(newUser)
+                saveUser(newUser).onFailure { e -> Result.failure<Exception>(e) }
 
-            dataStoreManager.saveUserId(uid)
+                dataStoreManager.saveUserId(uid)
 
-            Result.success(Unit)
-        } catch (e: FirebaseAuthException) {
-            Result.failure(e)
-        }
+                Result.success(Unit)
+            },
+            onFailure = { e ->
+                Result.failure(e)
+            }
+        )
     }
 
     override suspend fun signOut() {
@@ -145,15 +150,9 @@ internal class UserRepository @Inject constructor(
         return userDataDao.getUserById(uid).map { it.toDomain() }
     }
 
-    private suspend fun saveUser(userData: UserData) {
-        userRemoteDataSource.saveUserToRemote(userData.toRemote())
-            .first()
-            .onSuccess {
-                userDataDao.saveUser(userData.toEntity())
-            }
-            .onFailure { e ->
-                Log.e("UserRepository", "Remote save failed", e)
-                throw e
-            }
+    private suspend fun saveUser(userData: UserData): Result<Unit> {
+        return userRemoteDataSource.saveUserToRemote(userData.toRemote())
+            .map { userDataDao.saveUser(userData.toEntity()) }
+            .onFailure { Log.e("UserRepository", "Remote save failed", it) }
     }
 }

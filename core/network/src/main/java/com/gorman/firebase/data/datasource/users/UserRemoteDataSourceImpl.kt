@@ -34,12 +34,13 @@ class UserRemoteDataSourceImpl @Inject constructor(
         awaitClose { removeEventListener(eventListener) }
     }
 
-    override fun saveUserToRemote(user: UserDataRemote): Flow<Result<Unit>> = flow {
-        try {
+    override suspend fun saveUserToRemote(user: UserDataRemote): Result<Unit> {
+        return try {
             val uuid = user.uid
             database.child(uuid).setValue(user).await()
+            Result.success(Unit)
         } catch (e: FirebaseException) {
-            emit(Result.failure(e))
+            Result.failure(e)
         }
     }
 

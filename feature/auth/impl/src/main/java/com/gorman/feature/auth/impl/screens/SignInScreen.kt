@@ -1,6 +1,5 @@
 package com.gorman.feature.auth.impl.screens
 
-import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +32,8 @@ import com.gorman.feature.auth.impl.components.PasswordTextField
 import com.gorman.feature.auth.impl.states.AuthScreenState
 import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
 import com.gorman.feature.auth.impl.states.AuthSideEffects
+import com.gorman.feature.auth.impl.utils.isEmailValid
+import com.gorman.feature.auth.impl.utils.isPasswordValid
 import com.gorman.feature.auth.impl.viewmodels.AuthViewModel
 import com.gorman.ui.components.LoadingStub
 
@@ -93,6 +94,8 @@ fun SignInScreen(
     onUiEvent: (AuthScreenUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val email = uiState.user.email ?: ""
+    val password = uiState.password
     val incorrectEmailText = stringResource(R.string.incorrectEmail)
     val incorrectPasswordText = stringResource(R.string.incorrectPassword)
     Column(
@@ -112,7 +115,7 @@ fun SignInScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             DefaultOutlinedTextField(
-                value = uiState.email,
+                value = email,
                 onValueChange = { onUiEvent(AuthScreenUiEvent.OnEmailChange(it)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 placeholder = stringResource(R.string.email),
@@ -120,7 +123,7 @@ fun SignInScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             PasswordTextField(
-                value = uiState.password,
+                value = password,
                 onValueChange = { onUiEvent(AuthScreenUiEvent.OnPasswordChange(it)) },
                 placeholder = stringResource(R.string.password),
                 modifier = Modifier.fillMaxWidth()
@@ -130,9 +133,9 @@ fun SignInScreen(
         BottomButtons(
             onNavigateToSignUp = { onUiEvent(AuthScreenUiEvent.OnNavigateToSignUpClicked) },
             onSignInClick = {
-                if (isEmailValid(uiState.email) && isPasswordValid(uiState.password)) {
-                    onUiEvent(AuthScreenUiEvent.OnSignInClick(uiState.email, uiState.password))
-                } else if (!isEmailValid(uiState.email)) {
+                if (isEmailValid(email) && isPasswordValid(password)) {
+                    onUiEvent(AuthScreenUiEvent.OnSignInClick(email, password))
+                } else if (!isEmailValid(email)) {
                     onUiEvent(AuthScreenUiEvent.ShowToast(incorrectEmailText))
                 } else {
                     onUiEvent(AuthScreenUiEvent.ShowToast(incorrectPasswordText))
@@ -154,10 +157,3 @@ fun SignInScreen(
     }
 }
 
-private fun isEmailValid(email: String): Boolean {
-    return email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
-}
-
-private fun isPasswordValid(password: String): Boolean {
-    return password.isNotEmpty()
-}

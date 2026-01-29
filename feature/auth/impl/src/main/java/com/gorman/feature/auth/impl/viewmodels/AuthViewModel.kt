@@ -10,7 +10,6 @@ import com.gorman.feature.auth.impl.mappers.toDomain
 import com.gorman.feature.auth.impl.states.AuthScreenState
 import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
 import com.gorman.feature.auth.impl.states.AuthSideEffects
-import com.gorman.feature.auth.impl.states.AuthSideEffects.*
 import com.gorman.feature.auth.impl.states.UserUiState
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.navigation.navigator.Navigator
@@ -27,7 +26,7 @@ class AuthViewModel @Inject constructor(
     private val userRepository: IUserRepository,
     private val navigator: Navigator
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<AuthScreenState>(AuthScreenState.Idle(email = "", password = ""))
+    private val _uiState = MutableStateFlow<AuthScreenState>(AuthScreenState.Idle(user = UserUiState(), password = ""))
     val uiState = _uiState.asStateFlow()
     private val _sideEffect = Channel<AuthSideEffects>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
@@ -35,6 +34,7 @@ class AuthViewModel @Inject constructor(
     private var lastToastTime = 0L
 
     fun onUiEvent(uiEvent: AuthScreenUiEvent) {
+        val currentState = _uiState.value
         when (uiEvent) {
             is AuthScreenUiEvent.OnSignInClick -> signIn(uiEvent.email, uiEvent.password)
             is AuthScreenUiEvent.OnSignUpClick -> signUp(uiEvent.user, uiEvent.password)
@@ -46,20 +46,23 @@ class AuthViewModel @Inject constructor(
                 if (currentTime - lastToastTime >= 3000L) {
                     lastToastTime = currentTime
                     viewModelScope.launch {
-                        _sideEffect.send(ShowToast(uiEvent.text))
+                        _sideEffect.send(AuthSideEffects.ShowToast(uiEvent.text))
                     }
                 }
             }
             is AuthScreenUiEvent.OnEmailChange -> {
-                val currentState = _uiState.value
                 if (currentState is AuthScreenState.Idle) {
-                    _uiState.value = currentState.copy(email = uiEvent.email)
+                    _uiState.value = currentState.copy(user = currentState.user.copy(email = uiEvent.email))
                 }
             }
             is AuthScreenUiEvent.OnPasswordChange -> {
-                val currentState = _uiState.value
                 if (currentState is AuthScreenState.Idle) {
                     _uiState.value = currentState.copy(password = uiEvent.password)
+                }
+            }
+            is AuthScreenUiEvent.OnUsernameChange -> {
+                if (currentState is AuthScreenState.Idle) {
+                    _uiState.value = currentState.copy(user = currentState.user.copy(username = uiEvent.username))
                 }
             }
         }
@@ -73,8 +76,8 @@ class AuthViewModel @Inject constructor(
                     navigator.setRoot(HomeScreenNavKey)
                     _uiState.value = AuthScreenState.Success
                 }.onFailure { e ->
-                    _uiState.value = AuthScreenState.Idle(email, password)
-                    _sideEffect.send(ShowError(e))
+                    _uiState.value = AuthScreenState.Idle(UserUiState(email = email), password)
+                    _sideEffect.send(AuthSideEffects.ShowError(e))
                     Log.d("Auth VM", "Sign In Failed: ${e.message}")
                 }
         }
@@ -89,8 +92,8 @@ class AuthViewModel @Inject constructor(
                     _uiState.value = AuthScreenState.Success
                     Log.d("Auth VM", "Successfully Sign In")
                 }.onFailure { e ->
-                    _uiState.value = AuthScreenState.Idle("", "")
-                    _sideEffect.send(ShowError(e))
+                    _uiState.value = AuthScreenState.Idle(UserUiState(), "")
+                    _sideEffect.send(AuthSideEffects.ShowError(e))
                     Log.d("Auth VM", "Sign In Failed: ${e.message}")
                 }
         }
@@ -105,8 +108,8 @@ class AuthViewModel @Inject constructor(
                     _uiState.value = AuthScreenState.Success
                 }
                 .onFailure { e ->
-                    _uiState.value = AuthScreenState.Idle(user.email ?: "", password)
-                    _sideEffect.send(ShowError(e))
+                    _uiState.value = AuthScreenState.Idle(user, password)
+                    _sideEffect.send(AuthSideEffects.ShowError(e))
                     Log.d("Auth VM", "Sign Up Failed: ${e.message}")
                 }
         }
