@@ -29,6 +29,7 @@ dependencies {
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.hilt.android.gradle.plugin)
     compileOnly(libs.ksp.gradlePlugin)
+    compileOnly(libs.kotlin.compose.compiler.plugin)
 }
 
 gradlePlugin {
@@ -37,9 +38,13 @@ gradlePlugin {
             id = "localevents.android.library"
             implementationClass = "AndroidLibraryConventionPlugin"
         }
-        register("androidCompose") {
-            id = "localevents.android.compose"
-            implementationClass = "AndroidComposeConventionPlugin"
+        register("androidApplicationCompose") {
+            id = "localevents.android.application.compose"
+            implementationClass = "AndroidApplicationComposeConventionPlugin"
+        }
+        register("androidLibraryCompose") {
+            id = "localevents.android.library.compose"
+            implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
         register("hilt") {
             id = "localevents.hilt"

@@ -1,13 +1,15 @@
 package com.gorman.data.di
 
-import com.gorman.data.repository.geo.GeoRepositoryImpl
+import com.gorman.data.repository.geo.GeoRepository
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
-import com.gorman.data.repository.mapevents.MapEventsRepositoryImpl
-import com.gorman.data.repository.user.IUserRepository
-import com.gorman.data.repository.user.UserRepositoryImpl
+import com.gorman.data.repository.mapevents.MapEventsRepository
+import com.yandex.mapkit.search.SearchFactory
+import com.yandex.mapkit.search.SearchManager
+import com.yandex.mapkit.search.SearchManagerType
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 
@@ -15,11 +17,16 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 internal interface ModuleRepository {
     @Binds
-    fun bindMapEventRepository(impl: MapEventsRepositoryImpl): IMapEventsRepository
+    fun bindMapEventRepository(impl: MapEventsRepository): IMapEventsRepository
 
     @Binds
-    fun bindGeoRepository(impl: GeoRepositoryImpl): IGeoRepository
+    fun bindGeoRepository(impl: GeoRepository): IGeoRepository
+}
 
-    @Binds
-    fun bindUserRepository(impl: UserRepositoryImpl): IUserRepository
+@Module
+@InstallIn(SingletonComponent::class)
+object SearchManagerModule {
+    @Provides
+    fun provideSearchManager(): SearchManager =
+        SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
 }
