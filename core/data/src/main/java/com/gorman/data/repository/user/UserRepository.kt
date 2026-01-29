@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-internal class UserRepositoryImpl @Inject constructor(
+internal class UserRepository @Inject constructor(
     private val authRepository: IAuthRepository,
     private val userRemoteDataSource: IUserRemoteDataSource,
     private val userDataDao: UserDataDao,

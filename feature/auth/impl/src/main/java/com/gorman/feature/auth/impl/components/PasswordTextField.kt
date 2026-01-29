@@ -1,4 +1,4 @@
-package com.gorman.featureauth.components
+package com.gorman.feature.auth.impl.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,7 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import com.gorman.featureauth.R
+import com.gorman.feature.auth.impl.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable

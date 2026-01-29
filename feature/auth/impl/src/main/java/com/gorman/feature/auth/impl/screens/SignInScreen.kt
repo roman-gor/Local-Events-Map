@@ -1,4 +1,4 @@
-package com.gorman.featureauth.screens
+package com.gorman.feature.auth.impl.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -25,21 +25,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gorman.featureauth.R
-import com.gorman.featureauth.components.BottomButtons
-import com.gorman.featureauth.components.DefaultOutlinedTextField
-import com.gorman.featureauth.components.PasswordTextField
-import com.gorman.featureauth.states.AuthScreenState
-import com.gorman.featureauth.states.AuthScreenUiEvent
-import com.gorman.featureauth.states.AuthSideEffects
-import com.gorman.featureauth.states.UserUiState
-import com.gorman.featureauth.viewmodels.AuthViewModel
+import com.gorman.feature.auth.impl.R
+import com.gorman.feature.auth.impl.components.BottomButtons
+import com.gorman.feature.auth.impl.components.DefaultOutlinedTextField
+import com.gorman.feature.auth.impl.components.PasswordTextField
+import com.gorman.feature.auth.impl.states.AuthScreenState
+import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
+import com.gorman.feature.auth.impl.states.AuthSideEffects
+import com.gorman.feature.auth.impl.viewmodels.AuthViewModel
 import com.gorman.ui.components.LoadingStub
 
 @Composable
 fun SignInScreenEntry(
-    onNavigateToMain: (UserUiState) -> Unit,
-    onNavigateToSignUp: () -> Unit,
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -52,13 +49,6 @@ fun SignInScreenEntry(
                 is AuthSideEffects.ShowToast -> {
                     Toast.makeText(context, effect.text, Toast.LENGTH_LONG).show()
                 }
-                is AuthSideEffects.OnNavigateToMain -> {
-                    onNavigateToMain(effect.userUiState)
-                }
-                AuthSideEffects.OnNavigateToSignUp -> {
-                    onNavigateToSignUp()
-                }
-                else -> {}
             }
         }
     }

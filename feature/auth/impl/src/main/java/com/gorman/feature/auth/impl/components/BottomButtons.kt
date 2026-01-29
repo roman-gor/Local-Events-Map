@@ -1,4 +1,4 @@
-package com.gorman.featureauth.components
+package com.gorman.feature.auth.impl.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.gorman.featureauth.R
+import com.gorman.feature.auth.impl.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable

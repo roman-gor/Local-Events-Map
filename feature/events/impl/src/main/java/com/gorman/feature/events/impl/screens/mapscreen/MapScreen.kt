@@ -149,7 +149,9 @@ fun MapContent(
     val state = rememberMapScreenLocalState()
 
     when (uiState) {
-        is ScreenState.Error -> ErrorDataScreen(stringResource(com.gorman.ui.R.string.errorDataLoading))
+        is ScreenState.Error -> ErrorDataScreen(
+            text = stringResource(com.gorman.ui.R.string.errorDataLoading),
+            onRetryClick = {})
         ScreenState.Loading -> LoadingStub()
         is ScreenState.Success -> {
             MapScreen(

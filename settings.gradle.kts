@@ -22,6 +22,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "LocalEventsMap"
 include(":app")
+include(":core:auth")
 include(":core:common")
 include(":core:network")
 include(":core:ui")
