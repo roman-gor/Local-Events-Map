@@ -24,8 +24,6 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun BottomButtons(
-    password: String,
-    email: String,
     onNavigateToSignUp: () -> Unit,
     onSignInClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -51,9 +49,7 @@ fun BottomButtons(
         }
         IconButton(
             onClick = {
-                if (password.isNotEmpty() && email.isNotEmpty()) {
-                    onSignInClick()
-                }
+                onSignInClick()
             },
             colors = IconButtonDefaults.iconButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary

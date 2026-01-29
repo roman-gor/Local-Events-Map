@@ -50,6 +50,7 @@ fun SignUpScreenEntry(
                 is AuthSideEffects.ShowToast -> {
                     Toast.makeText(context, effect.text, Toast.LENGTH_LONG).show()
                 }
+                else -> {}
             }
         }
     }

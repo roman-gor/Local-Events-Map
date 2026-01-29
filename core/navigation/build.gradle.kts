@@ -12,6 +12,7 @@ android {
 
 dependencies {
     implementation(project(":feature:events:api"))
+    implementation(project(":feature:auth:api"))
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.core.ktx)

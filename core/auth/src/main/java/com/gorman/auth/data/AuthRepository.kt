@@ -1,5 +1,6 @@
 package com.gorman.auth.data
 
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -25,7 +26,13 @@ class AuthRepository @Inject constructor(
             } else {
                 Result.failure(Exception("Sign in failed: User is null"))
             }
-        } catch (e: Exception) {
+        } catch (e: FirebaseAuthException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidUserException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            Result.failure(e)
+        } catch (e: FirebaseNetworkException) {
             Result.failure(e)
         }
     }
@@ -44,7 +51,13 @@ class AuthRepository @Inject constructor(
             } else {
                 Result.failure(Exception("User is null"))
             }
-        } catch (e: Exception) {
+        } catch (e: FirebaseAuthException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidUserException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            Result.failure(e)
+        } catch (e: FirebaseNetworkException) {
             Result.failure(e)
         }
     }
@@ -58,7 +71,13 @@ class AuthRepository @Inject constructor(
             } else {
                 Result.failure(Exception("User creation failed: User is null"))
             }
-        } catch (e: Exception) {
+        } catch (e: FirebaseAuthException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidUserException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            Result.failure(e)
+        } catch (e: FirebaseNetworkException) {
             Result.failure(e)
         }
     }

@@ -8,4 +8,8 @@
     <string name="username">Имя пользователя</string>
     <string name="notMatchPasswords">Пароли не совпадают</string>
     <string name="guestSignIn">Войти как гость</string>
+    <string name="incorrectEmail">Некорректный Email</string>
+    <string name="incorrectPassword">Некорректный пароль</string>
+    <string name="networkErrorText">Отсутствует подключение к Интернету</string>
+    <string name="incorrectUserData">Неверный email или пароль</string>
 </resources>

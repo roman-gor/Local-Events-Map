@@ -39,7 +39,7 @@ internal class UserRepository @Inject constructor(
             },
             onFailure = { e ->
                 Log.e("UserRepository", "Sign In Failed: ${e.message}")
-                throw e
+                Result.failure(e)
             }
         )
     }
