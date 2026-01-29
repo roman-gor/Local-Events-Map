@@ -1,9 +1,8 @@
 package com.gorman.feature.auth.impl.states
 
 sealed interface AuthScreenState {
-    object Idle : AuthScreenState
+    data class Idle(val email: String, val password: String) : AuthScreenState
     object Loading : AuthScreenState
-    data class Error(val e: Throwable) : AuthScreenState
     object Success : AuthScreenState
 }
 
@@ -13,4 +12,7 @@ sealed interface AuthScreenUiEvent {
     object OnGuestSignIn : AuthScreenUiEvent
     object OnNavigateToSignUpClicked : AuthScreenUiEvent
     object OnNavigateToSignInClicked : AuthScreenUiEvent
+    data class ShowToast(val text: String) : AuthScreenUiEvent
+    data class OnEmailChange(val email: String) : AuthScreenUiEvent
+    data class OnPasswordChange(val password: String) : AuthScreenUiEvent
 }

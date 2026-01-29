@@ -1,5 +1,6 @@
 package com.gorman.feature.auth.impl.screens
 
+import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,8 +15,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,6 +24,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.gorman.feature.auth.impl.R
 import com.gorman.feature.auth.impl.components.BottomButtons
 import com.gorman.feature.auth.impl.components.DefaultOutlinedTextField
@@ -43,37 +44,57 @@ fun SignInScreenEntry(
     val context = LocalContext.current
     val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
 
+    val (networkErrorText, incorrectDataText) = Pair(
+        stringResource(R.string.networkErrorText),
+        stringResource(R.string.incorrectUserData)
+    )
+
     LaunchedEffect(Unit) {
         authViewModel.sideEffect.collect { effect ->
             when (effect) {
                 is AuthSideEffects.ShowToast -> {
                     Toast.makeText(context, effect.text, Toast.LENGTH_LONG).show()
                 }
+                is AuthSideEffects.ShowError -> {
+                    when (effect.e) {
+                        is FirebaseAuthInvalidCredentialsException -> {
+                            authViewModel.onUiEvent(AuthScreenUiEvent.ShowToast(incorrectDataText))
+                        }
+                        is FirebaseNetworkException -> {
+                            authViewModel.onUiEvent(AuthScreenUiEvent.ShowToast(networkErrorText))
+                        }
+                    }
+                }
             }
         }
     }
 
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.TopCenter
-    ) {
-        SignInScreen(
-            modifier = Modifier.fillMaxWidth(),
-            onUiEvent = authViewModel::onUiEvent
-        )
-        if (uiState is AuthScreenState.Loading) {
-            LoadingStub()
+    when (val state = uiState) {
+        AuthScreenState.Loading -> LoadingStub()
+        is AuthScreenState.Idle -> {
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.TopCenter
+            ) {
+                SignInScreen(
+                    uiState = state,
+                    modifier = Modifier.fillMaxWidth(),
+                    onUiEvent = authViewModel::onUiEvent
+                )
+            }
         }
+        else -> {}
     }
 }
 
 @Composable
 fun SignInScreen(
+    uiState: AuthScreenState.Idle,
     onUiEvent: (AuthScreenUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val email = remember { mutableStateOf("") }
-    val password = remember { mutableStateOf("") }
+    val incorrectEmailText = stringResource(R.string.incorrectEmail)
+    val incorrectPasswordText = stringResource(R.string.incorrectPassword)
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -91,26 +112,32 @@ fun SignInScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             DefaultOutlinedTextField(
-                value = email.value,
-                onValueChange = { email.value = it },
+                value = uiState.email,
+                onValueChange = { onUiEvent(AuthScreenUiEvent.OnEmailChange(it)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 placeholder = stringResource(R.string.email),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
             PasswordTextField(
-                value = password.value,
-                onValueChange = { password.value = it },
+                value = uiState.password,
+                onValueChange = { onUiEvent(AuthScreenUiEvent.OnPasswordChange(it)) },
                 placeholder = stringResource(R.string.password),
                 modifier = Modifier.fillMaxWidth()
             )
         }
         Spacer(modifier = Modifier.weight(1f))
         BottomButtons(
-            password = password.value,
-            email = email.value,
             onNavigateToSignUp = { onUiEvent(AuthScreenUiEvent.OnNavigateToSignUpClicked) },
-            onSignInClick = { onUiEvent(AuthScreenUiEvent.OnSignInClick(email.value, password.value)) },
+            onSignInClick = {
+                if (isEmailValid(uiState.email) && isPasswordValid(uiState.password)) {
+                    onUiEvent(AuthScreenUiEvent.OnSignInClick(uiState.email, uiState.password))
+                } else if (!isEmailValid(uiState.email)) {
+                    onUiEvent(AuthScreenUiEvent.ShowToast(incorrectEmailText))
+                } else {
+                    onUiEvent(AuthScreenUiEvent.ShowToast(incorrectPasswordText))
+                }
+            },
             modifier = Modifier.fillMaxWidth().height(55.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -125,4 +152,12 @@ fun SignInScreen(
         }
         Spacer(modifier = Modifier.height(32.dp))
     }
+}
+
+private fun isEmailValid(email: String): Boolean {
+    return email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+}
+
+private fun isPasswordValid(password: String): Boolean {
+    return password.isNotEmpty()
 }

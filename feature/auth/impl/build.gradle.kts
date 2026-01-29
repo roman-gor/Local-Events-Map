@@ -16,6 +16,8 @@ dependencies {
     implementation(project(":feature:auth:api"))
     implementation(project(":core:navigation"))
 
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
     implementation(libs.bundles.coil)
     implementation(libs.kotlinx.serialization.json)
 

@@ -1,7 +1,6 @@
 package com.gorman.feature.auth.impl.viewmodels
 
 import android.util.Log
-import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gorman.data.repository.user.IUserRepository
@@ -11,6 +10,7 @@ import com.gorman.feature.auth.impl.mappers.toDomain
 import com.gorman.feature.auth.impl.states.AuthScreenState
 import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
 import com.gorman.feature.auth.impl.states.AuthSideEffects
+import com.gorman.feature.auth.impl.states.AuthSideEffects.*
 import com.gorman.feature.auth.impl.states.UserUiState
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.navigation.navigator.Navigator
@@ -27,10 +27,12 @@ class AuthViewModel @Inject constructor(
     private val userRepository: IUserRepository,
     private val navigator: Navigator
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<AuthScreenState>(AuthScreenState.Idle)
+    private val _uiState = MutableStateFlow<AuthScreenState>(AuthScreenState.Idle(email = "", password = ""))
     val uiState = _uiState.asStateFlow()
     private val _sideEffect = Channel<AuthSideEffects>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
+
+    private var lastToastTime = 0L
 
     fun onUiEvent(uiEvent: AuthScreenUiEvent) {
         when (uiEvent) {
@@ -39,6 +41,27 @@ class AuthViewModel @Inject constructor(
             AuthScreenUiEvent.OnGuestSignIn -> guestSignIn()
             AuthScreenUiEvent.OnNavigateToSignInClicked -> navigator.goTo(SignInScreenNavKey)
             AuthScreenUiEvent.OnNavigateToSignUpClicked -> navigator.goTo(SignUpScreenNavKey)
+            is AuthScreenUiEvent.ShowToast -> {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastToastTime >= 3000L) {
+                    lastToastTime = currentTime
+                    viewModelScope.launch {
+                        _sideEffect.send(ShowToast(uiEvent.text))
+                    }
+                }
+            }
+            is AuthScreenUiEvent.OnEmailChange -> {
+                val currentState = _uiState.value
+                if (currentState is AuthScreenState.Idle) {
+                    _uiState.value = currentState.copy(email = uiEvent.email)
+                }
+            }
+            is AuthScreenUiEvent.OnPasswordChange -> {
+                val currentState = _uiState.value
+                if (currentState is AuthScreenState.Idle) {
+                    _uiState.value = currentState.copy(password = uiEvent.password)
+                }
+            }
         }
     }
 
@@ -50,7 +73,8 @@ class AuthViewModel @Inject constructor(
                     navigator.setRoot(HomeScreenNavKey)
                     _uiState.value = AuthScreenState.Success
                 }.onFailure { e ->
-                    _uiState.value = AuthScreenState.Error(e)
+                    _uiState.value = AuthScreenState.Idle(email, password)
+                    _sideEffect.send(ShowError(e))
                     Log.d("Auth VM", "Sign In Failed: ${e.message}")
                 }
         }
@@ -65,7 +89,8 @@ class AuthViewModel @Inject constructor(
                     _uiState.value = AuthScreenState.Success
                     Log.d("Auth VM", "Successfully Sign In")
                 }.onFailure { e ->
-                    _uiState.value = AuthScreenState.Error(e)
+                    _uiState.value = AuthScreenState.Idle("", "")
+                    _sideEffect.send(ShowError(e))
                     Log.d("Auth VM", "Sign In Failed: ${e.message}")
                 }
         }
@@ -80,13 +105,10 @@ class AuthViewModel @Inject constructor(
                     _uiState.value = AuthScreenState.Success
                 }
                 .onFailure { e ->
-                    _uiState.value = AuthScreenState.Error(e)
-                    _sideEffect.send(AuthSideEffects.ShowToast(e.localizedMessage ?: "Error"))
+                    _uiState.value = AuthScreenState.Idle(user.email ?: "", password)
+                    _sideEffect.send(ShowError(e))
+                    Log.d("Auth VM", "Sign Up Failed: ${e.message}")
                 }
         }
-    }
-
-    private fun isEmailValid(email: String): Boolean {
-        return email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 }
