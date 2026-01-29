@@ -20,7 +20,8 @@ import com.gorman.ui.R
 @Composable
 fun ErrorDataScreen(
     text: String,
-    onRetryClick: () -> Unit) {
+    onRetryClick: () -> Unit
+) {
     Box(
         modifier = Modifier.fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background),

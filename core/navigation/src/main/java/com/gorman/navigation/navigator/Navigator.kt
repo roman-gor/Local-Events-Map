@@ -28,6 +28,11 @@ class Navigator(startDestination: NavKey) {
         }
     }
 
+    fun setRoot(destination: NavKey) {
+        backStack.clear()
+        backStack.add(destination)
+    }
+
     fun goBack() {
         backStack.removeLastOrNull()
     }
