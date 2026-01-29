@@ -12,4 +12,5 @@
     <string name="incorrectPassword">Некорректный пароль</string>
     <string name="networkErrorText">Отсутствует подключение к Интернету</string>
     <string name="incorrectUserData">Неверный email или пароль</string>
+    <string name="emailInUseError">Email уже используется</string>
 </resources>
