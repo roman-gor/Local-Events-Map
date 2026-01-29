@@ -44,37 +44,29 @@ class AuthViewModel @Inject constructor(
     private fun signIn(email: String, password: String) {
         viewModelScope.launch {
             _uiState.value = AuthScreenState.Loading
-            try {
-                userRepository.signIn(email, password)
-                navigator.goTo(HomeScreenNavKey)
-                _uiState.value = AuthScreenState.Success
-                Log.d("Auth VM", "Successfully Sign In")
-            } catch (e: IllegalStateException) {
-                _uiState.value = AuthScreenState.Error(e)
-                Log.d("Auth VM", "Sign In Failed: ${e.message}")
-            }
+            userRepository.signIn(email, password)
+                .onSuccess {
+                    navigator.setRoot(HomeScreenNavKey)
+                    _uiState.value = AuthScreenState.Success
+                }.onFailure { e ->
+                    _uiState.value = AuthScreenState.Error(e)
+                    Log.d("Auth VM", "Sign In Failed: ${e.message}")
+                }
         }
     }
 
     private fun guestSignIn() {
         viewModelScope.launch {
             _uiState.value = AuthScreenState.Loading
-            try {
-                userRepository.signInAnonymously().fold(
-                    onSuccess = {
-                        navigator.goTo(HomeScreenNavKey)
-                        _uiState.value = AuthScreenState.Success
-                        Log.d("Auth VM", "Successfully Sign In")
-                    },
-                    onFailure = { e ->
-                        _uiState.value = AuthScreenState.Error(e)
-                        Log.d("AuthViewModel", "Guest Sign In Failed: ${e.message}")
-                    }
-                )
-            } catch (e: IllegalStateException) {
-                _uiState.value = AuthScreenState.Error(e)
-                Log.d("Auth VM", "Sign In Failed: ${e.message}")
-            }
+            userRepository.signInAnonymously()
+                .onSuccess {
+                    navigator.setRoot(HomeScreenNavKey)
+                    _uiState.value = AuthScreenState.Success
+                    Log.d("Auth VM", "Successfully Sign In")
+                }.onFailure { e ->
+                    _uiState.value = AuthScreenState.Error(e)
+                    Log.d("Auth VM", "Sign In Failed: ${e.message}")
+                }
         }
     }
 
@@ -83,7 +75,7 @@ class AuthViewModel @Inject constructor(
             _uiState.value = AuthScreenState.Loading
             userRepository.signUp(user.toDomain(), password)
                 .onSuccess {
-                    navigator.goTo(HomeScreenNavKey)
+                    navigator.setRoot(HomeScreenNavKey)
                     _uiState.value = AuthScreenState.Success
                 }
                 .onFailure { e ->

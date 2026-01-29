@@ -2,12 +2,14 @@ package com.gorman.auth.data
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.gorman.domainmodel.UserData
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class AuthRepositoryImpl @Inject constructor(
+class AuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth
 ) : IAuthRepository {
 
@@ -24,6 +26,10 @@ class AuthRepositoryImpl @Inject constructor(
                 Result.failure(Exception("Sign in failed: User is null"))
             }
         } catch (e: FirebaseAuthException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidUserException) {
             Result.failure(e)
         }
     }
@@ -59,6 +65,10 @@ class AuthRepositoryImpl @Inject constructor(
                 Result.failure(Exception("User creation failed: User is null"))
             }
         } catch (e: FirebaseAuthException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidCredentialsException) {
+            Result.failure(e)
+        } catch (e: FirebaseAuthInvalidUserException) {
             Result.failure(e)
         }
     }
