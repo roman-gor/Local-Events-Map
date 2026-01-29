@@ -27,7 +27,7 @@ internal class UserRepositoryImpl @Inject constructor(
     private val userDataDao: UserDataDao,
     private val dataStoreManager: DataStoreManager
 ) : IUserRepository {
-    override suspend fun signIn(email: String, password: String): Flow<UserData> {
+    override suspend fun signIn(email: String, password: String) {
         val result = authRepository.signIn(email, password)
         return result.fold(
             onSuccess = { user ->
@@ -42,13 +42,13 @@ internal class UserRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun signInAnonymously(): Result<UserData> {
+    override suspend fun signInAnonymously(): Result<Unit> {
         return try {
             authRepository.signInAnonymously().fold(
                 onSuccess = {
                     dataStoreManager.saveUserId(it.uid)
                     userDataDao.saveUser(it.toEntity())
-                    Result.success(it)
+                    Result.success(Unit)
                 },
                 onFailure = { e ->
                     Result.failure(Exception(e))
@@ -61,7 +61,7 @@ internal class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun getUserFromRemote(uid: String): Flow<UserData> {
+    private suspend fun getUserFromRemote(uid: String) {
         try {
             val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()
             remoteUser?.let {
@@ -71,10 +71,9 @@ internal class UserRepositoryImpl @Inject constructor(
         } catch (e: FirebaseException) {
             Log.e("UserRepository", "Network error during sync", e)
         }
-        return userDataDao.getUserById(uid).map { it.toDomain() }
     }
 
-    override suspend fun signUp(userData: UserData, password: String): Result<UserData> {
+    override suspend fun signUp(userData: UserData, password: String): Result<Unit> {
         return try {
             val email = userData.email ?: error("Email is null")
             val authResult = authRepository.signUp(email, password).getOrThrow()
@@ -86,7 +85,7 @@ internal class UserRepositoryImpl @Inject constructor(
 
             dataStoreManager.saveUserId(uid)
 
-            Result.success(newUser)
+            Result.success(Unit)
         } catch (e: FirebaseAuthException) {
             Result.failure(e)
         }
