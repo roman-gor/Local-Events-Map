@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.gorman.feature.auth.impl.R
 import com.gorman.feature.auth.impl.components.FieldsBlockData
 import com.gorman.feature.auth.impl.components.TextFieldsBlock
@@ -49,9 +50,10 @@ fun SignUpScreenEntry(
     val context = LocalContext.current
     val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
 
-    val (networkErrorText, incorrectDataText) = Pair(
+    val (networkErrorText, incorrectDataText, emailInUseError) = listOf(
         stringResource(R.string.networkErrorText),
-        stringResource(R.string.incorrectUserData)
+        stringResource(R.string.incorrectUserData),
+        stringResource(R.string.emailInUseError)
     )
 
     LaunchedEffect(Unit) {
@@ -67,6 +69,9 @@ fun SignUpScreenEntry(
                         }
                         is FirebaseNetworkException -> {
                             authViewModel.onUiEvent(AuthScreenUiEvent.ShowToast(networkErrorText))
+                        }
+                        is FirebaseAuthUserCollisionException -> {
+                            authViewModel.onUiEvent(AuthScreenUiEvent.ShowToast(emailInUseError))
                         }
                     }
                 }
@@ -133,10 +138,10 @@ fun SignUpScreen(
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-                if (password == repeatPassword && isPasswordValid(password) &&
+                if (isEmailValid(email) && password == repeatPassword && isPasswordValid(password) &&
                     repeatPassword.isNotEmpty()
                 ) {
-                    if (isEmailValid(email) && username.isNotEmpty()) {
+                    if (username.isNotEmpty()) {
                         onUiEvent(
                             AuthScreenUiEvent.OnSignUpClick(
                                 UserUiState(email = email, username = username),

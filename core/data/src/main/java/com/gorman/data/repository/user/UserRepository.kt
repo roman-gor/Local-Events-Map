@@ -92,7 +92,11 @@ internal class UserRepository @Inject constructor(
 
                 val newUser = userData.copy(uid = uid)
 
-                saveUser(newUser).onFailure { e -> Result.failure<Exception>(e) }
+                val saveResult = saveUser(newUser)
+
+                if (saveResult.isFailure) {
+                    return Result.failure(saveResult.exceptionOrNull() ?: Exception("Save failed"))
+                }
 
                 dataStoreManager.saveUserId(uid)
 
