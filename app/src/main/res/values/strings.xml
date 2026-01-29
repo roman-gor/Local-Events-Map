@@ -1,4 +1,3 @@
 <resources>
     <string name="app_name">LocalEventsMap</string>
-    <string name="errorDataLoading">Не удалось загрузить ваши данные. Попробуйте перезапустить приложение или обратитесь в поддержку</string>
 </resources>
