@@ -53,14 +53,17 @@ import kotlin.ranges.contains
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val mapKit: MapKit,
-    private val navigator: Navigator,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
     private val getPointByCityUseCase: GetPointByCityUseCase,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
+
+    @Inject
+    private lateinit var mapKit: MapKit
+    @Inject
+    private lateinit var navigator: Navigator
 
     private val _filters = MutableStateFlow(FiltersState())
     private val _selectedEventId = MutableStateFlow<String?>(null)

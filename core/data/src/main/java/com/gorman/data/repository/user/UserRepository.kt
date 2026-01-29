@@ -1,7 +1,9 @@
 package com.gorman.data.repository.user
 
 import android.util.Log
+import com.google.firebase.FirebaseApiNotAvailableException
 import com.google.firebase.FirebaseException
+import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthException
 import com.gorman.auth.data.IAuthRepository
 import com.gorman.cache.data.DataStoreManager
@@ -27,7 +29,7 @@ internal class UserRepository @Inject constructor(
     private val userDataDao: UserDataDao,
     private val dataStoreManager: DataStoreManager
 ) : IUserRepository {
-    override suspend fun signIn(email: String, password: String) {
+    override suspend fun signIn(email: String, password: String): Result<Unit> {
         val result = authRepository.signIn(email, password)
         return result.fold(
             onSuccess = { user ->
@@ -61,15 +63,21 @@ internal class UserRepository @Inject constructor(
         }
     }
 
-    private suspend fun getUserFromRemote(uid: String) {
-        try {
+    private suspend fun getUserFromRemote(uid: String): Result<Unit> {
+        return try {
             val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()
             remoteUser?.let {
                 userDataDao.saveUser(it.toDomain().toEntity())
                 Log.d("UserRepository", "User synced from remote to local DB")
             }
+            Result.success(Unit)
         } catch (e: FirebaseException) {
             Log.e("UserRepository", "Network error during sync", e)
+            Result.failure(e)
+        } catch (e: FirebaseApiNotAvailableException) {
+            Result.failure(e)
+        } catch (e: FirebaseTooManyRequestsException) {
+            Result.failure(e)
         }
     }
 
