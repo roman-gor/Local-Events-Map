@@ -25,11 +25,7 @@ class AuthRepository @Inject constructor(
             } else {
                 Result.failure(Exception("Sign in failed: User is null"))
             }
-        } catch (e: FirebaseAuthException) {
-            Result.failure(e)
-        } catch (e: FirebaseAuthInvalidCredentialsException) {
-            Result.failure(e)
-        } catch (e: FirebaseAuthInvalidUserException) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
@@ -48,10 +44,8 @@ class AuthRepository @Inject constructor(
             } else {
                 Result.failure(Exception("User is null"))
             }
-        } catch (e: FirebaseAuthException) {
-            Result.failure(Exception(e))
-        } catch (e: IllegalStateException) {
-            Result.failure(Exception(e))
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
@@ -64,11 +58,7 @@ class AuthRepository @Inject constructor(
             } else {
                 Result.failure(Exception("User creation failed: User is null"))
             }
-        } catch (e: FirebaseAuthException) {
-            Result.failure(e)
-        } catch (e: FirebaseAuthInvalidCredentialsException) {
-            Result.failure(e)
-        } catch (e: FirebaseAuthInvalidUserException) {
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }
