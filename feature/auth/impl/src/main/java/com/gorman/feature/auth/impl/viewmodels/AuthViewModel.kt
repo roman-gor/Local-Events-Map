@@ -1,6 +1,7 @@
 package com.gorman.feature.auth.impl.viewmodels
 
 import android.util.Log
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gorman.data.repository.user.IUserRepository
@@ -83,5 +84,9 @@ class AuthViewModel @Inject constructor(
                     _sideEffect.send(AuthSideEffects.ShowToast(e.localizedMessage ?: "Error"))
                 }
         }
+    }
+
+    private fun isEmailValid(email: String): Boolean {
+        return email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 }
