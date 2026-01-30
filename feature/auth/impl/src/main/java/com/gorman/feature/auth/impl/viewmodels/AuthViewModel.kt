@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.feature.auth.api.SignInScreenNavKey
 import com.gorman.feature.auth.api.SignUpScreenNavKey
-import com.gorman.feature.auth.impl.mappers.toDomain
+import com.gorman.ui.mappers.toDomain
 import com.gorman.feature.auth.impl.states.AuthScreenState
 import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
 import com.gorman.feature.auth.impl.states.AuthSideEffects
