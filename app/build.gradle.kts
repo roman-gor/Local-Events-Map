@@ -53,10 +53,9 @@ android {
 
 dependencies {
 
-    implementation(project(":feature:events:api"))
+    implementation(project(":feature:setup:impl"))
     implementation(project(":feature:events:impl"))
     implementation(project(":feature:details-event:impl"))
-    implementation(project(":feature:auth:api"))
     implementation(project(":feature:auth:impl"))
     implementation(project(":sync:work"))
     implementation(project(":core:navigation"))

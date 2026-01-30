@@ -157,7 +157,8 @@ fun FiltersBottomSheet(
                     },
                     onDateFilterSelect = { actions.onDateRangeChange(it) },
                     onCategoriesItemClick = { actions.onCategoryChange(it) },
-                    onCategoriesListExpanded = { categoryExpanded = !categoryExpanded }
+                    onCategoriesListExpanded = { categoryExpanded = !categoryExpanded },
+                    onNameChanged = { actions.onNameChange(it) }
                 )
             )
         }
@@ -169,7 +170,18 @@ fun FiltersBottomSheet(
 fun FiltersBottomSheetContent(
     data: FilterBottomSheetData
 ) {
+    val localNameState = remember(data.filters.name) { mutableStateOf(data.filters.name) }
     if (!data.isDistanceChange) {
+        Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingSmall))
+        MapEventNameOutlineTextField(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge),
+            currentName = localNameState.value,
+            onNameChanged = {
+                localNameState.value = it
+                data.onNameChanged(it)
+            }
+        )
+        Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingSmall))
         CategoriesDropdownMenu(
             expanded = data.categoryExpanded,
             header = stringResource(R.string.category),
@@ -245,6 +257,7 @@ data class FilterBottomSheetData(
     val actions: FilterActions,
     val options: FilterOptions,
     val filters: FiltersState,
+    val onNameChanged: (String) -> Unit,
     val onDistanceValueChanged: (Float) -> Unit,
     val onDistanceValueChangeFinished: () -> Unit,
     val onDistanceFilterEnabled: () -> Unit,
