@@ -138,10 +138,10 @@ fun SignUpScreen(
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = {
-                if (isEmailValid(email) && password == repeatPassword && isPasswordValid(password) &&
+                if (isEmailValid(email) && isPasswordValid(password) &&
                     repeatPassword.isNotEmpty()
                 ) {
-                    if (username.isNotEmpty()) {
+                    if (username.isNotEmpty() && password == repeatPassword) {
                         onUiEvent(
                             AuthScreenUiEvent.OnSignUpClick(
                                 UserUiState(email = email, username = username),
