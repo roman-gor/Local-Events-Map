@@ -3,7 +3,7 @@ package com.gorman.feature.details.impl.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gorman.data.repository.mapevent.IMapEventsRepository
+import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.details.impl.states.DetailsScreenState
 import com.gorman.feature.details.impl.states.DetailsScreenUiEvent
@@ -12,9 +12,12 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -30,10 +33,17 @@ class DetailsViewModel @AssistedInject constructor(
         fun create(navKey: DetailsScreenNavKey): DetailsViewModel
     }
     private val _id = navKey.id
-    val uiState: StateFlow<DetailsScreenState> = mapEventsRepository.getEventById(_id)
-        .map { flowEvent ->
-            Log.d("ID", _id)
-            DetailsScreenState.Success(flowEvent.toUiState()) as DetailsScreenState
+    private val retryTrigger = MutableSharedFlow<Unit>(replay = 1).apply {
+        tryEmit(Unit)
+    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<DetailsScreenState> = retryTrigger
+        .flatMapLatest {
+            mapEventsRepository.getEventById(_id)
+                .map { flowEvent ->
+                    Log.d("ID", _id)
+                    DetailsScreenState.Success(flowEvent.toUiState()) as DetailsScreenState
+                }
         }.catch { e ->
             when (e) {
                 is IOException -> emit(DetailsScreenState.Error.NoNetwork(e.message))
@@ -50,6 +60,7 @@ class DetailsViewModel @AssistedInject constructor(
     fun onUiEvent(uiEvent: DetailsScreenUiEvent) {
         when (uiEvent) {
             is DetailsScreenUiEvent.OnFavouriteClick -> onFavouriteChange(uiEvent.id)
+            DetailsScreenUiEvent.OnRetryClick -> retryTrigger.tryEmit(Unit)
         }
     }
 

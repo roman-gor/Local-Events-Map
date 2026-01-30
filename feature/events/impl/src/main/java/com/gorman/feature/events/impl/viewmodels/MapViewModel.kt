@@ -8,7 +8,7 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
 import com.gorman.data.repository.geo.IGeoRepository
-import com.gorman.data.repository.mapevent.IMapEventsRepository
+import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.usecases.GetCityByPointUseCase
 import com.gorman.data.usecases.GetPointByCityUseCase
 import com.gorman.domainmodel.MapEvent
@@ -18,9 +18,7 @@ import com.gorman.feature.events.impl.mappers.toUiState
 import com.gorman.feature.events.impl.states.DataStatus
 import com.gorman.feature.events.impl.states.DateFilterState
 import com.gorman.feature.events.impl.states.FiltersState
-import com.gorman.feature.events.impl.states.MapUiEvent
 import com.gorman.feature.events.impl.states.ScreenSideEffect
-import com.gorman.feature.events.impl.states.ScreenSideEffect.*
 import com.gorman.feature.events.impl.states.ScreenState
 import com.gorman.feature.events.impl.states.ScreenUiEvent
 import com.gorman.navigation.navigator.Navigator

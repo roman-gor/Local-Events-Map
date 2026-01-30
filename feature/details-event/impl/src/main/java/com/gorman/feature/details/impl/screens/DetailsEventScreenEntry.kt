@@ -48,9 +48,15 @@ fun DetailsEventScreenEntry(
 ) {
     val uiState by detailsViewModel.uiState.collectAsStateWithLifecycle()
     when (val state = uiState) {
-        is DetailsScreenState.Error.NoNetwork -> ErrorDataScreen(stringResource(R.string.noNetwork))
-        is DetailsScreenState.Error.NotFound -> ErrorDataScreen(stringResource(R.string.eventNotFound))
-        is DetailsScreenState.Error.Unknown -> ErrorDataScreen(stringResource(R.string.errorDataLoading))
+        is DetailsScreenState.Error.NoNetwork -> ErrorDataScreen(
+            text = stringResource(R.string.noNetwork),
+            onRetryClick = {})
+        is DetailsScreenState.Error.NotFound -> ErrorDataScreen(
+            text = stringResource(R.string.eventNotFound),
+            onRetryClick = {})
+        is DetailsScreenState.Error.Unknown -> ErrorDataScreen(
+            text = stringResource(R.string.errorDataLoading),
+            onRetryClick = {})
         DetailsScreenState.Loading -> LoadingStub()
         is DetailsScreenState.Success -> {
             Log.d("State", "${state.event}")
