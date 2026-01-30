@@ -1,5 +1,7 @@
 package com.gorman.feature.auth.impl.states
 
+import com.gorman.ui.states.UserUiState
+
 sealed interface AuthScreenState {
     data class Idle(val user: UserUiState, val password: String) : AuthScreenState
     object Loading : AuthScreenState
