@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.common.api.ApiException
+import com.gorman.cache.data.DataStoreManager
 import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
@@ -29,7 +30,6 @@ import com.yandex.mapkit.MapKit
 import com.yandex.mapkit.geometry.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -39,7 +39,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -56,7 +55,8 @@ class MapViewModel @Inject constructor(
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
     private val getPointByCityUseCase: GetPointByCityUseCase,
-    networkObserver: NetworkConnectivityObserver
+    networkObserver: NetworkConnectivityObserver,
+    private val dataStoreManager: DataStoreManager
 ) : ViewModel() {
     private val _filters = MutableStateFlow(FiltersState())
     private val _selectedEventId = MutableStateFlow<String?>(null)
@@ -65,6 +65,12 @@ class MapViewModel @Inject constructor(
     private var cameraMoveJob: Job? = null
 
     private val _cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
+
+    private data class UserInputState(
+        val filters: FiltersState,
+        val cityData: CityData,
+        val selectedEventId: String?
+    )
 
     private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
@@ -76,40 +82,50 @@ class MapViewModel @Inject constructor(
             initialValue = false
         )
 
-    val uiState: StateFlow<ScreenState> = combine(
-        mapEventsRepository.getAllEvents(),
-        _filters,
-        _cityData,
-        _selectedEventId,
-        isNetworkAvailable
-    ) { events, filters, cityData, selectedEventId, hasInternet ->
-        val filteredEvents = events.filter { event ->
-            event.filter(filters, cityData)
-        }.map { domainEvent ->
-            domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
-        }.toImmutableList()
-        val isOutdated = mapEventsRepository.isOutdated()
-        val status = when {
-            !hasInternet -> DataStatus.OFFLINE
-            isOutdated -> DataStatus.OUTDATED
-            else -> DataStatus.FRESH
+    val uiState: StateFlow<ScreenState> = run {
+        val userInputs = combine(
+            _filters,
+            _cityData,
+            _selectedEventId
+        ) { filters, cityData, selectedEventId ->
+            UserInputState(filters, cityData, selectedEventId)
         }
-        ScreenState.Success(
-            eventsList = filteredEvents,
-            filterState = filters,
-            selectedMapEventId = selectedEventId,
-            cityData = cityData.toUiState(),
-            dataStatus = status
-        ) as ScreenState
-    }.catch { e ->
-        emit(ScreenState.Error(e))
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ScreenState.Loading
-    )
+        combine(
+            mapEventsRepository.getAllEvents(),
+            dataStoreManager.permissionsState,
+            userInputs,
+            isNetworkAvailable
+        ) { events, permissions, inputs, hasInternet ->
+            val (filters, cityData, selectedEventId) = inputs
+            val filteredEvents = events.filter { event ->
+                event.filter(filters, cityData)
+            }.map { domainEvent ->
+                domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
+            }.toImmutableList()
+            val isOutdated = mapEventsRepository.isOutdated()
+            val status = when {
+                !hasInternet -> DataStatus.OFFLINE
+                isOutdated -> DataStatus.OUTDATED
+                else -> DataStatus.FRESH
+            }
+            ScreenState.Success(
+                eventsList = filteredEvents,
+                filterState = filters,
+                selectedMapEventId = selectedEventId,
+                cityData = cityData.toUiState(),
+                dataStatus = status,
+                isPermissionsRequested = permissions
+            ) as ScreenState
+        }.catch { e ->
+            emit(ScreenState.Error(e))
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ScreenState.Loading
+        )
+    }
 
-    private suspend fun MapEvent.filter(
+    private fun MapEvent.filter(
         filters: FiltersState,
         cityData: CityData
     ): Boolean {
@@ -128,9 +144,9 @@ class MapViewModel @Inject constructor(
         val matchesName = this.name?.lowercase()?.contains(filters.name.lowercase()) ?: true
 
         val matchesDistance = if (filters.distance != null) {
-            checkDistanceBetween(this.toUiState())?.let {
-                it <= filters.distance
-            } ?: true
+            val userPoint = cityData.toUiState().cityCoordinates
+            val dist = checkDistanceBetween(this.toUiState(), userPoint)
+            dist?.let { it <= filters.distance } ?: true
         } else {
             true
         }
@@ -150,34 +166,42 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnNameChanged -> _filters.value = _filters.value.copy(name = event.name)
             is ScreenUiEvent.OnCostChanged -> _filters.value = _filters.value.copy(isFree = event.isFree)
             is ScreenUiEvent.OnDistanceChanged -> _filters.value = _filters.value.copy(distance = event.distance)
-            is ScreenUiEvent.OnCitySearch -> searchForCity(event.city)
+            is ScreenUiEvent.OnCitySearch -> {
+                viewModelScope.launch { dataStoreManager.updatePermissionsState(true) }
+                searchForCity(event.city)
+            }
             is ScreenUiEvent.OnEventSelected -> {
                 viewModelScope.launch {
                     val currentId = _selectedEventId.value
                     _selectedEventId.value = if (currentId == event.id) null else event.id
                 }
             }
-            ScreenUiEvent.OnSyncClicked -> syncEvents()
+            ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> {
-                fetchInitialLocation()
-                syncEvents()
+                viewModelScope.launch {
+                    dataStoreManager.updatePermissionsState(true)
+                    fetchInitialLocation()
+                    syncEvents()
+                }
+            }
+            ScreenUiEvent.PermissionsRequested -> {
+                viewModelScope.launch {
+                    dataStoreManager.updatePermissionsState(true)
+                }
             }
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {}
         }
     }
 
-    private fun fetchInitialLocation() {
+    private suspend fun fetchInitialLocation() {
         if (isInitialLocationFetched) return
         isInitialLocationFetched = true
-
-        viewModelScope.launch {
-            geoRepository.getUserLocation().onSuccess { location ->
-                val userCityData = getCityByPointUseCase(location)
-                userCityData?.let { geoRepository.saveCity(it) }
-                _sideEffect.send(ScreenSideEffect.MoveCamera(location))
-            }.onFailure {
-                searchForCity(CityCoordinatesConstants.MINSK)
-            }
+        geoRepository.getUserLocation().onSuccess { location ->
+            val userCityData = getCityByPointUseCase(location)
+            userCityData?.let { geoRepository.saveCity(it) }
+            _sideEffect.send(ScreenSideEffect.MoveCamera(location))
+        }.onFailure {
+            searchForCity(CityCoordinatesConstants.MINSK)
         }
     }
 
@@ -241,13 +265,16 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    private suspend fun checkDistanceBetween(event: MapUiEvent): Int? {
-        val cityData = _cityData.first().toUiState()
-        val userLocation = cityData.cityCoordinates
+    private fun checkDistanceBetween(event: MapUiEvent, userLocation: Point?): Int? {
         val eventLocation = event.coordinates?.let { coordinates ->
             val coordinatesList = coordinates.split(",")
-            Point(coordinatesList[0].toDouble(), coordinatesList[1].toDouble())
+            if (coordinatesList.size >= 2) {
+                Point(coordinatesList[0].toDouble(), coordinatesList[1].toDouble())
+            } else {
+                null
+            }
         }
+
         return if (userLocation != null && eventLocation != null) {
             geoRepository.getDistanceFromPoints(userLocation, eventLocation)
         } else {
@@ -285,16 +312,14 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    private fun syncEvents() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                mapEventsRepository.syncWith().getOrElse { exception ->
-                    _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
-                    Log.d("SyncError", "${exception.message}")
-                }
-            } catch (e: ApiException) {
-                Log.e("ViewModel", "Error when sync events ${e.message}")
+    private suspend fun syncEvents() {
+        try {
+            mapEventsRepository.syncWith().getOrElse { exception ->
+                _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
+                Log.d("SyncError", "${exception.message}")
             }
+        } catch (e: ApiException) {
+            Log.e("ViewModel", "Error when sync events ${e.message}")
         }
     }
 

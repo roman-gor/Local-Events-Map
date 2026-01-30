@@ -8,10 +8,8 @@ import android.view.Gravity
 import android.widget.TextView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -21,11 +19,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
@@ -50,7 +45,6 @@ import com.gorman.feature.events.impl.viewmodels.MapViewModel
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.states.MapUiEvent
-import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraListener
@@ -94,51 +88,77 @@ fun MapScreenEntry(
 
     val uiState by mapViewModel.uiState.collectAsStateWithLifecycle()
 
-    when (permissionsState.allPermissionsGranted) {
-        true -> {
+    when (val state = uiState) {
+        is ScreenState.Error -> ErrorDataScreen(
+            text = stringResource(com.gorman.ui.R.string.errorDataLoading),
+            onRetryClick = {}
+        )
+        ScreenState.Loading -> LoadingStub()
+        is ScreenState.Success -> MapSuccessContent(
+            state = state,
+            permissionsState = permissionsState,
+            mapController = mapController,
+            onUiEvent = mapViewModel::onUiEvent,
+            modifier = modifier
+        )
+    }
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+private fun MapSuccessContent(
+    state: ScreenState.Success,
+    permissionsState: MultiplePermissionsState,
+    mapController: MapController,
+    onUiEvent: (ScreenUiEvent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isMapAllowed = state.isPermissionsRequested == true
+    val hasCoordinates = state.cityData.cityCoordinates != null
+    val shouldShowRationale = permissionsState.shouldShowRationale
+
+    when {
+        isMapAllowed -> {
             MapContent(
                 modifier = modifier,
-                uiState = uiState,
-                onUiEvent = mapViewModel::onUiEvent,
+                uiState = state,
+                onUiEvent = onUiEvent,
                 mapController = mapController
             )
         }
-        false -> {
-            if (permissionsState.shouldShowRationale) {
-                PermissionRequestScreen(
-                    showManualInput = false,
-                    onCitySubmit = { },
-                    shouldShowRationale = true,
-                    requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
-                )
-            } else {
-                val cityHasCoordinates = (uiState as? ScreenState.Success)?.cityData?.cityCoordinates != null
-
-                if (!cityHasCoordinates) {
-                    PermissionRequestScreen(
-                        showManualInput = !permissionsState.shouldShowRationale,
-                        onCitySubmit = { city ->
-                            mapViewModel.onUiEvent(ScreenUiEvent.OnCitySearch(city))
-                        },
-                        shouldShowRationale = false,
-                        requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
-                    )
-                } else {
-                    MapContent(
-                        modifier = modifier,
-                        uiState = uiState,
-                        onUiEvent = mapViewModel::onUiEvent,
-                        mapController = mapController
-                    )
-                }
-            }
+        shouldShowRationale -> {
+            PermissionRequestScreen(
+                showManualInput = false,
+                onCitySubmit = { },
+                shouldShowRationale = true,
+                requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+            )
+        }
+        !hasCoordinates -> {
+            PermissionRequestScreen(
+                showManualInput = true,
+                onCitySubmit = { city ->
+                    onUiEvent(ScreenUiEvent.PermissionsRequested)
+                    onUiEvent(ScreenUiEvent.OnCitySearch(city))
+                },
+                shouldShowRationale = false,
+                requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+            )
+        }
+        else -> {
+            MapContent(
+                modifier = modifier,
+                uiState = state,
+                onUiEvent = onUiEvent,
+                mapController = mapController
+            )
         }
     }
 }
 
 @Composable
 fun MapContent(
-    uiState: ScreenState,
+    uiState: ScreenState.Success,
     onUiEvent: (ScreenUiEvent) -> Unit,
     mapController: MapController,
     modifier: Modifier = Modifier
@@ -152,53 +172,44 @@ fun MapContent(
 
     val state = rememberMapScreenLocalState()
 
-    when (uiState) {
-        is ScreenState.Error -> ErrorDataScreen(
-            text = stringResource(com.gorman.ui.R.string.errorDataLoading),
-            onRetryClick = {}
-        )
-        ScreenState.Loading -> LoadingStub()
-        is ScreenState.Success -> {
-            MapScreen(
-                mapScreenActions = MapScreenActions(
-                    onCameraIdle = { location ->
-                        location?.let {
-                            onUiEvent(ScreenUiEvent.OnCameraIdle(location))
-                        }
-                    },
-                    filterActions = FilterActions(
-                        onCategoryChange = { category ->
-                            onUiEvent(ScreenUiEvent.OnCategoryChanged(category))
-                        },
-                        onDateRangeChange = { dateState ->
-                            onUiEvent(ScreenUiEvent.OnDateChanged(dateState))
-                        },
-                        onDistanceChange = { currentDistance ->
-                            onUiEvent(ScreenUiEvent.OnDistanceChanged(currentDistance))
-                        },
-                        onCostChange = { isFree ->
-                            onUiEvent(ScreenUiEvent.OnCostChanged(isFree))
-                        },
-                        onNameChange = { name ->
-                            onUiEvent(ScreenUiEvent.OnNameChanged(name))
-                        }
-                    ),
-                    onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
-                    onEventClick = { event ->
-                        onUiEvent(ScreenUiEvent.OnEventSelected(event.id))
-                    },
-                    onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
-                    onNavigateToDetailsScreen = { event ->
-                        onUiEvent(ScreenUiEvent.OnNavigateToDetailsScreen(event))
-                    }
-                ),
-                uiState = uiState,
-                mapController = mapController,
-                modifier = modifier,
-                state = state
-            )
-        }
-    }
+    MapScreen(
+        mapScreenActions = MapScreenActions(
+            onCameraIdle = { location ->
+                location?.let {
+                    onUiEvent(ScreenUiEvent.OnCameraIdle(location))
+                }
+            },
+            filterActions = FilterActions(
+                onCategoryChange = { category ->
+                    onUiEvent(ScreenUiEvent.OnCategoryChanged(category))
+                },
+                onDateRangeChange = { dateState ->
+                    onUiEvent(ScreenUiEvent.OnDateChanged(dateState))
+                },
+                onDistanceChange = { currentDistance ->
+                    onUiEvent(ScreenUiEvent.OnDistanceChanged(currentDistance))
+                },
+                onCostChange = { isFree ->
+                    onUiEvent(ScreenUiEvent.OnCostChanged(isFree))
+                },
+                onNameChange = { name ->
+                    onUiEvent(ScreenUiEvent.OnNameChanged(name))
+                }
+            ),
+            onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
+            onEventClick = { event ->
+                onUiEvent(ScreenUiEvent.OnEventSelected(event.id))
+            },
+            onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
+            onNavigateToDetailsScreen = { event ->
+                onUiEvent(ScreenUiEvent.OnNavigateToDetailsScreen(event))
+            }
+        ),
+        uiState = uiState,
+        mapController = mapController,
+        modifier = modifier,
+        state = state
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

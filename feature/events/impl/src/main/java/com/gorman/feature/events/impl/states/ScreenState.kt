@@ -14,7 +14,8 @@ sealed interface ScreenState {
         val filterState: FiltersState = FiltersState(),
         val selectedMapEventId: String? = null,
         val cityData: CityUiData = CityUiData(),
-        val dataStatus: DataStatus? = null
+        val dataStatus: DataStatus? = null,
+        val isPermissionsRequested: Boolean? = null
     ) : ScreenState
 }
 
@@ -24,6 +25,7 @@ sealed interface ScreenUiEvent {
     data object MapKitOnStop : ScreenUiEvent
 
     data object PermissionsGranted : ScreenUiEvent
+    data object PermissionsRequested : ScreenUiEvent
 
     data class OnCameraIdle(val point: Point) : ScreenUiEvent
     data class OnCitySearch(val city: CityCoordinatesConstants) : ScreenUiEvent
