@@ -26,7 +26,7 @@ fun MapEventNameOutlineTextField(
         onValueChange = {
             onNameChanged(it)
         },
-        shape = LocalEventsMapTheme.shapes.extraLarge,
+        shape = LocalEventsMapTheme.shapes.medium,
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
             unfocusedContainerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.8f),

@@ -19,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
@@ -46,7 +45,6 @@ import com.gorman.feature.events.impl.viewmodels.MapViewModel
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.states.MapUiEvent
-import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.Animation
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraListener
@@ -182,7 +180,6 @@ fun MapContent(
                     onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
                     onEventClick = { event ->
                         onUiEvent(ScreenUiEvent.OnEventSelected(event.id))
-                        state.isEventSelected = event.id != uiState.selectedMapEventId
                     },
                     onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
                     onNavigateToDetailsScreen = { event ->
@@ -207,6 +204,7 @@ fun MapScreen(
     state: MapScreenLocalState,
     modifier: Modifier = Modifier
 ) {
+    val selectedEvent = uiState.eventsList.firstOrNull { it.id == uiState.selectedMapEventId }
     Box(modifier = modifier) {
         YandexMapView(
             mapController = mapController,
@@ -257,9 +255,6 @@ fun MapScreen(
             filtersState = uiState.filterState,
             mapScreenActions = mapScreenActions
         )
-        val selectedEvent = if (state.isEventSelected) {
-            uiState.eventsList.firstOrNull { it.id == uiState.selectedMapEventId }
-        } else { null }
         FunctionalBlock(
             mapScreenData = MapScreenData(
                 name = uiState.filterState.name,
@@ -269,7 +264,7 @@ fun MapScreen(
                 mapScreenActions = mapScreenActions,
                 onMapEventsListExpanded = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
                 onFiltersExpanded = { state.filtersExpanded = !state.filtersExpanded },
-                isEventSelected = state.isEventSelected,
+                isEventSelected = selectedEvent != null,
                 onMapEventSelectedItemClick = { mapScreenActions.onNavigateToDetailsScreen(it) }
             )
         )
@@ -318,8 +313,7 @@ fun YandexMapView(
     AndroidView(
         factory = { mapView },
         modifier = Modifier
-            .fillMaxSize()
-            .clip(LocalEventsMapTheme.shapes.medium),
+            .fillMaxSize(),
         update = { view ->
             val currentSelectedId = eventsList.find { it.isSelected }?.id
 

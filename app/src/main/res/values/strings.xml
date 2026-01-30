@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">LocalEventsMap</string>
+    <string name="homeItemTitle">Главная</string>
+    <string name="bookmarksItemTitle">Избранное</string>
 </resources>

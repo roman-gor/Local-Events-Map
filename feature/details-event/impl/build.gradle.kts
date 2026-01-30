@@ -12,7 +12,7 @@ android {
 
 dependencies {
     implementation(project(":feature"))
-    implementation(project(":feature:details-event:api"))
+    api(project(":feature:details-event:api"))
     implementation(project(":core:navigation"))
 
     implementation(libs.bundles.coil)

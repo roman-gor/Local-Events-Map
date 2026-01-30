@@ -14,7 +14,7 @@ dependencies {
 
     implementation(project(":feature"))
     implementation(project(":feature:details-event:api"))
-    implementation(project(":feature:events:api"))
+    api(project(":feature:events:api"))
     implementation(project(":core:navigation"))
 
     implementation(libs.yandex.android)
