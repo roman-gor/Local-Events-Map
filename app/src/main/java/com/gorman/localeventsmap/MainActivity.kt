@@ -5,13 +5,22 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
+import com.gorman.localeventsmap.ui.bottombar.BottomNavigationBar
 import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.MapKitFactory
@@ -34,8 +43,26 @@ class MainActivity : ComponentActivity() {
         setContent {
             MapKitFactory.getInstance().onStart()
             LocalEventsMapTheme {
+                val currentKey = navigator.backStack.lastOrNull()
+
+                val showBottomBar = currentKey is HomeScreenNavKey
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
+                    bottomBar = {
+                        AnimatedVisibility(
+                            visible = showBottomBar,
+                            enter = slideInVertically { it },
+                            exit = slideOutVertically { it }
+                        ) {
+                            BottomNavigationBar(
+                                currentKey = currentKey,
+                                onNavigateTo = { key -> navigator.goTo(key) },
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(LocalEventsMapTheme.dimens.paddingLarge)
+                                    .clip(CircleShape)
+                            )
+                        }
+                    },
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 ) {
                     LocalEventsMapNavigation(
