@@ -55,6 +55,7 @@ dependencies {
 
     implementation(project(":feature:setup:impl"))
     implementation(project(":feature:events:impl"))
+    implementation(project(":feature:bookmarks:impl"))
     implementation(project(":feature:details-event:impl"))
     implementation(project(":feature:auth:impl"))
     implementation(project(":sync:work"))
@@ -68,6 +69,8 @@ dependencies {
 
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
+
+    lintChecks(libs.compose.lint.checks)
 
     implementation(libs.yandex.android)
 }

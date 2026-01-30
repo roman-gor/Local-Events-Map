@@ -34,7 +34,7 @@ class LocalEventsMapViewModel @Inject constructor(
         .flatMapLatest {
             dataStoreManager.savedUserId
                 .map { id ->
-                    if (id != null) {
+                    if (id != null && id.isNotEmpty()) {
                         SetupScreenState.Success(true)
                     } else {
                         SetupScreenState.Success(false)

@@ -35,11 +35,11 @@ import com.gorman.feature.auth.impl.components.TextFieldsBlock
 import com.gorman.feature.auth.impl.states.AuthScreenState
 import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
 import com.gorman.feature.auth.impl.states.AuthSideEffects
-import com.gorman.ui.states.UserUiState
 import com.gorman.feature.auth.impl.utils.isEmailValid
 import com.gorman.feature.auth.impl.utils.isPasswordValid
 import com.gorman.feature.auth.impl.viewmodels.AuthViewModel
 import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.states.UserUiState
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
