@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.components.FunctionalButton
-import com.gorman.feature.events.impl.components.MapEventNameOutlineTextField
 import com.gorman.feature.events.impl.components.MapEventSelectedButton
 import com.gorman.feature.events.impl.states.MapScreenActions
+import com.gorman.feature.events.impl.utils.getBottomBarPadding
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 
@@ -39,14 +39,22 @@ fun BoxScope.FunctionalBlock(
         iconSize = 32.dp,
         imageVector = Icons.Outlined.Refresh,
         modifier = Modifier
-            .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
+            .padding(
+                end = LocalEventsMapTheme.dimens.paddingExtraLarge,
+                bottom = getBottomBarPadding()
+            )
             .size(48.dp)
             .align(alignment = Alignment.CenterEnd)
     )
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
+            .padding(
+                top = LocalEventsMapTheme.dimens.paddingExtraLarge,
+                start = LocalEventsMapTheme.dimens.paddingExtraLarge,
+                end = LocalEventsMapTheme.dimens.paddingExtraLarge,
+                bottom = getBottomBarPadding()
+            )
             .align(Alignment.BottomCenter),
         verticalArrangement = Arrangement.Center
     ) {
@@ -72,22 +80,19 @@ fun BoxScope.FunctionalBlock(
                     .offset(y = mapScreenData.filtersButtonVerticalOffset)
             )
         }
-        Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingLarge))
-        MapEventNameOutlineTextField(
-            modifier = Modifier.fillMaxWidth(),
-            currentName = mapScreenData.name,
-            onNameChanged = { mapScreenData.mapScreenActions.filterActions.onNameChange(it) }
-        )
         if (mapScreenData.isEventSelected) {
             mapScreenData.selectedEvent?.let { event ->
                 MapEventSelectedButton(
                     onMapEventButtonClick = { mapScreenData.onMapEventSelectedItemClick(event) },
                     mapEvent = event,
                     modifier = Modifier.fillMaxWidth()
-                        .padding(vertical = LocalEventsMapTheme.dimens.paddingLarge)
+                        .padding(
+                            top = LocalEventsMapTheme.dimens.paddingLarge,
+                            bottom = LocalEventsMapTheme.dimens.paddingMedium)
                 )
             }
         }
+        Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingLarge))
     }
 }
 
