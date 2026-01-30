@@ -1,4 +1,4 @@
-package com.gorman.feature.auth.impl.mappers
+package com.gorman.ui.mappers
 
 import com.gorman.domainmodel.UserData
 import com.gorman.ui.states.UserUiState
