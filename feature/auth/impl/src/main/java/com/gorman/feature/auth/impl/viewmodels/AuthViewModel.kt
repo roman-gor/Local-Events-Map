@@ -10,7 +10,7 @@ import com.gorman.feature.auth.impl.mappers.toDomain
 import com.gorman.feature.auth.impl.states.AuthScreenState
 import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
 import com.gorman.feature.auth.impl.states.AuthSideEffects
-import com.gorman.feature.auth.impl.states.UserUiState
+import com.gorman.ui.states.UserUiState
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.navigation.navigator.Navigator
 import dagger.hilt.android.lifecycle.HiltViewModel
