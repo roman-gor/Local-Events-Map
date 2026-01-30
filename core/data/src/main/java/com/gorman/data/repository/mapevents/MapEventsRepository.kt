@@ -1,4 +1,4 @@
-package com.gorman.data.repository.mapevent
+package com.gorman.data.repository.mapevents
 
 import android.util.Log
 import androidx.room.withTransaction

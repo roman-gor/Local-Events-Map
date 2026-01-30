@@ -1,6 +1,7 @@
 package com.gorman.feature.events.impl.states
 
 import com.gorman.common.constants.CityCoordinatesConstants
+import com.gorman.ui.states.MapUiEvent
 import com.yandex.mapkit.geometry.Point
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf

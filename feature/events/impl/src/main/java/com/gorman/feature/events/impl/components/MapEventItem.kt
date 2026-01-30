@@ -18,11 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gorman.feature.events.impl.states.MapUiEvent
+import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.gorman.ui.utils.DateFormatStyle
+import com.gorman.ui.utils.format
 
 @SuppressLint("ComposeModifierMissing")
 @Composable
@@ -30,7 +29,7 @@ fun MapEventItem(
     mapEvent: MapUiEvent,
     onEventClick: (MapUiEvent) -> Unit
 ) {
-    val date = mapEvent.date?.let { convertMillisToDate(it) }
+    val date = mapEvent.date?.format(DateFormatStyle.DATE_ONLY)
     val containerColor = if (mapEvent.isSelected) { MaterialTheme.colorScheme.primary } else {
         MaterialTheme.colorScheme.background
     }
@@ -80,11 +79,4 @@ fun MapEventItem(
                 .padding(LocalEventsMapTheme.dimens.paddingLarge)
         )
     }
-}
-
-fun convertMillisToDate(millis: Long): String {
-    val formatter = DateTimeFormatter.ofPattern("d MMMM")
-    val instant = Instant.ofEpochMilli(millis)
-    val date = instant.atZone(ZoneId.systemDefault()).toLocalDate()
-    return date.format(formatter)
 }

@@ -13,7 +13,7 @@ android {
 dependencies {
 
     implementation(project(":feature"))
-    implementation(project(":feature:events:api"))
+    api(project(":feature:events:api"))
 
     implementation(libs.yandex.android)
     implementation(libs.kotlinx.serialization.json)

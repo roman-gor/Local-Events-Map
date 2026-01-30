@@ -1,5 +1,8 @@
-package com.gorman.feature.events.impl.utils
+package com.gorman.ui.utils
 
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 
 fun getStartOfDay(): Long {
@@ -26,4 +29,16 @@ fun getEndOfWeek(): Long {
     calendar.set(Calendar.HOUR_OF_DAY, 23)
     calendar.set(Calendar.MINUTE, 59)
     return calendar.timeInMillis
+}
+
+enum class DateFormatStyle(val pattern: String) {
+    TIME_ONLY("HH:mm"),
+    DATE_ONLY("d MMMM YYYY")
+}
+
+fun Long.format(style: DateFormatStyle): String {
+    val formatter = DateTimeFormatter.ofPattern(style.pattern)
+    return Instant.ofEpochMilli(this)
+        .atZone(ZoneId.systemDefault())
+        .format(formatter)
 }
