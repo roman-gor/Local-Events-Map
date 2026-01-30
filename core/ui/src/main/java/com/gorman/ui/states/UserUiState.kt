@@ -1,4 +1,4 @@
-package com.gorman.feature.auth.impl.states
+package com.gorman.ui.states
 
 import androidx.compose.runtime.Immutable
 import kotlinx.collections.immutable.ImmutableList
