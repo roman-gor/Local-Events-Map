@@ -88,7 +88,8 @@ fun BoxScope.FunctionalBlock(
                     modifier = Modifier.fillMaxWidth()
                         .padding(
                             top = LocalEventsMapTheme.dimens.paddingLarge,
-                            bottom = LocalEventsMapTheme.dimens.paddingMedium)
+                            bottom = LocalEventsMapTheme.dimens.paddingMedium
+                        )
                 )
             }
         }

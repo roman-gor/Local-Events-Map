@@ -13,6 +13,7 @@ dependencies {
 
     api(project(":core:common"))
     api(project(":core:domain-model"))
+    api(project(":core:cache"))
     api(project(":core:data"))
     api(project(":core:ui"))
 
