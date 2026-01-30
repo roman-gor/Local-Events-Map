@@ -50,13 +50,16 @@ fun DetailsEventScreenEntry(
     when (val state = uiState) {
         is DetailsScreenState.Error.NoNetwork -> ErrorDataScreen(
             text = stringResource(R.string.noNetwork),
-            onRetryClick = {})
+            onRetryClick = {}
+        )
         is DetailsScreenState.Error.NotFound -> ErrorDataScreen(
             text = stringResource(R.string.eventNotFound),
-            onRetryClick = {})
+            onRetryClick = {}
+        )
         is DetailsScreenState.Error.Unknown -> ErrorDataScreen(
             text = stringResource(R.string.errorDataLoading),
-            onRetryClick = {})
+            onRetryClick = {}
+        )
         DetailsScreenState.Loading -> LoadingStub()
         is DetailsScreenState.Success -> {
             Log.d("State", "${state.event}")

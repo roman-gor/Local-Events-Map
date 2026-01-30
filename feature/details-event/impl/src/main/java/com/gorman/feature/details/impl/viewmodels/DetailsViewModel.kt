@@ -36,6 +36,7 @@ class DetailsViewModel @AssistedInject constructor(
     private val retryTrigger = MutableSharedFlow<Unit>(replay = 1).apply {
         tryEmit(Unit)
     }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<DetailsScreenState> = retryTrigger
         .flatMapLatest {

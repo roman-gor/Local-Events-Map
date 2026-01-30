@@ -36,6 +36,7 @@ internal class MapEventsRepository @Inject constructor(
         return mapEventsDao.getEventById(id).map { it.toDomain() }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun updateFavouriteState(id: String): Result<Unit> {
         return try {
             val updatedRows = mapEventsDao.toggleFavouriteState(id)
