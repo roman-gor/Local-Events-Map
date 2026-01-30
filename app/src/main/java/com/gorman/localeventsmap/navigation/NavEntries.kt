@@ -1,7 +1,7 @@
 package com.gorman.localeventsmap.navigation
 
 import androidx.navigation3.runtime.NavKey
-import com.gorman.feature.details.api.DetailsScreenNavKey
+import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.localeventsmap.R
 
@@ -14,7 +14,7 @@ sealed class NavEntries(val title: Int, val icon: Int, val route: NavKey) {
     object BookmarkItem : NavEntries(
         title = R.string.bookmarksItemTitle,
         icon = R.drawable.ic_bookmark,
-        route = DetailsScreenNavKey("event2")
+        route = BookmarksScreenNavKey
     )
 
     companion object {

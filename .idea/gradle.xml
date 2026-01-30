@@ -39,6 +39,9 @@
             <option value="$PROJECT_DIR$/feature/auth" />
             <option value="$PROJECT_DIR$/feature/auth/api" />
             <option value="$PROJECT_DIR$/feature/auth/impl" />
+            <option value="$PROJECT_DIR$/feature/bookmarks" />
+            <option value="$PROJECT_DIR$/feature/bookmarks/api" />
+            <option value="$PROJECT_DIR$/feature/bookmarks/impl" />
             <option value="$PROJECT_DIR$/feature/details-event" />
             <option value="$PROJECT_DIR$/feature/details-event/api" />
             <option value="$PROJECT_DIR$/feature/details-event/impl" />

@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
 import com.gorman.localeventsmap.ui.bottombar.BottomNavigationBar
@@ -45,7 +46,7 @@ class MainActivity : ComponentActivity() {
             LocalEventsMapTheme {
                 val currentKey = navigator.backStack.lastOrNull()
 
-                val showBottomBar = currentKey is HomeScreenNavKey
+                val showBottomBar = currentKey is HomeScreenNavKey || currentKey is BookmarksScreenNavKey
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
@@ -56,7 +57,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             BottomNavigationBar(
                                 currentKey = currentKey,
-                                onNavigateTo = { key -> navigator.goTo(key) },
+                                onNavigateTo = { key -> navigator.setRoot(key) },
                                 modifier = Modifier.fillMaxWidth()
                                     .padding(LocalEventsMapTheme.dimens.paddingLarge)
                                     .clip(CircleShape)
