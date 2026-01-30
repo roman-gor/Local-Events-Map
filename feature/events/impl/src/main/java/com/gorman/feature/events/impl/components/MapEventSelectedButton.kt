@@ -45,7 +45,7 @@ fun MapEventSelectedButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth(1f),
+                modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -54,6 +54,7 @@ fun MapEventSelectedButton(
                         text = it,
                         fontSize = 22.sp,
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -63,6 +64,7 @@ fun MapEventSelectedButton(
                         text = it,
                         fontSize = 16.sp,
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -71,7 +73,6 @@ fun MapEventSelectedButton(
             Text(
                 text = date ?: "",
                 style = MaterialTheme.typography.bodyLarge,
-                overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 textAlign = TextAlign.End
             )
