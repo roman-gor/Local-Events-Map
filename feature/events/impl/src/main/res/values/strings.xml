@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">LocalEventsMap</string>
-    <string name="errorDataLoading">Ошибка при загрузке данных</string>
     <string name="category">Категория</string>
     <string name="music">Музыка</string>
     <string name="sport">Спорт</string>

@@ -1,11 +1,13 @@
 package com.gorman.feature.events.impl.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.feature.events.impl.screens.mapscreen.MapScreenEntry
+import com.gorman.feature.events.impl.utils.getBottomBarPadding
 
 fun EntryProviderScope<NavKey>.featureEventsEntryBuilder() {
     entry<HomeScreenNavKey> {

@@ -8,7 +8,7 @@ import com.gorman.common.constants.CityCoordinatesConstants
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
 import com.gorman.data.repository.geo.IGeoRepository
-import com.gorman.data.repository.mapevent.IMapEventsRepository
+import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.usecases.GetCityByPointUseCase
 import com.gorman.data.usecases.GetPointByCityUseCase
 import com.gorman.domainmodel.MapEvent
@@ -17,13 +17,14 @@ import com.gorman.feature.events.impl.mappers.toUiState
 import com.gorman.feature.events.impl.states.DataStatus
 import com.gorman.feature.events.impl.states.DateFilterState
 import com.gorman.feature.events.impl.states.FiltersState
-import com.gorman.feature.events.impl.states.MapUiEvent
 import com.gorman.feature.events.impl.states.ScreenSideEffect
 import com.gorman.feature.events.impl.states.ScreenState
 import com.gorman.feature.events.impl.states.ScreenUiEvent
-import com.gorman.feature.events.impl.utils.getEndOfDay
-import com.gorman.feature.events.impl.utils.getEndOfWeek
-import com.gorman.feature.events.impl.utils.getStartOfDay
+import com.gorman.ui.mappers.toUiState
+import com.gorman.ui.states.MapUiEvent
+import com.gorman.ui.utils.getEndOfDay
+import com.gorman.ui.utils.getEndOfWeek
+import com.gorman.ui.utils.getStartOfDay
 import com.yandex.mapkit.MapKit
 import com.yandex.mapkit.geometry.Point
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -57,7 +58,6 @@ class MapViewModel @Inject constructor(
     private val getPointByCityUseCase: GetPointByCityUseCase,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
-
     private val _filters = MutableStateFlow(FiltersState())
     private val _selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
@@ -162,11 +162,7 @@ class MapViewModel @Inject constructor(
                 fetchInitialLocation()
                 syncEvents()
             }
-            is ScreenUiEvent.OnNavigateToDetailsScreen -> {
-                viewModelScope.launch {
-                    _sideEffect.send(ScreenSideEffect.OnNavigateToDetailsScreen(event.event))
-                }
-            }
+            is ScreenUiEvent.OnNavigateToDetailsScreen -> {}
         }
     }
 

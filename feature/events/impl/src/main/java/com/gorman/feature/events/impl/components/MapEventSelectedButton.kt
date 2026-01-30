@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -18,8 +19,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gorman.feature.events.impl.states.MapUiEvent
+import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
+import com.gorman.ui.utils.DateFormatStyle
+import com.gorman.ui.utils.format
 
 @Composable
 fun MapEventSelectedButton(
@@ -27,7 +30,7 @@ fun MapEventSelectedButton(
     mapEvent: MapUiEvent,
     modifier: Modifier = Modifier
 ) {
-    val date = mapEvent.date?.let { convertMillisToDate(it) }
+    val date = mapEvent.date?.format(DateFormatStyle.DATE_ONLY)
     Button(
         onClick = { onMapEventButtonClick(mapEvent) },
         modifier = modifier,
@@ -42,7 +45,7 @@ fun MapEventSelectedButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth(0.7f),
+                modifier = Modifier.fillMaxWidth(1f),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -64,13 +67,12 @@ fun MapEventSelectedButton(
                     )
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = date ?: "",
                 style = MaterialTheme.typography.bodyLarge,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
-                modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.End
             )
         }
