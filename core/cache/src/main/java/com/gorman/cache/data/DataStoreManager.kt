@@ -2,6 +2,7 @@ package com.gorman.cache.data
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -21,10 +22,13 @@ class DataStoreManager @Inject constructor(
         private val KEY_CITY_DATA = stringPreferencesKey("city_data")
         private val USER_ID = stringPreferencesKey("user_id")
         private val KEY_LAST_SYNC = longPreferencesKey("key_last_sync")
+        private val KEY_PERMISSIONS_REQUESTED = booleanPreferencesKey("permissions_requested")
     }
 
     val savedUserId: Flow<String?> = dataStore.data.map { prefs -> prefs[USER_ID] }
     val lastSyncTimestamp: Flow<Long?> = dataStore.data.map { prefs -> prefs[KEY_LAST_SYNC] }
+    val permissionsState: Flow<Boolean?> = dataStore.data.map { prefs -> prefs[KEY_PERMISSIONS_REQUESTED] }
+
     val savedCity: Flow<CityData?> = dataStore.data.map { prefs ->
         val jsonString = prefs[KEY_CITY_DATA]
         if (jsonString != null) {
@@ -49,6 +53,12 @@ class DataStoreManager @Inject constructor(
     suspend fun saveCity(cityData: CityData) {
         dataStore.edit { prefs ->
             prefs[KEY_CITY_DATA] = Json.encodeToString(cityData)
+        }
+    }
+
+    suspend fun updatePermissionsState(isRequested: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[KEY_PERMISSIONS_REQUESTED] = isRequested
         }
     }
 }
