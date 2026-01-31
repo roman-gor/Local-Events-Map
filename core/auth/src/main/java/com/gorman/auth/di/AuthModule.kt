@@ -1,7 +1,7 @@
 package com.gorman.auth.di
 
 import com.google.firebase.auth.FirebaseAuth
-import com.gorman.auth.data.AuthRepositoryImpl
+import com.gorman.auth.data.AuthRepository
 import com.gorman.auth.data.IAuthRepository
 import dagger.Binds
 import dagger.Module
@@ -20,5 +20,5 @@ object AuthModule {
 @InstallIn(SingletonComponent::class)
 interface AuthRepositoryModule {
     @Binds
-    fun bindAuthRepository(impl: AuthRepositoryImpl): IAuthRepository
+    fun bindAuthRepository(impl: AuthRepository): IAuthRepository
 }

@@ -32,12 +32,25 @@
             <option value="$PROJECT_DIR$/core/data" />
             <option value="$PROJECT_DIR$/core/database" />
             <option value="$PROJECT_DIR$/core/domain-model" />
+            <option value="$PROJECT_DIR$/core/navigation" />
             <option value="$PROJECT_DIR$/core/network" />
             <option value="$PROJECT_DIR$/core/ui" />
             <option value="$PROJECT_DIR$/feature" />
             <option value="$PROJECT_DIR$/feature/auth" />
+            <option value="$PROJECT_DIR$/feature/auth/api" />
+            <option value="$PROJECT_DIR$/feature/auth/impl" />
+            <option value="$PROJECT_DIR$/feature/bookmarks" />
+            <option value="$PROJECT_DIR$/feature/bookmarks/api" />
+            <option value="$PROJECT_DIR$/feature/bookmarks/impl" />
             <option value="$PROJECT_DIR$/feature/details-event" />
+            <option value="$PROJECT_DIR$/feature/details-event/api" />
+            <option value="$PROJECT_DIR$/feature/details-event/impl" />
             <option value="$PROJECT_DIR$/feature/events" />
+            <option value="$PROJECT_DIR$/feature/events/api" />
+            <option value="$PROJECT_DIR$/feature/events/impl" />
+            <option value="$PROJECT_DIR$/feature/setup" />
+            <option value="$PROJECT_DIR$/feature/setup/api" />
+            <option value="$PROJECT_DIR$/feature/setup/impl" />
             <option value="$PROJECT_DIR$/sync" />
             <option value="$PROJECT_DIR$/sync/work" />
           </set>

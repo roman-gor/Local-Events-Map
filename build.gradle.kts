@@ -58,7 +58,7 @@ fun getYandexApiKey(): String {
     properties.load(localPropertiesFile.inputStream())
     val key = properties.getProperty("YANDEX_KEY")
     if (key.isNullOrEmpty()) {
-        error("YANDEX_KEY was not found in local.properties. Check README.md")
+        error("YANDEX_KEY was not found in local.properties. Check \${layout.projectDirectory.file(\"README.md\")}")
     }
     return key
 }

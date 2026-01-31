@@ -11,7 +11,6 @@ import com.gorman.firebase.data.models.UserDataRemote
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -34,12 +33,13 @@ class UserRemoteDataSourceImpl @Inject constructor(
         awaitClose { removeEventListener(eventListener) }
     }
 
-    override fun saveUserToRemote(user: UserDataRemote): Flow<Result<Unit>> = flow {
-        try {
+    override suspend fun saveUserToRemote(user: UserDataRemote): Result<Unit> {
+        return try {
             val uuid = user.uid
             database.child(uuid).setValue(user).await()
+            Result.success(Unit)
         } catch (e: FirebaseException) {
-            emit(Result.failure(e))
+            Result.failure(e)
         }
     }
 

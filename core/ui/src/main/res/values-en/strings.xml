@@ -15,4 +15,5 @@
     <string name="cinema">Cinema</string>
     <string name="categoryPlaceholder">Poster</string>
     <string name="errorDataLoading">Error loading data</string>
+    <string name="tryAgain">Retry</string>
 </resources>
