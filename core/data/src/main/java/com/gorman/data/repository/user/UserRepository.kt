@@ -6,6 +6,7 @@ import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.messaging.FirebaseMessaging
 import com.gorman.auth.data.IAuthRepository
 import com.gorman.cache.data.DataStoreManager
 import com.gorman.database.data.datasource.dao.UserDataDao
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 internal class UserRepository @Inject constructor(
@@ -36,6 +38,7 @@ internal class UserRepository @Inject constructor(
             onSuccess = { user ->
                 Log.d("UserAuth", user.uid)
                 dataStoreManager.saveUserId(user.uid)
+                saveTokenToUser(user.uid)
                 getUserFromRemote(user.uid)
             },
             onFailure = { e ->
@@ -51,6 +54,7 @@ internal class UserRepository @Inject constructor(
                 onSuccess = {
                     dataStoreManager.saveUserId(it.uid)
                     userDataDao.saveUser(it.toEntity())
+                    saveTokenToUser(it.uid)
                     Result.success(Unit)
                 },
                 onFailure = { e ->
@@ -99,6 +103,7 @@ internal class UserRepository @Inject constructor(
                 }
 
                 dataStoreManager.saveUserId(uid)
+                saveTokenToUser(uid)
 
                 Result.success(Unit)
             },
@@ -152,6 +157,25 @@ internal class UserRepository @Inject constructor(
     override suspend fun getUserData(): Flow<UserData> {
         val uid = dataStoreManager.savedUserId.first() ?: error("No UID")
         return userDataDao.getUserById(uid).map { it.toDomain() }
+    }
+
+    override suspend fun saveTokenToUser(uid: String): Result<Unit> {
+        return try {
+            val token = FirebaseMessaging.getInstance().token.await()
+            userRemoteDataSource.saveTokenToUser(uid, token)
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Failed to fetch or save FCM token", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> {
+        return try {
+            userRemoteDataSource.saveTokenToUser(uid, token)
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Failed to fetch or save FCM token", e)
+            Result.failure(e)
+        }
     }
 
     private suspend fun saveUser(userData: UserData): Result<Unit> {
