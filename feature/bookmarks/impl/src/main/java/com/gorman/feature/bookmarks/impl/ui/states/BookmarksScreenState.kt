@@ -1,4 +1,4 @@
-package com.gorman.feature.bookmarks.impl.states
+package com.gorman.feature.bookmarks.impl.ui.states
 
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.states.UserUiState

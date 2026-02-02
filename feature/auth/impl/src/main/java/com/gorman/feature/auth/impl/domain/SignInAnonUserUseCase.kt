@@ -7,7 +7,7 @@ import javax.inject.Inject
 class SignInAnonUserUseCase @Inject constructor(
     private val authRepository: IAuthRepository,
     private val userRepository: IUserRepository
-){
+) {
     suspend operator fun invoke(): Result<Unit> {
         return authRepository.signInAnonymously().fold(
             onSuccess = {

@@ -17,6 +17,8 @@ internal class UserRepository @Inject constructor(
     private val userRemoteDataSource: IUserRemoteDataSource,
     private val userDataDao: UserDataDao
 ) : IUserRepository {
+
+    @Suppress("TooGenericExceptionThrown")
     override suspend fun refreshUserData(uid: String): Result<Unit> = runCatching {
         val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()
         remoteUser?.let {

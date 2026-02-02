@@ -1,4 +1,4 @@
-package com.gorman.feature.auth.impl.domain
+package com.gorman.feature.bookmarks.impl.domain
 
 import com.gorman.data.repository.auth.IAuthRepository
 import com.gorman.data.repository.user.IUserRepository

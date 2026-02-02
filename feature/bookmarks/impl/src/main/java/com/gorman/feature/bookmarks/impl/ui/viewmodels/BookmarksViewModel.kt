@@ -1,4 +1,4 @@
-package com.gorman.feature.bookmarks.impl.viewmodels
+package com.gorman.feature.bookmarks.impl.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,8 +7,9 @@ import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.domainmodel.BookmarkData
 import com.gorman.feature.auth.api.SignInScreenNavKey
-import com.gorman.feature.bookmarks.impl.states.BookmarksScreenState
-import com.gorman.feature.bookmarks.impl.states.BookmarksScreenUiEvent
+import com.gorman.feature.bookmarks.impl.domain.SignOutUserUseCase
+import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenState
+import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenUiEvent
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.navigation.navigator.Navigator
@@ -34,6 +35,7 @@ class BookmarksViewModel @Inject constructor(
     private val userRepository: IUserRepository,
     private val bookmarksRepository: IBookmarksRepository,
     private val mapEventsRepository: IMapEventsRepository,
+    private val signOutUserUseCase: SignOutUserUseCase,
     private val navigator: Navigator
 ) : ViewModel() {
     private val retryTrigger = MutableSharedFlow<Unit>(replay = 1).apply {
@@ -86,7 +88,7 @@ class BookmarksViewModel @Inject constructor(
             BookmarksScreenUiEvent.OnSignOutClick -> {
                 viewModelScope.launch {
                     navigator.setRoot(SignInScreenNavKey)
-//                    userRepository.signOut()
+                    signOutUserUseCase()
                 }
             }
             BookmarksScreenUiEvent.OnSignInClick -> {

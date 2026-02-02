@@ -2,7 +2,6 @@ package com.gorman.database.data.datasource
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
 import com.gorman.database.data.datasource.dao.BookmarkDao
 import com.gorman.database.data.datasource.dao.MapEventsDao
 import com.gorman.database.data.datasource.dao.UserDataDao

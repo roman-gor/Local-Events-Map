@@ -1,4 +1,4 @@
-package com.gorman.feature.bookmarks.impl.screens
+package com.gorman.feature.bookmarks.impl.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,13 +30,12 @@ fun UserDataCard(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
-        if (!user.email.isNullOrEmpty() ) {
+        if (!user.email.isNullOrEmpty()) {
             UserCard(
                 user = user,
                 onSignOutClick = onSignOutClick
             )
-        }
-        else {
+        } else {
             SignUpCard(
                 onSignUpClick = onSignUpClick
             )

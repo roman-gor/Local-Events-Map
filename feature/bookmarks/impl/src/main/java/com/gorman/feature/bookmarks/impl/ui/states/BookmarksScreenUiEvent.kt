@@ -1,4 +1,4 @@
-package com.gorman.feature.bookmarks.impl.states
+package com.gorman.feature.bookmarks.impl.ui.states
 
 sealed interface BookmarksScreenUiEvent {
     data object OnRetryClick : BookmarksScreenUiEvent

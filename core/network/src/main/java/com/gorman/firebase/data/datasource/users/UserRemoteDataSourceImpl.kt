@@ -1,6 +1,5 @@
 package com.gorman.firebase.data.datasource.users
 
-import android.util.Log
 import com.google.firebase.FirebaseException
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError

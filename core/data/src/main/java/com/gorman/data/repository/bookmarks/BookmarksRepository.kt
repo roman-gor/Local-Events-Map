@@ -16,13 +16,9 @@ class BookmarksRepository @Inject constructor(
     private val bookmarksEventsDataSource: IBookmarksRemoteDataSource,
     private val bookmarksDao: BookmarkDao,
     private val userDataDao: UserDataDao
-): IBookmarksRepository {
+) : IBookmarksRepository {
     override suspend fun updateBookmark(bookmark: BookmarkData): Result<Unit> {
-        val uid = try {
-            getUserId()
-        } catch (e: Exception) {
-            return Result.failure(e)
-        }
+        val uid = getUserId()
 
         val isBookmarked = bookmarksDao.isBookmarked(bookmark.favoriteEventId)
 

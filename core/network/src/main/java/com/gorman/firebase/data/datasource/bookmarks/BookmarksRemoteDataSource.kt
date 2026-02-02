@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 class BookmarksRemoteDataSource @Inject constructor(
     databaseReference: DatabaseReference
-): IBookmarksRemoteDataSource {
+) : IBookmarksRemoteDataSource {
     private val database = databaseReference.child(FirebaseConstants.BOOKMARKS_PATH.value)
     private fun DatabaseReference.snapshotsFlow(): Flow<DataSnapshot> = callbackFlow {
         val eventListener = object : ValueEventListener {
@@ -59,7 +59,6 @@ class BookmarksRemoteDataSource @Inject constructor(
                 favRef.setValue(true)
                 Log.d("UserRemoteDS", "Event successfully added to favourites")
                 Result.success(Unit)
-
             }
         } catch (e: FirebaseException) {
             Log.e("UserRemoteDS", "Error toggling favourites: ${e.message}")

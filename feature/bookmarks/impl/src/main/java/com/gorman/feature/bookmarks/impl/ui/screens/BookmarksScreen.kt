@@ -1,4 +1,4 @@
-package com.gorman.feature.bookmarks.impl.screens
+package com.gorman.feature.bookmarks.impl.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gorman.feature.bookmarks.impl.R
-import com.gorman.feature.bookmarks.impl.states.BookmarksScreenState
-import com.gorman.feature.bookmarks.impl.states.BookmarksScreenUiEvent
-import com.gorman.feature.bookmarks.impl.viewmodels.BookmarksViewModel
+import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenState
+import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenUiEvent
+import com.gorman.feature.bookmarks.impl.ui.viewmodels.BookmarksViewModel
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.theme.LocalEventsMapTheme
