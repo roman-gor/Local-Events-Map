@@ -77,4 +77,18 @@ class UserRemoteDataSourceImpl @Inject constructor(
                 snapshot.children.mapNotNull { it.key }
             }
     }
+
+    override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> {
+        return try {
+            database
+                .child(uid)
+                .child("fcmToken")
+                .setValue(token)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("UserRemoteDS", "Failed to save FCM token", e)
+            Result.failure(e)
+        }
+    }
 }

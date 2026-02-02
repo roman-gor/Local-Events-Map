@@ -42,6 +42,19 @@ internal class MapEventsRepository @Inject constructor(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
+    override suspend fun syncEventById(id: String): Result<Unit> {
+        return try {
+            val remoteEventResult = mapEventRemoteDataSource.getSingleEvent(id)
+            remoteEventResult.mapCatching { remoteEvent ->
+                mapEventsDao.upsertEvent(listOf(remoteEvent.toDomain().toEntity()))
+            }
+        } catch (e: Exception) {
+            Log.e("Repository", "Failed to fetch event $id: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
     private suspend fun getAllRemoteEvents(): List<MapEvent>? {
         return mapEventRemoteDataSource.getAllEventsOnce()?.map { event ->
             event.toDomain()
