@@ -96,7 +96,9 @@ internal class UserRepository @Inject constructor(
 
                 val newUser = userData.copy(uid = uid)
 
-                val saveResult = saveUser(newUser)
+                val saveResult = userRemoteDataSource.saveUserToRemote(newUser.toRemote())
+                    .map { userDataDao.saveUser(userData.toEntity()) }
+                    .onFailure { Log.e("UserRepository", "Remote save failed", it) }
 
                 if (saveResult.isFailure) {
                     return Result.failure(saveResult.exceptionOrNull() ?: Exception("Save failed"))
@@ -159,6 +161,7 @@ internal class UserRepository @Inject constructor(
         return userDataDao.getUserById(uid).map { it.toDomain() }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun saveTokenToUser(uid: String): Result<Unit> {
         return try {
             val token = FirebaseMessaging.getInstance().token.await()
@@ -169,6 +172,7 @@ internal class UserRepository @Inject constructor(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> {
         return try {
             userRemoteDataSource.saveTokenToUser(uid, token)
@@ -176,11 +180,5 @@ internal class UserRepository @Inject constructor(
             Log.e("UserRepository", "Failed to fetch or save FCM token", e)
             Result.failure(e)
         }
-    }
-
-    private suspend fun saveUser(userData: UserData): Result<Unit> {
-        return userRemoteDataSource.saveUserToRemote(userData.toRemote())
-            .map { userDataDao.saveUser(userData.toEntity()) }
-            .onFailure { Log.e("UserRepository", "Remote save failed", it) }
     }
 }

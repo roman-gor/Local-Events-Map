@@ -78,6 +78,7 @@ class UserRemoteDataSourceImpl @Inject constructor(
             }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> {
         return try {
             database

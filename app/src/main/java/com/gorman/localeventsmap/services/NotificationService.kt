@@ -25,6 +25,7 @@ class NotificationService : FirebaseMessagingService() {
 
     @Inject
     lateinit var userRepository: IUserRepository
+
     @Inject
     lateinit var dataStoreManager: DataStoreManager
 
@@ -58,7 +59,7 @@ class NotificationService : FirebaseMessagingService() {
         val channelId = "new_events_channel"
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification_bell)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
@@ -79,6 +80,7 @@ class NotificationService : FirebaseMessagingService() {
         notificationManager.notify(eventId.hashCode(), notificationBuilder.build())
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         CoroutineScope(Dispatchers.IO).launch {
