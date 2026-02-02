@@ -7,7 +7,6 @@ import com.gorman.database.data.datasource.dao.MapEventsDao
 import com.gorman.database.data.datasource.dao.UserDataDao
 import com.gorman.database.data.model.MapEventEntity
 import com.gorman.database.data.model.UserDataEntity
-import com.gorman.database.mappers.StringListConverter
 
 @Database(
     entities = [

@@ -1,4 +1,4 @@
-package com.gorman.feature.auth.impl.screens
+package com.gorman.feature.auth.impl.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -7,53 +7,47 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material3.Button
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.gorman.feature.auth.impl.R
-import com.gorman.feature.auth.impl.components.FieldsBlockData
-import com.gorman.feature.auth.impl.components.TextFieldsBlock
-import com.gorman.feature.auth.impl.states.AuthScreenState
-import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
-import com.gorman.feature.auth.impl.states.AuthSideEffects
-import com.gorman.feature.auth.impl.utils.isEmailValid
-import com.gorman.feature.auth.impl.utils.isPasswordValid
-import com.gorman.feature.auth.impl.viewmodels.AuthViewModel
+import com.gorman.feature.auth.impl.ui.components.BottomButtons
+import com.gorman.feature.auth.impl.ui.components.DefaultOutlinedTextField
+import com.gorman.feature.auth.impl.ui.components.PasswordTextField
+import com.gorman.feature.auth.impl.ui.states.AuthScreenState
+import com.gorman.feature.auth.impl.ui.states.AuthScreenUiEvent
+import com.gorman.feature.auth.impl.ui.states.AuthSideEffects
+import com.gorman.feature.auth.impl.ui.utils.isEmailValid
+import com.gorman.feature.auth.impl.ui.utils.isPasswordValid
+import com.gorman.feature.auth.impl.ui.viewmodels.AuthViewModel
 import com.gorman.ui.components.LoadingStub
-import com.gorman.ui.states.UserUiState
-import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
-fun SignUpScreenEntry(
+fun SignInScreenEntry(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
 
-    val (networkErrorText, incorrectDataText, emailInUseError) = listOf(
+    val (networkErrorText, incorrectDataText) = Pair(
         stringResource(R.string.networkErrorText),
-        stringResource(R.string.incorrectUserData),
-        stringResource(R.string.emailInUseError)
+        stringResource(R.string.incorrectUserData)
     )
 
     LaunchedEffect(Unit) {
@@ -70,9 +64,6 @@ fun SignUpScreenEntry(
                         is FirebaseNetworkException -> {
                             authViewModel.onUiEvent(AuthScreenUiEvent.ShowToast(networkErrorText))
                         }
-                        is FirebaseAuthUserCollisionException -> {
-                            authViewModel.onUiEvent(AuthScreenUiEvent.ShowToast(emailInUseError))
-                        }
                     }
                 }
             }
@@ -86,7 +77,7 @@ fun SignUpScreenEntry(
                 modifier = modifier,
                 contentAlignment = Alignment.TopCenter
             ) {
-                SignUpScreen(
+                SignInScreen(
                     uiState = state,
                     modifier = Modifier.fillMaxWidth(),
                     onUiEvent = authViewModel::onUiEvent
@@ -98,15 +89,13 @@ fun SignUpScreenEntry(
 }
 
 @Composable
-fun SignUpScreen(
+fun SignInScreen(
     uiState: AuthScreenState.Idle,
-    modifier: Modifier = Modifier,
-    onUiEvent: (AuthScreenUiEvent) -> Unit
+    onUiEvent: (AuthScreenUiEvent) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val email = uiState.user.email ?: ""
     val password = uiState.password
-    var repeatPassword by remember { mutableStateOf("") }
-    val username = uiState.user.username ?: ""
     val incorrectEmailText = stringResource(R.string.incorrectEmail)
     val incorrectPasswordText = stringResource(R.string.incorrectPassword)
     Column(
@@ -116,51 +105,52 @@ fun SignUpScreen(
     ) {
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = stringResource(R.string.signUp),
+            text = stringResource(R.string.signIn),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.weight(1f))
-        TextFieldsBlock(
-            modifier = Modifier.fillMaxWidth(),
-            fieldsBlockData = FieldsBlockData(
-                email = email,
-                password = password,
-                repeatPassword = repeatPassword,
-                username = username,
-                onChangeEmail = { onUiEvent(AuthScreenUiEvent.OnEmailChange(it)) },
-                onChangePassword = { onUiEvent(AuthScreenUiEvent.OnPasswordChange(it)) },
-                onChangeRepeatPassword = { repeatPassword = it },
-                onChangeUsername = { onUiEvent(AuthScreenUiEvent.OnUsernameChange(it)) }
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            DefaultOutlinedTextField(
+                value = email,
+                onValueChange = { onUiEvent(AuthScreenUiEvent.OnEmailChange(it)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                placeholder = stringResource(R.string.email),
+                modifier = Modifier.fillMaxWidth()
             )
-        )
+            Spacer(modifier = Modifier.height(8.dp))
+            PasswordTextField(
+                value = password,
+                onValueChange = { onUiEvent(AuthScreenUiEvent.OnPasswordChange(it)) },
+                placeholder = stringResource(R.string.password),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
         Spacer(modifier = Modifier.weight(1f))
-        Button(
-            onClick = {
-                if (isEmailValid(email) && isPasswordValid(password) &&
-                    repeatPassword.isNotEmpty()
-                ) {
-                    if (username.isNotEmpty() && password == repeatPassword) {
-                        onUiEvent(
-                            AuthScreenUiEvent.OnSignUpClick(
-                                UserUiState(email = email, username = username),
-                                password
-                            )
-                        )
-                    }
+        BottomButtons(
+            onNavigateToSignUp = { onUiEvent(AuthScreenUiEvent.OnNavigateToSignUpClicked) },
+            onSignInClick = {
+                if (isEmailValid(email) && isPasswordValid(password)) {
+                    onUiEvent(AuthScreenUiEvent.OnSignInClick(email, password))
                 } else if (!isEmailValid(email)) {
                     onUiEvent(AuthScreenUiEvent.ShowToast(incorrectEmailText))
                 } else {
                     onUiEvent(AuthScreenUiEvent.ShowToast(incorrectPasswordText))
                 }
             },
-            modifier = Modifier.wrapContentWidth()
+            modifier = Modifier.fillMaxWidth().height(55.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        TextButton(
+            onClick = { onUiEvent(AuthScreenUiEvent.OnGuestSignIn) }
         ) {
             Text(
-                text = stringResource(R.string.signUp),
+                text = stringResource(R.string.guestSignIn),
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(LocalEventsMapTheme.dimens.paddingMedium)
+                color = MaterialTheme.colorScheme.primary
             )
         }
         Spacer(modifier = Modifier.height(32.dp))

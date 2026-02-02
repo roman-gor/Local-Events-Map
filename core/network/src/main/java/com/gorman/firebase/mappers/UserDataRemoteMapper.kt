@@ -7,14 +7,12 @@ fun UserDataRemote.toDomain(): UserData =
     UserData(
         uid = uid,
         email = email,
-        username = username,
-        favouriteEventsIds = favouriteEventsIds.map { it.key }
+        username = username
     )
 
 fun UserData.toRemote(): UserDataRemote =
     UserDataRemote(
         uid = uid,
         email = email,
-        username = username,
-        favouriteEventsIds = HashMap(favouriteEventsIds.associateWith { true })
+        username = username
     )

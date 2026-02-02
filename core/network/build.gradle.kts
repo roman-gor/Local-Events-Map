@@ -11,7 +11,6 @@ android {
 dependencies {
 
     implementation(project(":core:domain-model"))
-
     implementation(libs.kotlinx.serialization.json)
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)

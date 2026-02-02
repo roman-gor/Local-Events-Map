@@ -10,6 +10,7 @@ import com.yandex.mapkit.search.SearchOptions
 import com.yandex.mapkit.search.SearchType
 import com.yandex.mapkit.search.Session
 import com.yandex.mapkit.search.ToponymObjectMetadata
+import com.yandex.runtime.Error
 import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -52,7 +53,7 @@ class GetCityByPointUseCase @Inject constructor(
                     }
                 }
 
-                override fun onSearchError(p0: com.yandex.runtime.Error) {
+                override fun onSearchError(p0: Error) {
                     continuation.resume(null)
                 }
             }
