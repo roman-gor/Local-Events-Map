@@ -1,4 +1,4 @@
-package com.gorman.feature.auth.impl.viewmodels
+package com.gorman.feature.auth.impl.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -6,13 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.feature.auth.api.SignInScreenNavKey
 import com.gorman.feature.auth.api.SignUpScreenNavKey
-import com.gorman.ui.mappers.toDomain
-import com.gorman.feature.auth.impl.states.AuthScreenState
-import com.gorman.feature.auth.impl.states.AuthScreenUiEvent
-import com.gorman.feature.auth.impl.states.AuthSideEffects
-import com.gorman.ui.states.UserUiState
+import com.gorman.feature.auth.impl.domain.SignInAnonUserUseCase
+import com.gorman.feature.auth.impl.domain.SignInUserUseCase
+import com.gorman.feature.auth.impl.domain.SignOutUserUseCase
+import com.gorman.feature.auth.impl.domain.SignUpUserUseCase
+import com.gorman.feature.auth.impl.ui.states.AuthScreenState
+import com.gorman.feature.auth.impl.ui.states.AuthScreenUiEvent
+import com.gorman.feature.auth.impl.ui.states.AuthSideEffects
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.navigation.navigator.Navigator
+import com.gorman.ui.mappers.toDomain
+import com.gorman.ui.states.UserUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,12 +27,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val userRepository: IUserRepository,
+    private val signInUserUseCase: SignInUserUseCase,
+    private val signUpUserUseCase: SignUpUserUseCase,
+    private val signInAnonUserUseCase: SignInAnonUserUseCase,
     private val navigator: Navigator
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<AuthScreenState>(AuthScreenState.Idle(user = UserUiState(), password = ""))
+    private val _uiState =
+        MutableStateFlow<AuthScreenState>(AuthScreenState.Idle(user = UserUiState(), password = ""))
     val uiState = _uiState.asStateFlow()
-    private val _sideEffect = Channel<AuthSideEffects>(Channel.BUFFERED)
+    private val _sideEffect = Channel<AuthSideEffects>(Channel.Factory.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
 
     private var lastToastTime = 0L
@@ -71,7 +78,7 @@ class AuthViewModel @Inject constructor(
     private fun signIn(email: String, password: String) {
         viewModelScope.launch {
             _uiState.value = AuthScreenState.Loading
-            userRepository.signIn(email, password)
+            signInUserUseCase(email, password)
                 .onSuccess {
                     navigator.setRoot(HomeScreenNavKey)
                     _uiState.value = AuthScreenState.Success
@@ -86,7 +93,7 @@ class AuthViewModel @Inject constructor(
     private fun guestSignIn() {
         viewModelScope.launch {
             _uiState.value = AuthScreenState.Loading
-            userRepository.signInAnonymously()
+            signInAnonUserUseCase()
                 .onSuccess {
                     navigator.setRoot(HomeScreenNavKey)
                     _uiState.value = AuthScreenState.Success
@@ -102,7 +109,7 @@ class AuthViewModel @Inject constructor(
     private fun signUp(user: UserUiState, password: String) {
         viewModelScope.launch {
             _uiState.value = AuthScreenState.Loading
-            userRepository.signUp(user.toDomain(), password)
+            signUpUserUseCase(user.toDomain(), password)
                 .onSuccess {
                     navigator.setRoot(HomeScreenNavKey)
                     _uiState.value = AuthScreenState.Success

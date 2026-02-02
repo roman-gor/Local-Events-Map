@@ -1,4 +1,4 @@
-package com.gorman.feature.auth.impl.states
+package com.gorman.feature.auth.impl.ui.states
 
 import com.gorman.ui.states.UserUiState
 

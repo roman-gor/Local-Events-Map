@@ -1,4 +1,4 @@
-package com.gorman.feature.auth.impl.components
+package com.gorman.feature.auth.impl.ui.components
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme

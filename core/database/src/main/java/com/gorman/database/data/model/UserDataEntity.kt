@@ -5,8 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "users")
 data class UserDataEntity(
-    @PrimaryKey val uid: String = "MbUMS8zxbehpttvhrcMdb6mkO923",
+    @PrimaryKey val uid: String = "",
     val email: String? = null,
-    val username: String? = null,
-    val favouriteEventsIds: List<String> = emptyList()
+    val username: String? = null
 )

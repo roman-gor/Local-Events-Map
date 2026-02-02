@@ -1,4 +1,4 @@
-package com.gorman.feature.auth.impl.components
+package com.gorman.feature.auth.impl.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

@@ -1,5 +1,7 @@
 package com.gorman.data.di
 
+import com.gorman.data.repository.auth.AuthRepository
+import com.gorman.data.repository.auth.IAuthRepository
 import com.gorman.data.repository.geo.GeoRepository
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
@@ -26,6 +28,9 @@ internal interface ModuleRepository {
 
     @Binds
     fun bindUserRepository(impl: UserRepository): IUserRepository
+
+    @Binds
+    fun bindAuthRepository(impl: AuthRepository): IAuthRepository
 }
 
 @Module

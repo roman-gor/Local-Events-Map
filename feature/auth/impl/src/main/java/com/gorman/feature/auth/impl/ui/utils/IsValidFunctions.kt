@@ -1,4 +1,4 @@
-package com.gorman.feature.auth.impl.utils
+package com.gorman.feature.auth.impl.ui.utils
 
 import android.util.Patterns
 
