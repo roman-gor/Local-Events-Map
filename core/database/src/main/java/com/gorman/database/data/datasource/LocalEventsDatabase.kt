@@ -3,6 +3,7 @@ package com.gorman.database.data.datasource
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.gorman.database.data.datasource.dao.BookmarkDao
 import com.gorman.database.data.datasource.dao.MapEventsDao
 import com.gorman.database.data.datasource.dao.UserDataDao
 import com.gorman.database.data.model.MapEventEntity
@@ -16,8 +17,8 @@ import com.gorman.database.data.model.UserDataEntity
     version = 2,
     exportSchema = false
 )
-@TypeConverters(StringListConverter::class)
 abstract class LocalEventsDatabase : RoomDatabase() {
     abstract fun mapEventsDao(): MapEventsDao
     abstract fun userDataDao(): UserDataDao
+    abstract fun bookmarkDao(): BookmarkDao
 }

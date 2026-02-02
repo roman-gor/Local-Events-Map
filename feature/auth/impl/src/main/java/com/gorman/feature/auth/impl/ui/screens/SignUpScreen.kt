@@ -40,7 +40,6 @@ import com.gorman.feature.auth.impl.ui.utils.isPasswordValid
 import com.gorman.feature.auth.impl.ui.viewmodels.AuthViewModel
 import com.gorman.ui.states.UserUiState
 import com.gorman.ui.components.LoadingStub
-import com.gorman.ui.states.UserUiState
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable

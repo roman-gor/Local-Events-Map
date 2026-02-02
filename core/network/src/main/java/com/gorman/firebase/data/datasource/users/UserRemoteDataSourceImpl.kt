@@ -51,30 +51,4 @@ class UserRemoteDataSourceImpl @Inject constructor(
                 snapshot.getValue(UserDataRemote::class.java)
             }
     }
-
-    override suspend fun updateFavouriteEventsState(uid: String, mapEventId: String) {
-        val favRef = database.child("$uid/${FirebaseConstants.FAVOURITE_EVENTS_PATH.value}/$mapEventId")
-        try {
-            val snapshot = favRef.get().await()
-            if (snapshot.exists()) {
-                favRef.removeValue().await()
-                Log.d("UserRemoteDS", "Event successfully removed from favourites")
-            } else {
-                favRef.setValue(true)
-                Log.d("UserRemoteDS", "Event successfully added to favourites")
-            }
-        } catch (e: FirebaseException) {
-            Log.e("UserRemoteDS", "Error toggling favourites: ${e.message}")
-            throw e
-        }
-    }
-
-    override fun getUserFavouriteEvents(uid: String): Flow<List<String>> {
-        return database
-            .child("$uid/${FirebaseConstants.FAVOURITE_EVENTS_PATH.value}")
-            .snapshotsFlow()
-            .map { snapshot ->
-                snapshot.children.mapNotNull { it.key }
-            }
-    }
 }
