@@ -3,7 +3,6 @@ package com.gorman.data.repository.auth
 import com.gorman.auth.data.IAuthenticator
 import com.gorman.auth.mappers.toDomain
 import com.gorman.domainmodel.UserData
-import com.gorman.data.repository.auth.IAuthRepository
 import javax.inject.Inject
 
 internal class AuthRepository @Inject constructor(
@@ -20,5 +19,6 @@ internal class AuthRepository @Inject constructor(
         firebaseAuthenticator.signUp(email, password).map { it.toDomain() }
 
     override suspend fun signOut() {
-        firebaseAuthenticator.signOut()    }
+        firebaseAuthenticator.signOut()
+    }
 }

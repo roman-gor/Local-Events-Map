@@ -3,12 +3,10 @@ package com.gorman.feature.auth.impl.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gorman.data.repository.user.IUserRepository
 import com.gorman.feature.auth.api.SignInScreenNavKey
 import com.gorman.feature.auth.api.SignUpScreenNavKey
 import com.gorman.feature.auth.impl.domain.SignInAnonUserUseCase
 import com.gorman.feature.auth.impl.domain.SignInUserUseCase
-import com.gorman.feature.auth.impl.domain.SignOutUserUseCase
 import com.gorman.feature.auth.impl.domain.SignUpUserUseCase
 import com.gorman.feature.auth.impl.ui.states.AuthScreenState
 import com.gorman.feature.auth.impl.ui.states.AuthScreenUiEvent

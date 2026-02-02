@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 internal class Authenticator @Inject constructor(
     private val provider: FirebaseAuth
-): IAuthenticator {
+) : IAuthenticator {
     @Suppress("TooGenericExceptionCaught")
     override suspend fun signIn(email: String, password: String): Result<UserAuthModel> {
         return try {
