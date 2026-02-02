@@ -11,4 +11,6 @@ interface IUserRepository {
     suspend fun updateFavouriteEventsState(mapEventId: String): Result<Unit>
     fun getUserFavouriteEvents(): Flow<List<String>>
     suspend fun getUserData(): Flow<UserData>
+    suspend fun saveTokenToUser(uid: String): Result<Unit>
+    suspend fun saveTokenToUser(uid: String, token: String): Result<Unit>
 }

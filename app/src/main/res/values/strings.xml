@@ -2,4 +2,7 @@
     <string name="app_name">LocalEventsMap</string>
     <string name="homeItemTitle">Главная</string>
     <string name="bookmarksItemTitle">Избранное</string>
+    <string name="eventNotFound">Событие не найдено</string>
+    <string name="notificationTitle">Новое событие в твоем городе!</string>
+    <string name="notificationText">Перейди, чтобы узнать подробности...</string>
 </resources>

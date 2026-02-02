@@ -62,6 +62,7 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:ui"))
     implementation(project(":core:cache"))
+    implementation(project(":core:data"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.hilt.ext.work)
@@ -73,4 +74,8 @@ dependencies {
     lintChecks(libs.compose.lint.checks)
 
     implementation(libs.yandex.android)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
+
 }
