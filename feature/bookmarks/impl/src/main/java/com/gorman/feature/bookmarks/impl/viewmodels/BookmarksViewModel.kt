@@ -86,6 +86,11 @@ class BookmarksViewModel @Inject constructor(
                     userRepository.signOut()
                 }
             }
+            BookmarksScreenUiEvent.OnSignInClick -> {
+                viewModelScope.launch {
+                    navigator.goTo(SignInScreenNavKey)
+                }
+            }
         }
     }
 }

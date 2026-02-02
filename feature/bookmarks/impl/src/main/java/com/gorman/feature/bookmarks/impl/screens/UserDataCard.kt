@@ -26,49 +26,86 @@ import com.gorman.ui.states.UserUiState
 fun UserDataCard(
     user: UserUiState,
     onSignOutClick: () -> Unit,
+    onSignUpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = defineName(user.username) ?: "",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                if (!user.email.isNullOrEmpty()) {
-                    Text(
-                        text = user.email!!,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            IconButton(
-                onClick = { onSignOutClick() }
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = "Exit From Account Icon",
-                    modifier = Modifier.size(32.dp)
-                )
-            }
+        if (!user.email.isNullOrEmpty() ) {
+            UserCard(
+                user = user,
+                onSignOutClick = onSignOutClick
+            )
+        }
+        else {
+            SignUpCard(
+                onSignUpClick = onSignUpClick
+            )
         }
     }
 }
 
 @Composable
-fun defineName(name: String?): String? {
-    return if (name == "guest") {
-        stringResource(R.string.guest)
-    } else {
-        name
+fun UserCard(
+    user: UserUiState,
+    onSignOutClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center
+        ) {
+            user.username?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            Text(
+                text = user.email!!,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        IconButton(
+            onClick = { onSignOutClick() }
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                contentDescription = "Exit From Account Icon",
+                modifier = Modifier.size(32.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun SignUpCard(
+    onSignUpClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(R.string.signUpOrIn),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        IconButton(
+            onClick = { onSignUpClick() }
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                contentDescription = "Login To Account Icon",
+                modifier = Modifier.size(32.dp)
+            )
+        }
     }
 }

@@ -78,6 +78,7 @@ fun BookmarksScreen(
             UserDataCard(
                 user = uiState.userUiState,
                 onSignOutClick = { onUiEvent(BookmarksScreenUiEvent.OnSignOutClick) },
+                onSignUpClick = { onUiEvent(BookmarksScreenUiEvent.OnSignInClick) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)

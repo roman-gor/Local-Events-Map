@@ -6,4 +6,5 @@ sealed interface BookmarksScreenUiEvent {
     data class ChangeLikeState(val eventId: String) : BookmarksScreenUiEvent
     data object OnExploreClick : BookmarksScreenUiEvent
     data object OnSignOutClick : BookmarksScreenUiEvent
+    data object OnSignInClick : BookmarksScreenUiEvent
 }

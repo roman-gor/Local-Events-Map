@@ -6,13 +6,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -50,9 +53,10 @@ fun BookmarkList(
     onLikeButtonClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = modifier
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = modifier,
+        contentPadding = PaddingValues(bottom = 100.dp)
     ) {
         items(events) { event ->
             BookmarkEventCard(
@@ -86,7 +90,9 @@ fun BookmarkEventCard(
         AsyncImage(state = imageState)
         IconButton(
             onClick = { onLikeButtonClick() },
-            modifier = Modifier.align(Alignment.TopEnd).size(42.dp)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(42.dp)
         ) {
             Icon(
                 imageVector = if (isLike.value) {
@@ -96,7 +102,8 @@ fun BookmarkEventCard(
                 },
                 contentDescription = "Like Button Icon",
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(42.dp)
+                modifier = Modifier
+                    .size(42.dp)
                     .padding(
                         top = LocalEventsMapTheme.dimens.paddingMedium,
                         end = LocalEventsMapTheme.dimens.paddingMedium
@@ -146,18 +153,26 @@ fun AsyncImage(
     when (state) {
         is AsyncImagePainter.State.Empty -> {}
         is AsyncImagePainter.State.Error -> {
-            Image(
-                painter = painterResource(R.drawable.ic_placeholder),
-                contentDescription = "Image Placeholder",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
-            )
+            Box(
+                modifier = Modifier.fillMaxWidth().height(200.dp)
+                    .clip(LocalEventsMapTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.onPrimary),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_placeholder),
+                    contentDescription = "Image Placeholder",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
         }
         is AsyncImagePainter.State.Loading -> CircularProgressIndicator()
         is AsyncImagePainter.State.Success -> {
             Image(
                 painter = state.painter,
                 contentDescription = "Event image",
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize()
+                    .heightIn(max = 300.dp),
                 contentScale = ContentScale.Crop
             )
         }
