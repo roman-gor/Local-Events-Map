@@ -1,4 +1,4 @@
-package com.gorman.feature.details.impl.screens
+package com.gorman.feature.details.impl.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
@@ -26,16 +26,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.rememberAsyncImagePainter
 import com.gorman.feature.details.impl.R
-import com.gorman.feature.details.impl.components.BottomBlock
-import com.gorman.feature.details.impl.components.MapEventInfoRow
-import com.gorman.feature.details.impl.components.TopBlock
-import com.gorman.feature.details.impl.contextUtils.openBrowser
-import com.gorman.feature.details.impl.contextUtils.openMap
-import com.gorman.feature.details.impl.contextUtils.shareContent
-import com.gorman.feature.details.impl.states.DetailsActions
-import com.gorman.feature.details.impl.states.DetailsScreenState
-import com.gorman.feature.details.impl.states.DetailsScreenUiEvent
-import com.gorman.feature.details.impl.viewmodels.DetailsViewModel
+import com.gorman.feature.details.impl.ui.components.BottomBlock
+import com.gorman.feature.details.impl.ui.components.MapEventInfoRow
+import com.gorman.feature.details.impl.ui.components.TopBlock
+import com.gorman.feature.details.impl.ui.contextUtils.openBrowser
+import com.gorman.feature.details.impl.ui.contextUtils.openMap
+import com.gorman.feature.details.impl.ui.contextUtils.shareContent
+import com.gorman.feature.details.impl.ui.states.DetailsActions
+import com.gorman.feature.details.impl.ui.states.DetailsScreenState
+import com.gorman.feature.details.impl.ui.states.DetailsScreenUiEvent
+import com.gorman.feature.details.impl.ui.viewmodels.DetailsViewModel
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.states.MapUiEvent

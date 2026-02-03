@@ -1,4 +1,4 @@
-package com.gorman.feature.details.impl.components
+package com.gorman.feature.details.impl.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -29,7 +29,7 @@ fun AsyncPosterImage(
                 Image(
                     painter = painterResource(R.drawable.ic_placeholder),
                     contentDescription = "Image Placeholder",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
                 )
             }
             is AsyncImagePainter.State.Loading -> CircularProgressIndicator()

@@ -31,9 +31,8 @@ internal class UserRepository @Inject constructor(
         userDataDao.clearAll()
     }
 
-    override suspend fun getUserData(): Flow<UserData> {
-        return userDataDao.getUser().map { it.toDomain() }
-    }
+    override suspend fun getUserData(): Flow<UserData?> =
+        userDataDao.getUser().map { it?.toDomain() }
 
     override suspend fun saveUser(userData: UserData): Result<Unit> {
         return userRemoteDataSource.saveUserToRemote(userData.toRemote())

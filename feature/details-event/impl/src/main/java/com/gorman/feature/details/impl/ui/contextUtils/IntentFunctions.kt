@@ -1,4 +1,4 @@
-package com.gorman.feature.details.impl.contextUtils
+package com.gorman.feature.details.impl.ui.contextUtils
 
 import android.content.Context
 import android.content.Intent

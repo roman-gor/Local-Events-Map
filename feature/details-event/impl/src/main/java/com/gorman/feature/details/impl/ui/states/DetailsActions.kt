@@ -1,4 +1,4 @@
-package com.gorman.feature.details.impl.states
+package com.gorman.feature.details.impl.ui.states
 
 import androidx.compose.runtime.Immutable
 

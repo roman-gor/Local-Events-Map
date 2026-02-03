@@ -25,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -35,9 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImagePainter
-import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
 import com.gorman.feature.bookmarks.impl.R
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
@@ -79,14 +76,12 @@ fun BookmarkEventCard(
     onLikeButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val painter = rememberAsyncImagePainter(event.photoUrl)
-    val imageState by painter.state.collectAsStateWithLifecycle()
     val date = event.date?.format(DateFormatStyle.DATE_ONLY)
     val isLike = remember { mutableStateOf(true) }
     Box(
         modifier = modifier
     ) {
-        AsyncImage(state = imageState)
+        AsyncImage(event.photoUrl)
         IconButton(
             onClick = { onLikeButtonClick() },
             modifier = Modifier
@@ -147,11 +142,22 @@ fun BookmarkEventCard(
 
 @Composable
 fun AsyncImage(
-    state: AsyncImagePainter.State
+    imageUrl: String?
 ) {
-    when (state) {
-        is AsyncImagePainter.State.Empty -> {}
-        is AsyncImagePainter.State.Error -> {
+    SubcomposeAsyncImage(
+        model = imageUrl,
+        contentDescription = "Event Image with composable placeholder",
+        loading = {
+            Box(
+                modifier = Modifier.fillMaxWidth().height(200.dp)
+                    .clip(LocalEventsMapTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.onPrimary),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        },
+        error = {
             Box(
                 modifier = Modifier.fillMaxWidth().height(200.dp)
                     .clip(LocalEventsMapTheme.shapes.large)
@@ -164,9 +170,8 @@ fun AsyncImage(
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
-        }
-        is AsyncImagePainter.State.Loading -> CircularProgressIndicator()
-        is AsyncImagePainter.State.Success -> {
+        },
+        success = { state ->
             Image(
                 painter = state.painter,
                 contentDescription = "Event image",
@@ -175,5 +180,5 @@ fun AsyncImage(
                 contentScale = ContentScale.Crop
             )
         }
-    }
+    )
 }

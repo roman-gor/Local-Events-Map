@@ -9,8 +9,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gorman.feature.details.api.DetailsScreenNavKey
-import com.gorman.feature.details.impl.screens.DetailsEventScreenEntry
-import com.gorman.feature.details.impl.viewmodels.DetailsViewModel
+import com.gorman.feature.details.impl.ui.screens.DetailsEventScreenEntry
+import com.gorman.feature.details.impl.ui.viewmodels.DetailsViewModel
 
 fun EntryProviderScope<NavKey>.featureDetailsEntryBuilder() {
     entry<DetailsScreenNavKey> { key ->

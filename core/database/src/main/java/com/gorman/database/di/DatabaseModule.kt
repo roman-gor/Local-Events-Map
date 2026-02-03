@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.gorman.database.data.datasource.LocalEventsDatabase
 import com.gorman.database.data.datasource.dao.BookmarkDao
+import com.gorman.database.data.datasource.dao.BookmarkMapEventDao
 import com.gorman.database.data.datasource.dao.MapEventsDao
 import com.gorman.database.data.datasource.dao.UserDataDao
 import dagger.Module
@@ -38,4 +39,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideBookmarkDao(db: LocalEventsDatabase): BookmarkDao = db.bookmarkDao()
+
+    @Provides
+    @Singleton
+    fun provideBookmarkMapEventDao(db: LocalEventsDatabase): BookmarkMapEventDao = db.bookmarkMapEventDao()
 }

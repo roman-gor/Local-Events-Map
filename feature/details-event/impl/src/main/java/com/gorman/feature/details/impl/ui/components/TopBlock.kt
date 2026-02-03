@@ -1,4 +1,4 @@
-package com.gorman.feature.details.impl.components
+package com.gorman.feature.details.impl.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImagePainter
-import com.gorman.feature.details.impl.states.DetailsActions
+import com.gorman.feature.details.impl.ui.states.DetailsActions
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
@@ -52,7 +52,7 @@ fun TopBlock(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(180.dp)
-                .background(MaterialTheme.colorScheme.primary)
+                .background(MaterialTheme.colorScheme.onPrimary)
         )
         ActionsRow(
             selectedIcon = selectedIcon,

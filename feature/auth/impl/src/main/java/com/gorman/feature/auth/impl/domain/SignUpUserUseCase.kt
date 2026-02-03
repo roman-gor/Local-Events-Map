@@ -11,22 +11,9 @@ class SignUpUserUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(userData: UserData, password: String): Result<Unit> {
         val email = userData.email ?: error("Email is null")
-        return authRepository.signUp(email, password).fold(
-            onSuccess = { authResult ->
-                val uid = authResult.uid
-
-                val newUser = userData.copy(uid = uid)
-
-                val saveResult = userRepository.saveUser(newUser)
-
-                if (saveResult.isFailure) {
-                    return Result.failure(saveResult.exceptionOrNull() ?: Exception("Save failed"))
-                }
-                Result.success(Unit)
-            },
-            onFailure = { e ->
-                Result.failure(e)
-            }
-        )
+        return authRepository.signUp(email, password).mapCatching { authResult ->
+            userRepository.clearUserData()
+            userRepository.saveUser(userData.copy(uid = authResult.uid))
+        }
     }
 }

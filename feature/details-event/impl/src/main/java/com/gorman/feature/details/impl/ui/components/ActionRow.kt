@@ -1,4 +1,4 @@
-package com.gorman.feature.details.impl.components
+package com.gorman.feature.details.impl.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.gorman.feature.details.impl.R
-import com.gorman.feature.details.impl.states.DetailsActions
+import com.gorman.feature.details.impl.ui.states.DetailsActions
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable

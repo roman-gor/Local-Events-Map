@@ -9,14 +9,9 @@ class SignInAnonUserUseCase @Inject constructor(
     private val userRepository: IUserRepository
 ) {
     suspend operator fun invoke(): Result<Unit> {
-        return authRepository.signInAnonymously().fold(
-            onSuccess = {
-                userRepository.saveUser(it)
-                Result.success(Unit)
-            },
-            onFailure = { e ->
-                Result.failure(Exception(e))
-            }
-        )
+        return authRepository.signInAnonymously().mapCatching {
+            userRepository.clearUserData()
+            userRepository.saveUser(it)
+        }
     }
 }

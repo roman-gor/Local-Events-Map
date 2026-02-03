@@ -2,6 +2,8 @@ package com.gorman.firebase.di
 
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.gorman.firebase.data.datasource.bookmarks.BookmarksRemoteDataSource
+import com.gorman.firebase.data.datasource.bookmarks.IBookmarksRemoteDataSource
 import com.gorman.firebase.data.datasource.mapevent.MapEventRemoteDataSource
 import com.gorman.firebase.data.datasource.mapevent.MapEventRemoteDataSourceImpl
 import com.gorman.firebase.data.datasource.users.IUserRemoteDataSource
@@ -15,17 +17,20 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface FirebaseRepositoryModule {
+interface NetworkDataSourceModule {
     @Binds
     fun bindMapEventDataSource(impl: MapEventRemoteDataSourceImpl): MapEventRemoteDataSource
 
     @Binds
     fun bindUserDataSource(impl: UserRemoteDataSourceImpl): IUserRemoteDataSource
+
+    @Binds
+    fun bindBookmarkDataSource(impl: BookmarksRemoteDataSource): IBookmarksRemoteDataSource
 }
 
 @Module
 @InstallIn(SingletonComponent::class)
-object FirebaseMainModule {
+object FirebaseModule {
     @Provides
     fun provideFirebaseDatabase(): FirebaseDatabase {
         return FirebaseDatabase.getInstance()
