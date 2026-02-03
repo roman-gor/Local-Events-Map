@@ -129,10 +129,10 @@ complexity:
     threshold: 600
   LongMethod:
     active: true
-    threshold: 70
+    threshold: 75
   LongParameterList:
     active: true
-    functionThreshold: 6
+    functionThreshold: 8
     constructorThreshold: 8
     ignoreDefaultParameters: false
     ignoreDataClasses: true

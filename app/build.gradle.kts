@@ -56,6 +56,7 @@ dependencies {
     implementation(project(":feature:events:impl"))
     implementation(project(":sync:work"))
     implementation(project(":core:ui"))
+    implementation(project(":core:map"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.hilt.ext.work)

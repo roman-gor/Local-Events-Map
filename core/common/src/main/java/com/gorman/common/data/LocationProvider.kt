@@ -5,7 +5,7 @@ import android.util.Log
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.yandex.mapkit.geometry.Point
+import com.gorman.domainmodel.PointDomain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -18,10 +18,10 @@ class LocationProvider @Inject constructor(
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
-    suspend fun getLastKnownLocation(): Result<Point> {
+    suspend fun getLastKnownLocation(): Result<PointDomain> {
         return try {
             val lastLoc = fusedLocationClient.lastLocation.await()
-            if (lastLoc != null) Result.success(Point(lastLoc.latitude, lastLoc.longitude))
+            if (lastLoc != null) Result.success(PointDomain(lastLoc.latitude, lastLoc.longitude))
 
             val currentLoc = fusedLocationClient.getCurrentLocation(
                 com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
@@ -31,7 +31,7 @@ class LocationProvider @Inject constructor(
                 "LocationProvider",
                 "Coordinates: ${currentLoc.latitude} / ${currentLoc.longitude}"
             )
-            val point = currentLoc?.let { Point(it.latitude, it.longitude) }
+            val point = currentLoc?.let { PointDomain(lastLoc.latitude, lastLoc.longitude) }
             if (point != null) {
                 Result.success(point)
             } else {
