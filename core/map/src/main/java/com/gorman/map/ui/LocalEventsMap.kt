@@ -67,9 +67,7 @@ fun LocalEventsMap(
     val eventsCollection = remember { mutableStateOf<ClusterizedPlacemarkCollection?>(null) }
     val userPlacemark = remember { mutableStateOf<PlacemarkMapObject?>(null) }
 
-    val clusterListener = remember(context) {
-        createClusterListener(context, mapView)
-    }
+    val clusterListener = remember(context) { createClusterListener(context, mapView) }
 
     val markerTapListener = remember(onMarkerClick) {
         MapObjectTapListener { mapObject, _ ->
@@ -160,10 +158,16 @@ private fun updateMarkersOnly(
 
     collection.clear()
 
-    val iconStyle = IconStyle().apply { anchor = PointF(0.5f, 1.0f); zIndex = 10f }
+    val iconStyle = IconStyle().apply {
+        anchor = PointF(0.5f, 1.0f)
+        zIndex = 10f
+    }
 
     markers.forEach { marker ->
-        val imageProvider = ImageProvider.fromResource(context, if (marker.isSelected) marker.selectedIconRes else marker.iconRes)
+        val imageProvider = ImageProvider.fromResource(
+            context,
+            if (marker.isSelected) marker.selectedIconRes else marker.iconRes
+        )
         collection.addPlacemark().apply {
             geometry = Point(marker.latitude, marker.longitude)
             setIcon(imageProvider, iconStyle)
