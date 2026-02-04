@@ -8,10 +8,13 @@ import android.widget.TextView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.gorman.domainmodel.PointDomain
 import com.gorman.map.R
 import com.gorman.map.mapper.toYandex
@@ -21,8 +24,10 @@ import com.yandex.mapkit.map.CameraListener
 import com.yandex.mapkit.map.CameraPosition
 import com.yandex.mapkit.map.CameraUpdateReason
 import com.yandex.mapkit.map.ClusterListener
+import com.yandex.mapkit.map.ClusterizedPlacemarkCollection
 import com.yandex.mapkit.map.IconStyle
 import com.yandex.mapkit.map.MapObjectTapListener
+import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.mapview.MapView
 import com.yandex.runtime.image.ImageProvider
 import com.yandex.runtime.ui_view.ViewProvider
@@ -59,12 +64,33 @@ fun LocalEventsMap(
     val mapView = remember { MapView(context) }
     val internalControl = mapControl as? MapControlImpl
 
+    val eventsCollection = remember { mutableStateOf<ClusterizedPlacemarkCollection?>(null) }
+    val userPlacemark = remember { mutableStateOf<PlacemarkMapObject?>(null) }
+
+    val clusterListener = remember(context) {
+        createClusterListener(context, mapView)
+    }
+
+    val markerTapListener = remember(onMarkerClick) {
+        MapObjectTapListener { mapObject, _ ->
+            (mapObject.userData as? String)?.let { onMarkerClick(it) }
+            true
+        }
+    }
+
+    val currentMarkers = remember { mutableStateOf<List<MapMarker>?>(null) }
+
+    LifecycleStartEffect(Unit) {
+        mapView.onStart()
+        onStopOrDispose {
+            mapView.onStop()
+        }
+    }
+
     DisposableEffect(mapView) {
         internalControl?.mapView = mapView
-        mapView.onStart()
         onMapReady()
         onDispose {
-            mapView.onStop()
             internalControl?.mapView = null
         }
     }
@@ -94,66 +120,99 @@ fun LocalEventsMap(
         factory = { mapView },
         modifier = modifier,
         update = { view ->
-            updateMapState(
+            if (view.mapWindow.map.isNightModeEnabled != config.isDarkMode) {
+                view.mapWindow.map.isNightModeEnabled = config.isDarkMode
+            }
+
+            if (currentMarkers.value != markers) {
+                updateMarkersOnly(
+                    mapView = view,
+                    context = context,
+                    markers = markers,
+                    tapListener = markerTapListener,
+                    clusterListener = clusterListener,
+                    collectionState = eventsCollection
+                )
+                currentMarkers.value = markers
+            }
+
+            updateUserLocationOnly(
                 mapView = view,
                 context = context,
-                markers = markers,
-                isDarkMode = config.isDarkMode,
-                onMarkerClick = onMarkerClick,
-                config = config
+                config = config,
+                userPlacemarkState = userPlacemark
             )
         }
     )
 }
 
-private fun updateMapState(
+private fun updateMarkersOnly(
     mapView: MapView,
     context: Context,
     markers: List<MapMarker>,
-    isDarkMode: Boolean,
-    onMarkerClick: (String) -> Unit,
-    config: MapConfig
+    tapListener: MapObjectTapListener,
+    clusterListener: ClusterListener,
+    collectionState: MutableState<ClusterizedPlacemarkCollection?>
 ) {
-    mapView.mapWindow.map.isNightModeEnabled = isDarkMode
-    val mapObjects = mapView.mapWindow.map.mapObjects
-    mapObjects.clear()
+    val collection = collectionState.value ?: mapView.mapWindow.map.mapObjects.addClusterizedPlacemarkCollection(
+        clusterListener
+    ).also { collectionState.value = it }
 
-    if (config.userLocation != null && config.userLocationIconRes != null) {
-        val userIcon = ImageProvider.fromResource(context, config.userLocationIconRes)
+    collection.clear()
 
-        mapObjects.addPlacemark().apply {
-            geometry = Point(config.userLocation.latitude, config.userLocation.longitude)
+    val iconStyle = IconStyle().apply { anchor = PointF(0.5f, 1.0f); zIndex = 10f }
+
+    markers.forEach { marker ->
+        val imageProvider = ImageProvider.fromResource(context, if (marker.isSelected) marker.selectedIconRes else marker.iconRes)
+        collection.addPlacemark().apply {
+            geometry = Point(marker.latitude, marker.longitude)
+            setIcon(imageProvider, iconStyle)
+            userData = marker.id
+            addTapListener(tapListener)
+        }
+    }
+
+    collection.clusterPlacemarks(60.0, 15)
+}
+
+private fun updateUserLocationOnly(
+    mapView: MapView,
+    context: Context,
+    config: MapConfig,
+    userPlacemarkState: MutableState<PlacemarkMapObject?>
+) {
+    val location = config.userLocation ?: return
+    val iconRes = config.userLocationIconRes ?: return
+
+    if (userPlacemarkState.value == null) {
+        val userIcon = ImageProvider.fromResource(context, iconRes)
+        userPlacemarkState.value = mapView.mapWindow.map.mapObjects.addPlacemark().apply {
+            geometry = Point(location.latitude, location.longitude)
             setIcon(userIcon)
             zIndex = 0f
             isDraggable = false
         }
+    } else {
+        userPlacemarkState.value?.geometry = Point(location.latitude, location.longitude)
     }
+}
 
-    val tapListener = MapObjectTapListener { mapObject, _ ->
-        val id = mapObject.userData as? String
-        id?.let { onMarkerClick(it) }
-        true
-    }
-
-    val clusterListener = ClusterListener { cluster ->
+private fun createClusterListener(context: Context, mapView: MapView): ClusterListener {
+    return ClusterListener { cluster ->
         val textView = TextView(context).apply {
             text = cluster.size.toString()
             textSize = 14f
             setTextColor(context.getColor(R.color.onPrimary))
             gravity = Gravity.CENTER
-
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(context.getColor(R.color.primary))
                 setSize(100, 100)
             }
-
             setPadding(20, 20, 20, 20)
         }
-
         cluster.appearance.setView(ViewProvider(textView))
         cluster.appearance.zIndex = 100f
-
         cluster.addClusterTapListener { _ ->
             val target = cluster.appearance.geometry
             mapView.mapWindow.map.move(
@@ -164,27 +223,4 @@ private fun updateMapState(
             true
         }
     }
-
-    val clusterizedCollection = mapObjects.addClusterizedPlacemarkCollection(clusterListener)
-
-    val iconStyle = IconStyle().apply {
-        anchor = PointF(0.5f, 1.0f)
-        zIndex = 10f
-    }
-
-    markers.forEach { marker ->
-        val imageProvider = ImageProvider.fromResource(
-            context,
-            if (marker.isSelected) marker.selectedIconRes else marker.iconRes
-        )
-
-        clusterizedCollection.addPlacemark().apply {
-            geometry = Point(marker.latitude, marker.longitude)
-            setIcon(imageProvider, iconStyle)
-            userData = marker.id
-            addTapListener(tapListener)
-        }
-    }
-
-    clusterizedCollection.clusterPlacemarks(60.0, 15)
 }
