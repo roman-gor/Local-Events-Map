@@ -38,6 +38,7 @@ playServices = "21.3.0"
 room = "2.7.2"
 runtime = "1.10.1"
 yandex = "4.19.0-full"
+uiGraphics = "1.10.2"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -102,6 +103,7 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 yandex-android = { module = "com.yandex.android:maps.mobile", version.ref = "yandex" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
 
 [bundles]
 adaptive-material = [

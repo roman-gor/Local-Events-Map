@@ -2,7 +2,6 @@ package com.gorman.feature.details.impl.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,8 +21,7 @@ fun EntryProviderScope<NavKey>.featureDetailsEntryBuilder() {
         DetailsEventScreenEntry(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = MaterialTheme.colorScheme.background)
-                .systemBarsPadding(),
+                .background(color = MaterialTheme.colorScheme.background),
             detailsViewModel = viewModel
         )
     }

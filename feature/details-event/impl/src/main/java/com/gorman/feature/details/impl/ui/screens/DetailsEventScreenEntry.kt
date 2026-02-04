@@ -1,7 +1,7 @@
-package com.gorman.feature.details.impl.ui.screens
+package com.gorman.feature.details.impl.screens
 
 import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,33 +9,33 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.rememberAsyncImagePainter
 import com.gorman.feature.details.impl.R
-import com.gorman.feature.details.impl.ui.components.BottomBlock
-import com.gorman.feature.details.impl.ui.components.MapEventInfoRow
-import com.gorman.feature.details.impl.ui.components.TopBlock
-import com.gorman.feature.details.impl.ui.contextUtils.openBrowser
-import com.gorman.feature.details.impl.ui.contextUtils.openMap
-import com.gorman.feature.details.impl.ui.contextUtils.shareContent
-import com.gorman.feature.details.impl.ui.states.DetailsActions
-import com.gorman.feature.details.impl.ui.states.DetailsScreenState
-import com.gorman.feature.details.impl.ui.states.DetailsScreenUiEvent
-import com.gorman.feature.details.impl.ui.viewmodels.DetailsViewModel
+import com.gorman.feature.details.impl.components.AboutEventSection
+import com.gorman.feature.details.impl.components.BlurImage
+import com.gorman.feature.details.impl.components.BottomSection
+import com.gorman.feature.details.impl.components.DateTimeSection
+import com.gorman.feature.details.impl.components.HeaderSection
+import com.gorman.feature.details.impl.components.TitleSection
+import com.gorman.feature.details.impl.contextUtils.openBrowser
+import com.gorman.feature.details.impl.contextUtils.openCalendar
+import com.gorman.feature.details.impl.contextUtils.openMap
+import com.gorman.feature.details.impl.contextUtils.shareContent
+import com.gorman.feature.details.impl.states.DetailsScreenState
+import com.gorman.feature.details.impl.states.DetailsScreenUiEvent
+import com.gorman.feature.details.impl.viewmodels.DetailsViewModel
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.states.MapUiEvent
@@ -79,56 +79,66 @@ fun DetailsEventScreen(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val painter = rememberAsyncImagePainter(mapUiEvent.photoUrl)
-    val imageState by painter.state.collectAsStateWithLifecycle()
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center
-    ) {
+    val backgroundColorValue = MaterialTheme.colorScheme.background.value
+
+    Box(modifier = modifier) {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.Top
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 100.dp)
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            TopBlock(
-                name = mapUiEvent.name,
-                isFavourite = mapUiEvent.isFavourite,
-                imageState = imageState,
-                detailsActions = DetailsActions(
-                    onFavouriteClick = { onUiEvent(DetailsScreenUiEvent.OnFavouriteClick(mapUiEvent.id)) },
+            BlurImage(
+                photoUrl = mapUiEvent.photoUrl,
+                backgroundColorValue = backgroundColorValue,
+                modifier = Modifier.fillMaxWidth().height(400.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier.padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
+            ) {
+                TitleSection(
+                    mapUiEvent = mapUiEvent,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                DateTimeSection(
+                    mapUiEvent = mapUiEvent,
+                    onCalendarClick = {
+                        openCalendar(
+                            context = context,
+                            dateTime = mapUiEvent.date,
+                            title = mapUiEvent.name,
+                            description = mapUiEvent.description
+                        )
+                    },
                     onLocationClick = { openMap(context, mapUiEvent.coordinates) },
-                    onShareClick = { shareContent(context, mapUiEvent.link) },
-                    onLinkClick = { openBrowser(context, mapUiEvent.link) }
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Text(
-                text = mapUiEvent.description ?: "",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Justify,
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
-                    .weight(1f)
-                    .verticalScroll(state = rememberScrollState())
-            )
-            MapEventInfoRow(
-                address = mapUiEvent.address,
-                timestamp = mapUiEvent.date,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(LocalEventsMapTheme.dimens.paddingLarge)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            BottomBlock(
-                cityName = mapUiEvent.cityName?.lowercase() ?: "",
-                category = mapUiEvent.category?.lowercase() ?: "",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                AboutEventSection(
+                    description = mapUiEvent.description ?: "",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
+        HeaderSection(
+            name = mapUiEvent.name,
+            onNavigateToBack = { onUiEvent(DetailsScreenUiEvent.OnNavigateToBack) },
+            onShareClick = { shareContent(context, mapUiEvent.link) },
+            modifier = Modifier.fillMaxWidth()
+                .padding(
+                    horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge,
+                    vertical = LocalEventsMapTheme.dimens.paddingMedium
+                )
+                .systemBarsPadding().align(Alignment.TopCenter)
+        )
+        BottomSection(
+            isLike = mapUiEvent.isFavourite ?: false,
+            onLikeClick = { onUiEvent(DetailsScreenUiEvent.OnFavouriteClick(mapUiEvent.id)) },
+            onLinkClick = { openBrowser(context, mapUiEvent.link) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
+                .height(58.dp)
+                .align(Alignment.BottomCenter)
+        )
     }
 }
