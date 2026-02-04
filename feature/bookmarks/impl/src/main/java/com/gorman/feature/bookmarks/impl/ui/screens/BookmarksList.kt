@@ -1,6 +1,5 @@
 package com.gorman.feature.bookmarks.impl.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,12 +9,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -26,7 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,22 +47,25 @@ fun BookmarkList(
     onLikeButtonClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
+    LazyVerticalGrid (
+        columns = GridCells.Fixed(2),
         modifier = modifier,
         contentPadding = PaddingValues(bottom = 100.dp)
     ) {
-        items(events) { event ->
+        items(
+            items =events,
+            key = { event -> event.id }
+        ) { event ->
             BookmarkEventCard(
                 event = event,
                 onLikeButtonClick = { onLikeButtonClick(event.id) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(LocalEventsMapTheme.dimens.paddingMedium)
+                    .clip(LocalEventsMapTheme.shapes.large)
                     .clickable(onClick = {
                         onEventClick(event.id)
                     })
-                    .clip(LocalEventsMapTheme.shapes.large)
             )
         }
     }
@@ -77,7 +78,7 @@ fun BookmarkEventCard(
     modifier: Modifier = Modifier
 ) {
     val date = event.date?.format(DateFormatStyle.DATE_ONLY)
-    val isLike = remember { mutableStateOf(true) }
+    val isLike = rememberSaveable { mutableStateOf(true) }
     Box(
         modifier = modifier
     ) {
@@ -147,11 +148,14 @@ fun AsyncImage(
     SubcomposeAsyncImage(
         model = imageUrl,
         contentDescription = "Event Image with composable placeholder",
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
+            .background(MaterialTheme.colorScheme.onPrimary),
+        contentScale = ContentScale.Crop,
         loading = {
             Box(
-                modifier = Modifier.fillMaxWidth().height(200.dp)
-                    .clip(LocalEventsMapTheme.shapes.large)
-                    .background(MaterialTheme.colorScheme.onPrimary),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -159,8 +163,7 @@ fun AsyncImage(
         },
         error = {
             Box(
-                modifier = Modifier.fillMaxWidth().height(200.dp)
-                    .clip(LocalEventsMapTheme.shapes.large)
+                modifier = Modifier.fillMaxSize()
                     .background(MaterialTheme.colorScheme.onPrimary),
                 contentAlignment = Alignment.Center
             ) {
@@ -170,15 +173,6 @@ fun AsyncImage(
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
-        },
-        success = { state ->
-            Image(
-                painter = state.painter,
-                contentDescription = "Event image",
-                modifier = Modifier.fillMaxSize()
-                    .heightIn(max = 300.dp),
-                contentScale = ContentScale.Crop
-            )
         }
     )
 }
