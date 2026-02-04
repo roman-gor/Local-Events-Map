@@ -7,6 +7,7 @@ import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.details.impl.states.DetailsScreenState
 import com.gorman.feature.details.impl.states.DetailsScreenUiEvent
+import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.mappers.toUiState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -26,6 +27,7 @@ import okio.IOException
 @HiltViewModel(assistedFactory = DetailsViewModel.Factory::class)
 class DetailsViewModel @AssistedInject constructor(
     private val mapEventsRepository: IMapEventsRepository,
+    private val navigator: Navigator,
     @Assisted val navKey: DetailsScreenNavKey
 ) : ViewModel() {
     @AssistedFactory
@@ -62,6 +64,7 @@ class DetailsViewModel @AssistedInject constructor(
         when (uiEvent) {
             is DetailsScreenUiEvent.OnFavouriteClick -> onFavouriteChange(uiEvent.id)
             DetailsScreenUiEvent.OnRetryClick -> retryTrigger.tryEmit(Unit)
+            DetailsScreenUiEvent.OnNavigateToBack -> navigator.goBack()
         }
     }
 
