@@ -1,4 +1,4 @@
-package com.gorman.feature.details.impl.components
+package com.gorman.feature.details.impl.ui.components
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton

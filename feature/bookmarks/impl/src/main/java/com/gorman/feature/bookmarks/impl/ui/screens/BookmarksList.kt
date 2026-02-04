@@ -47,13 +47,13 @@ fun BookmarkList(
     onLikeButtonClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyVerticalGrid (
+    LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier,
         contentPadding = PaddingValues(bottom = 100.dp)
     ) {
         items(
-            items =events,
+            items = events,
             key = { event -> event.id }
         ) { event ->
             BookmarkEventCard(

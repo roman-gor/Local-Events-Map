@@ -1,4 +1,4 @@
-package com.gorman.feature.details.impl.components
+package com.gorman.feature.details.impl.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
