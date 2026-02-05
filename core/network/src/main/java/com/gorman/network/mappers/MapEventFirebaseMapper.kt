@@ -1,7 +1,7 @@
-package com.gorman.firebase.mappers
+package com.gorman.network.mappers
 
 import com.gorman.domainmodel.MapEvent
-import com.gorman.firebase.data.models.MapEventRemote
+import com.gorman.network.data.models.MapEventRemote
 
 fun MapEventRemote.toDomain(): MapEvent =
     MapEvent(

@@ -1,14 +1,14 @@
-package com.gorman.firebase.di
+package com.gorman.network.di
 
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.gorman.firebase.data.datasource.bookmarks.BookmarksRemoteDataSource
-import com.gorman.firebase.data.datasource.bookmarks.IBookmarksRemoteDataSource
-import com.gorman.firebase.data.datasource.mapevent.MapEventRemoteDataSource
-import com.gorman.firebase.data.datasource.mapevent.MapEventRemoteDataSourceImpl
-import com.gorman.firebase.data.datasource.users.IUserRemoteDataSource
-import com.gorman.firebase.data.datasource.users.UserRemoteDataSourceImpl
-import com.gorman.firebase.data.models.FirebaseConstants
+import com.gorman.network.data.datasource.bookmarks.BookmarksRemoteDataSource
+import com.gorman.network.data.datasource.bookmarks.IBookmarksRemoteDataSource
+import com.gorman.network.data.datasource.mapevent.MapEventRemoteDataSource
+import com.gorman.network.data.datasource.mapevent.MapEventRemoteDataSourceImpl
+import com.gorman.network.data.datasource.users.IUserRemoteDataSource
+import com.gorman.network.data.datasource.users.UserRemoteDataSourceImpl
+import com.gorman.network.data.models.FirebaseConstants
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

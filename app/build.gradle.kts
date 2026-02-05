@@ -64,6 +64,7 @@ dependencies {
     implementation(project(":core:map"))
     implementation(project(":core:cache"))
     implementation(project(":core:data"))
+    implementation(project(":core:database"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.hilt.ext.work)

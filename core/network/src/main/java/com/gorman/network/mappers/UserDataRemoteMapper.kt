@@ -1,7 +1,7 @@
-package com.gorman.firebase.mappers
+package com.gorman.network.mappers
 
 import com.gorman.domainmodel.UserData
-import com.gorman.firebase.data.models.UserDataRemote
+import com.gorman.network.data.models.UserDataRemote
 
 fun UserDataRemote.toDomain(): UserData =
     UserData(

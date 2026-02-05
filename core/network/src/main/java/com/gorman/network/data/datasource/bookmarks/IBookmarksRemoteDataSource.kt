@@ -1,6 +1,6 @@
-package com.gorman.firebase.data.datasource.bookmarks
+package com.gorman.network.data.datasource.bookmarks
 
-import com.gorman.firebase.data.models.BookmarkDataRemote
+import com.gorman.network.data.models.BookmarkDataRemote
 
 interface IBookmarksRemoteDataSource {
     suspend fun getBookmarksOnce(uid: String): List<BookmarkDataRemote>

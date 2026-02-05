@@ -1,12 +1,12 @@
-package com.gorman.firebase.data.datasource.mapevent
+package com.gorman.network.data.datasource.mapevent
 
 import android.util.Log
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.gorman.firebase.data.models.FirebaseConstants
-import com.gorman.firebase.data.models.MapEventRemote
+import com.gorman.network.data.models.FirebaseConstants
+import com.gorman.network.data.models.MapEventRemote
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow

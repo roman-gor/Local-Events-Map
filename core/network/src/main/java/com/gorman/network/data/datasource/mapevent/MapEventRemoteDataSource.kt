@@ -1,6 +1,6 @@
-package com.gorman.firebase.data.datasource.mapevent
+package com.gorman.network.data.datasource.mapevent
 
-import com.gorman.firebase.data.models.MapEventRemote
+import com.gorman.network.data.models.MapEventRemote
 import kotlinx.coroutines.flow.Flow
 
 interface MapEventRemoteDataSource {

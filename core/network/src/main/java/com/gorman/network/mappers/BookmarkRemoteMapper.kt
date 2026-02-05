@@ -1,7 +1,7 @@
-package com.gorman.firebase.mappers
+package com.gorman.network.mappers
 
 import com.gorman.domainmodel.BookmarkData
-import com.gorman.firebase.data.models.BookmarkDataRemote
+import com.gorman.network.data.models.BookmarkDataRemote
 
 fun BookmarkDataRemote.toDomain(): BookmarkData = BookmarkData(
     favoriteEventId = favoriteEventId

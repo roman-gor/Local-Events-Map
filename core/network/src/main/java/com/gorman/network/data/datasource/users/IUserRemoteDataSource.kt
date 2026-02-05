@@ -1,6 +1,6 @@
-package com.gorman.firebase.data.datasource.users
+package com.gorman.network.data.datasource.users
 
-import com.gorman.firebase.data.models.UserDataRemote
+import com.gorman.network.data.models.UserDataRemote
 import kotlinx.coroutines.flow.Flow
 
 interface IUserRemoteDataSource {

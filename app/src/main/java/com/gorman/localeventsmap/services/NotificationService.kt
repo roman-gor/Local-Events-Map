@@ -4,19 +4,19 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.gorman.cache.data.DataStoreManager
 import com.gorman.data.repository.user.IUserRepository
+import com.gorman.database.data.datasource.dao.UserDataDao
 import com.gorman.localeventsmap.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,7 +27,7 @@ class NotificationService : FirebaseMessagingService() {
     lateinit var userRepository: IUserRepository
 
     @Inject
-    lateinit var dataStoreManager: DataStoreManager
+    lateinit var userDataDao: UserDataDao
 
     override fun onMessageReceived(message: RemoteMessage) {
         Log.d("FCM_DEBUG", "Сообщение получено: ${message.data}")
@@ -68,14 +68,12 @@ class NotificationService : FirebaseMessagingService() {
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "New events",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            channelId,
+            "New events",
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        notificationManager.createNotificationChannel(channel)
 
         notificationManager.notify(eventId.hashCode(), notificationBuilder.build())
     }
@@ -84,7 +82,8 @@ class NotificationService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         CoroutineScope(Dispatchers.IO).launch {
-            val uid = dataStoreManager.savedUserId.firstOrNull()
+            val uid = userDataDao.getUser().map { it?.uid }.firstOrNull()
+            Log.d("UID", "$uid")
 
             if (!uid.isNullOrBlank()) {
                 try {

@@ -1,10 +1,10 @@
-package com.gorman.firebase.data.datasource.bookmarks
+package com.gorman.network.data.datasource.bookmarks
 
 import android.util.Log
 import com.google.firebase.FirebaseException
 import com.google.firebase.database.DatabaseReference
-import com.gorman.firebase.data.models.BookmarkDataRemote
-import com.gorman.firebase.data.models.FirebaseConstants
+import com.gorman.network.data.models.BookmarkDataRemote
+import com.gorman.network.data.models.FirebaseConstants
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 

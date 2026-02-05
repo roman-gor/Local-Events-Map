@@ -1,4 +1,4 @@
-package com.gorman.firebase.data.models
+package com.gorman.network.data.models
 
 import kotlinx.serialization.Serializable
 

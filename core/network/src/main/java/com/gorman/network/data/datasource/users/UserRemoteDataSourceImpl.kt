@@ -1,4 +1,4 @@
-package com.gorman.firebase.data.datasource.users
+package com.gorman.network.data.datasource.users
 
 import android.util.Log
 import com.google.firebase.FirebaseException
@@ -6,8 +6,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.gorman.firebase.data.models.FirebaseConstants
-import com.gorman.firebase.data.models.UserDataRemote
+import com.gorman.network.data.models.FirebaseConstants
+import com.gorman.network.data.models.UserDataRemote
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
