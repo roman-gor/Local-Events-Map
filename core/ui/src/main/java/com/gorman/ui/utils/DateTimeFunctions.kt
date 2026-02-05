@@ -33,7 +33,10 @@ fun getEndOfWeek(): Long {
 
 enum class DateFormatStyle(val pattern: String) {
     TIME_ONLY("HH:mm"),
-    DATE_ONLY("d MMMM YYYY")
+    DATE_ONLY("d MMMM YYYY"),
+    DAY_ONLY("d"),
+    MONTH_ONLY("MMMM"),
+    DAY_WEEK_FULL("EEEE"),
 }
 
 fun Long.format(style: DateFormatStyle): String {

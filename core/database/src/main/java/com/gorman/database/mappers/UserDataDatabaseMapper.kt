@@ -7,14 +7,12 @@ fun UserDataEntity.toDomain(): UserData =
     UserData(
         uid = uid,
         email = email,
-        username = username,
-        favouriteEventsIds = favouriteEventsIds
+        username = username
     )
 
 fun UserData.toEntity(): UserDataEntity =
     UserDataEntity(
         uid = uid,
         email = email,
-        username = username,
-        favouriteEventsIds = favouriteEventsIds
+        username = username
     )

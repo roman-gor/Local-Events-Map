@@ -19,7 +19,7 @@ fun BottomNavigationBar(
     modifier: Modifier = Modifier
 ) {
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 1f),
         modifier = modifier
     ) {
         NavEntries.entries.forEach { destination ->

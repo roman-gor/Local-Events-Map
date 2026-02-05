@@ -61,6 +61,7 @@ dependencies {
     implementation(project(":sync:work"))
     implementation(project(":core:navigation"))
     implementation(project(":core:ui"))
+    implementation(project(":core:map"))
     implementation(project(":core:cache"))
     implementation(project(":core:data"))
 

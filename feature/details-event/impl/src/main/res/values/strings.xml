@@ -3,6 +3,11 @@
     <string name="linkOpenError">Не удалось открыть ссылку</string>
     <string name="mapsAppError">Приложение карт не найдено</string>
     <string name="errorDataLoading">Ошибка при загрузке данных</string>
+    <string name="calendarOpenError">Не удалось создать напоминание</string>
     <string name="eventNotFound">Событие не найдено</string>
     <string name="noNetwork">Отсутствует подключение к Интернету</string>
+    <string name="event">Событие</string>
+    <string name="free">БЕСПЛАТНО</string>
+    <string name="aboutEventText">Об этом событии:</string>
+    <string name="learnMore">Узнать подробнее</string>
 </resources>

@@ -5,4 +5,5 @@
     <string name="emptyLikes">Вы еще ничего не сохранили</string>
     <string name="explore">Искать</string>
     <string name="guest">Гость</string>
+    <string name="signUpOrIn">Зарегистрироватся или войти</string>
 </resources>

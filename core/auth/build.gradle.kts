@@ -12,8 +12,8 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:domain-model"))
 
+    implementation(project(":core:domain-model"))
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
 
