@@ -64,8 +64,7 @@ class BookmarksViewModel @Inject constructor(
                         }
                     }
             }
-        }
-        .catch { e ->
+        }.catch { e ->
             emit(BookmarksScreenState.Error(e))
         }
         .stateIn(

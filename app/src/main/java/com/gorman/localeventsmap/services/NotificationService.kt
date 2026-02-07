@@ -83,7 +83,6 @@ class NotificationService : FirebaseMessagingService() {
         super.onNewToken(token)
         CoroutineScope(Dispatchers.IO).launch {
             val uid = userDataDao.getUser().map { it?.uid }.firstOrNull()
-            Log.d("UID", "$uid")
 
             if (!uid.isNullOrBlank()) {
                 try {

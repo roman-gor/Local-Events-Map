@@ -65,6 +65,7 @@ dependencies {
     implementation(project(":core:cache"))
     implementation(project(":core:data"))
     implementation(project(":core:database"))
+    implementation(project(":core:notifications"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.hilt.ext.work)

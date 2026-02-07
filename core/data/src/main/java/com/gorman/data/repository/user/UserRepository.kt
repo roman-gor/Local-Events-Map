@@ -1,7 +1,6 @@
 package com.gorman.data.repository.user
 
 import android.util.Log
-import com.google.firebase.messaging.FirebaseMessaging
 import com.gorman.database.data.datasource.dao.UserDataDao
 import com.gorman.database.mappers.toDomain
 import com.gorman.database.mappers.toEntity
@@ -13,7 +12,6 @@ import com.gorman.notifications.notificator.INotificator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 internal class UserRepository @Inject constructor(
@@ -45,23 +43,12 @@ internal class UserRepository @Inject constructor(
     }
 
     @Suppress("TooGenericExceptionCaught")
-    override suspend fun saveTokenToUser(uid: String): Result<Unit> {
-        return try {
-            val token = FirebaseMessaging.getInstance().token.await()
-            userRemoteDataSource.saveTokenToUser(uid, token)
-        } catch (e: Exception) {
-            Log.e("UserRepository", "Failed to fetch or save FCM token", e)
-            Result.failure(e)
-        }
+    override suspend fun saveTokenToUser(uid: String): Result<Unit> = runCatching {
+        userRemoteDataSource.saveTokenToUser(uid, notificator.getUserToken())
     }
 
     @Suppress("TooGenericExceptionCaught")
-    override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> {
-        return try {
-            userRemoteDataSource.saveTokenToUser(uid, token)
-        } catch (e: Exception) {
-            Log.e("UserRepository", "Failed to fetch or save FCM token", e)
-            Result.failure(e)
-        }
+    override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> = runCatching {
+        userRemoteDataSource.saveTokenToUser(uid, token)
     }
 }

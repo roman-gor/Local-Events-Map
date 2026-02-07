@@ -12,6 +12,7 @@ class SignInUserUseCase @Inject constructor(
         return authRepository.signIn(email, password).mapCatching { user ->
             userRepository.clearUserData()
             userRepository.refreshUserData(user.uid)
+            userRepository.saveTokenToUser(user.uid).getOrThrow()
         }
     }
 }

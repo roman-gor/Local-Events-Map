@@ -2,10 +2,14 @@ package com.gorman.feature.events.impl.ui.screens.mapscreen
 
 import android.Manifest
 import android.annotation.SuppressLint
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,6 +47,7 @@ import com.gorman.map.ui.MapMarker
 import com.gorman.map.ui.rememberMapControl
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
@@ -248,40 +254,14 @@ fun MapScreen(
             onCameraIdle = { lat, lon -> mapScreenActions.onCameraIdle(PointUiState(lat, lon)) },
             onMarkerClick = { id -> uiState.eventsList.find { it.id == id }?.let { mapScreenActions.onEventClick(it) } }
         )
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            uiState.cityData.city?.let {
-                CitiesDropdownMenu(
-                    expanded = state.citiesMenuExpanded,
-                    onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
-                    currentCity = it.toDisplayName(),
-                    onCityClick = { city -> mapScreenActions.onCitySubmit(city) },
-                    citiesList = CityCoordinatesConstants.entries.toImmutableList()
-                )
-            }
-            uiState.dataStatus?.let { StatusBanner(it) }
-        }
-        MapEventsBottomSheetContent(
-            data = BottomSheetData(
-                expanded = state.mapEventsListExpanded,
-                onDismissSheet = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
-                sheetState = state.mapEventsListSheetState
-            ),
-            onEventClick = {
-                mapScreenActions.onEventClick(it)
-                state.scope.launch {
-                    state.mapEventsListSheetState.hide()
-                    state.mapEventsListExpanded = false
-                }
-            },
-            eventsList = uiState.eventsList
+        MapTopOverlays(
+            uiState = uiState,
+            state = state,
+            onCitySubmit = { mapScreenActions.onCitySubmit(it) }
         )
-        FilterBottomSheetContent(
-            data = BottomSheetData(
-                expanded = state.filtersExpanded,
-                onDismissSheet = { state.filtersExpanded = !state.filtersExpanded },
-                sheetState = state.filtersSheetState
-            ),
-            filtersState = uiState.filterState,
+        MapBottomSheets(
+            uiState = uiState,
+            state = state,
             mapScreenActions = mapScreenActions
         )
         FunctionalBlock(
@@ -297,7 +277,81 @@ fun MapScreen(
                 onMapEventSelectedItemClick = { mapScreenActions.onNavigateToDetailsScreen(it) }
             )
         )
+        MapEdgeGestureInterceptor(modifier = Modifier.align(Alignment.CenterStart))
+        MapEdgeGestureInterceptor(modifier = Modifier.align(Alignment.CenterEnd))
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MapBottomSheets(
+    uiState: ScreenState.Success,
+    state: MapScreenLocalState,
+    mapScreenActions: MapScreenActions
+) {
+    MapEventsBottomSheetContent(
+        data = BottomSheetData(
+            expanded = state.mapEventsListExpanded,
+            onDismissSheet = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
+            sheetState = state.mapEventsListSheetState
+        ),
+        onEventClick = {
+            mapScreenActions.onEventClick(it)
+            state.scope.launch {
+                state.mapEventsListSheetState.hide()
+                state.mapEventsListExpanded = false
+            }
+        },
+        eventsList = uiState.eventsList
+    )
+
+    FilterBottomSheetContent(
+        data = BottomSheetData(
+            expanded = state.filtersExpanded,
+            onDismissSheet = { state.filtersExpanded = !state.filtersExpanded },
+            sheetState = state.filtersSheetState
+        ),
+        filtersState = uiState.filterState,
+        mapScreenActions = mapScreenActions
+    )
+}
+
+@Composable
+private fun MapTopOverlays(
+    uiState: ScreenState.Success,
+    state: MapScreenLocalState,
+    onCitySubmit: (CityCoordinatesConstants) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        uiState.cityData.city?.let {
+            CitiesDropdownMenu(
+                expanded = state.citiesMenuExpanded,
+                onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
+                currentCity = it.toDisplayName(),
+                onCityClick = onCitySubmit,
+                citiesList = CityCoordinatesConstants.entries.toImmutableList()
+            )
+        }
+        uiState.dataStatus?.let { StatusBanner(it) }
+    }
+}
+
+@Composable
+private fun MapEdgeGestureInterceptor(modifier: Modifier = Modifier) {
+    Spacer(
+        modifier = modifier
+            .fillMaxHeight()
+            .width(LocalEventsMapTheme.dimens.paddingExtraLarge)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { },
+                    onPress = { }
+                )
+            }
+    )
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
