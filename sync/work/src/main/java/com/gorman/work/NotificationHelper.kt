@@ -21,7 +21,7 @@ object NotificationHelper {
         checkPermissions(context)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification_bell)
             .setContentTitle(context.getString(R.string.appName))
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -38,7 +38,7 @@ object NotificationHelper {
         checkPermissions(context)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification_bell)
             .setContentTitle(context.getString(R.string.appName))
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

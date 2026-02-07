@@ -5,13 +5,12 @@ plugins {
 }
 
 android {
-    namespace = "com.gorman.firebase"
+    namespace = "com.gorman.network"
 }
 
 dependencies {
 
     implementation(project(":core:domain-model"))
-
     implementation(libs.kotlinx.serialization.json)
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)

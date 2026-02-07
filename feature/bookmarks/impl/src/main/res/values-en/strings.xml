@@ -5,4 +5,5 @@
     <string name="emptyLikes">You haven\'t saved anything yet</string>
     <string name="explore">Explore</string>
     <string name="guest">Guest</string>
+    <string name="signUpOrIn">Sign Up Or Sign In</string>
 </resources>

@@ -9,6 +9,7 @@ fun MapEvent.toUiState(): MapUiEvent =
         name = name,
         description = description,
         category = category,
+        price = price,
         date = date,
         link = link,
         address = address,

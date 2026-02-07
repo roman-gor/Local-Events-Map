@@ -12,11 +12,13 @@ android {
 dependencies {
 
     implementation(project(":core:database"))
+    implementation(project(":core:map"))
     implementation(project(":core:network"))
     implementation(project(":core:auth"))
     implementation(project(":core:common"))
     implementation(project(":core:cache"))
     implementation(project(":core:domain-model"))
+    implementation(project(":core:notifications"))
 
     ksp(libs.room.compiler)
     implementation(libs.bundles.room)

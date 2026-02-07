@@ -8,8 +8,8 @@ import com.gorman.database.data.datasource.dao.MapEventsDao
 import com.gorman.database.mappers.toDomain
 import com.gorman.database.mappers.toEntity
 import com.gorman.domainmodel.MapEvent
-import com.gorman.firebase.data.datasource.mapevent.MapEventRemoteDataSource
-import com.gorman.firebase.mappers.toDomain
+import com.gorman.network.data.datasource.mapevent.MapEventRemoteDataSource
+import com.gorman.network.mappers.toDomain
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
