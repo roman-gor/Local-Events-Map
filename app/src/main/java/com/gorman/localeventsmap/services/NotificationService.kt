@@ -30,8 +30,6 @@ class NotificationService : FirebaseMessagingService() {
     lateinit var userDataDao: UserDataDao
 
     override fun onMessageReceived(message: RemoteMessage) {
-        Log.d("FCM_DEBUG", "Сообщение получено: ${message.data}")
-
         val data = message.data
         val title = data["title"] ?: getString(R.string.notificationTitle)
         val body = getString(R.string.notificationText)
