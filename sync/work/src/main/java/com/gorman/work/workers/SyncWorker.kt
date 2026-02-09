@@ -28,7 +28,6 @@ class SyncWorker @AssistedInject constructor(
 
             result.fold(
                 onSuccess = {
-                    showSuccessNotification(appContext, appContext.getString(R.string.successSync))
                     Result.success()
                 },
                 onFailure = { error ->
@@ -60,9 +59,5 @@ class SyncWorker @AssistedInject constructor(
 
     private fun showErrorNotification(context: Context, text: String) {
         NotificationHelper.showSyncErrorNotification(context = context, message = text)
-    }
-
-    private fun showSuccessNotification(context: Context, text: String) {
-        NotificationHelper.showSuccessNotification(context, text)
     }
 }
