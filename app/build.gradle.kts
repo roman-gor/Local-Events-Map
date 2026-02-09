@@ -74,6 +74,10 @@ dependencies {
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 
+    ksp(libs.room.compiler)
+    implementation(libs.bundles.room)
+    implementation(libs.kotlinx.serialization.json)
+
     lintChecks(libs.compose.lint.checks)
 
     implementation(libs.yandex.android)
