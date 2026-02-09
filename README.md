@@ -11,11 +11,11 @@ With the help of **offline-first approach** you can view previously downloaded e
 ## Screenshots
 |                     Map                      |                  Details Event                   |                     Bookmarks                      |
 |:--------------------------------------------:|:------------------------------------------------:|:--------------------------------------------------:|
-| <img src="screenshots/map.jpg" width="250"/> | <img src="screenshots/details.jpg" width="250"/> | <img src="screenshots/bookmarks.jpg" width="250"/> |  |
+| <img src="screenshots/map.jpg" width="150"/> | <img src="screenshots/details.jpg" width="150"/> | <img src="screenshots/bookmarks.jpg" width="150"/> |  |
 
 |                List of events                 |                     Filters                      |                     Selected event                      |
 |:---------------------------------------------:|:------------------------------------------------:|:-------------------------------------------------------:|
-| <img src="screenshots/list.jpg" width="250"/> | <img src="screenshots/filters.jpg" width="250"/> | <img src="screenshots/selected_event.jpg" width="250"/> |  |
+| <img src="screenshots/list.jpg" width="150"/> | <img src="screenshots/filters.jpg" width="150"/> | <img src="screenshots/selected_event.jpg" width="150"/> |  |
 
 
 
