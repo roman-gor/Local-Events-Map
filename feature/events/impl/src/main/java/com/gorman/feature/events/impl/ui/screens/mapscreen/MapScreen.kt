@@ -2,6 +2,7 @@ package com.gorman.feature.events.impl.ui.screens.mapscreen
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.os.Build
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -26,8 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.gorman.common.constants.CityCoordinatesConstants
-import com.gorman.common.constants.toDisplayName
+import com.gorman.common.constants.CityCoordinates
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.ui.components.CitiesDropdownMenu
@@ -62,11 +63,19 @@ fun MapScreenEntry(
     val context = LocalContext.current
 
     val permissionsState = rememberMultiplePermissionsState(
-        permissions = listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.POST_NOTIFICATIONS
-        )
+        permissions =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        } else {
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        }
     )
 
     val mapControl = rememberMapControl()
@@ -105,12 +114,10 @@ private fun MapSuccessContent(
     onUiEvent: (ScreenUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isMapAllowed = state.isPermissionsRequested == true
     val hasCoordinates = state.cityData.cityCoordinates != null
-    val shouldShowRationale = permissionsState.shouldShowRationale
 
     when {
-        isMapAllowed -> {
+        permissionsState.allPermissionsGranted -> {
             MapContent(
                 modifier = modifier,
                 uiState = state,
@@ -118,7 +125,7 @@ private fun MapSuccessContent(
                 mapControl = mapControl
             )
         }
-        shouldShowRationale -> {
+        permissionsState.shouldShowRationale -> {
             PermissionRequestScreen(
                 showManualInput = false,
                 onCitySubmit = { },
@@ -130,7 +137,6 @@ private fun MapSuccessContent(
             PermissionRequestScreen(
                 showManualInput = true,
                 onCitySubmit = { city ->
-                    onUiEvent(ScreenUiEvent.PermissionsRequested)
                     onUiEvent(ScreenUiEvent.OnCitySearch(city))
                 },
                 shouldShowRationale = false,
@@ -156,9 +162,9 @@ fun MapContent(
     modifier: Modifier = Modifier
 ) {
     LifecycleStartEffect(Unit) {
-        onUiEvent(ScreenUiEvent.MapKitOnStart)
+        onUiEvent(ScreenUiEvent.OnStart)
         onStopOrDispose {
-            onUiEvent(ScreenUiEvent.MapKitOnStop)
+            onUiEvent(ScreenUiEvent.OnStop)
         }
     }
 
@@ -320,7 +326,7 @@ private fun MapBottomSheets(
 private fun MapTopOverlays(
     uiState: ScreenState.Success,
     state: MapScreenLocalState,
-    onCitySubmit: (CityCoordinatesConstants) -> Unit
+    onCitySubmit: (CityCoordinates) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -360,9 +366,10 @@ private fun BindPermissionLogic(
     permissionsState: MultiplePermissionsState,
     onPermissionsGranted: () -> Unit
 ) {
+    val onPermissionsGrantedState by rememberUpdatedState(onPermissionsGranted)
     LaunchedEffect(permissionsState.allPermissionsGranted) {
         if (permissionsState.allPermissionsGranted) {
-            onPermissionsGranted()
+            onPermissionsGrantedState()
         }
     }
 
