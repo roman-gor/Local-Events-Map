@@ -1,6 +1,6 @@
 package com.gorman.map.search
 
-import com.gorman.common.constants.CityCoordinatesConstants
+import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.models.CityData
 import com.gorman.domainmodel.PointDomain
 import com.gorman.map.mapper.toYandex
@@ -46,7 +46,7 @@ class MapSearchManager @Inject constructor(
                         ?: geoObject?.address?.components
                             ?.firstOrNull { it.kinds.contains(Address.Component.Kind.AREA) }?.name
 
-                    val cityEnum = cityName?.let { CityCoordinatesConstants.fromCityName(it) }
+                    val cityEnum = cityName?.let { CityCoordinates.fromCityName(it) }
 
                     if (cityEnum != null) {
                         continuation.resume(
@@ -71,7 +71,7 @@ class MapSearchManager @Inject constructor(
         }
     }
 
-    override suspend fun getPointByCity(city: CityCoordinatesConstants) = suspendCancellableCoroutine { continuation ->
+    override suspend fun getPointByCity(city: CityCoordinates) = suspendCancellableCoroutine { continuation ->
         val searchOptions = SearchOptions().apply {
             searchTypes = SearchType.GEO.value
             resultPageSize = 1

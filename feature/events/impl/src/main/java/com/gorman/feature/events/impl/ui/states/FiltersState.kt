@@ -1,7 +1,7 @@
 package com.gorman.feature.events.impl.ui.states
 
 import androidx.compose.runtime.Immutable
-import com.gorman.common.constants.CategoryConstants
+import com.gorman.common.constants.Category
 import com.gorman.feature.events.impl.ui.components.DateFilterType
 
 @Immutable
@@ -31,6 +31,6 @@ data class FilterActions(
 
 @Immutable
 data class FilterOptions(
-    val categoryItems: List<CategoryConstants>,
+    val categoryItems: List<Category>,
     val costItems: List<String>
 )

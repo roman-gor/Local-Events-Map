@@ -28,13 +28,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gorman.common.constants.CityCoordinatesConstants
-import com.gorman.common.constants.toDisplayName
+import com.gorman.common.constants.CityCoordinates
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 
@@ -45,10 +45,10 @@ fun CitiesDropdownMenu(
     expanded: Boolean,
     currentCity: String,
     onExpandedChange: () -> Unit,
-    onCityClick: (CityCoordinatesConstants) -> Unit,
-    citiesList: ImmutableList<CityCoordinatesConstants>
+    onCityClick: (CityCoordinates) -> Unit,
+    citiesList: ImmutableList<CityCoordinates>
 ) {
-    val filterCitiesList = citiesList.filter { it.toDisplayName() != currentCity }
+    val filterCitiesList = citiesList.filter { stringResource(it.resource) != currentCity }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -143,10 +143,10 @@ fun CityDropdownHeader(
 @SuppressLint("ComposeModifierMissing")
 @Composable
 fun CityUiItem(
-    city: CityCoordinatesConstants
+    city: CityCoordinates
 ) {
     Text(
-        text = city.toDisplayName(),
+        text = stringResource(city.resource),
         fontSize = 16.sp,
         fontWeight = FontWeight.Medium,
         maxLines = 1,

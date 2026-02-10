@@ -15,7 +15,7 @@ fun HandleSideEffects(
     mapViewModel: MapViewModel,
     mapControl: MapControl
 ) {
-    LaunchedEffect(Unit) {
+    LaunchedEffect(mapViewModel.sideEffect) {
         mapViewModel.sideEffect.collect { effect ->
             when (effect) {
                 is ScreenSideEffect.MoveCamera -> {
@@ -23,8 +23,6 @@ fun HandleSideEffects(
                 }
                 is ScreenSideEffect.ShowToast -> {
                     Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
-                }
-                is ScreenSideEffect.OnNavigateToDetailsScreen -> {
                 }
             }
         }
