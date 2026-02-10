@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.gorman.common.constants.CategoryConstants
+import com.gorman.common.constants.Category
 import com.gorman.feature.events.impl.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
@@ -148,18 +148,18 @@ fun CategoryMenuItem(
 }
 
 data class CategoriesOptions(
-    val items: List<CategoryConstants>,
+    val items: List<Category>,
     val selectedItems: List<String>
 )
 
 @Composable
-fun categoryNameDefinition(category: CategoryConstants): String {
+fun categoryNameDefinition(category: Category): String {
     return when (category) {
-        CategoryConstants.EDUCATION -> stringResource(R.string.education)
-        CategoryConstants.MUSIC -> stringResource(R.string.music)
-        CategoryConstants.ART -> stringResource(R.string.art)
-        CategoryConstants.SPORT -> stringResource(R.string.sport)
-        CategoryConstants.FOOD -> stringResource(R.string.food)
-        CategoryConstants.CINEMA -> stringResource(R.string.cinema)
+        Category.EDUCATION -> stringResource(R.string.education)
+        Category.MUSIC -> stringResource(R.string.music)
+        Category.ART -> stringResource(R.string.art)
+        Category.SPORT -> stringResource(R.string.sport)
+        Category.FOOD -> stringResource(R.string.food)
+        Category.CINEMA -> stringResource(R.string.cinema)
     }
 }

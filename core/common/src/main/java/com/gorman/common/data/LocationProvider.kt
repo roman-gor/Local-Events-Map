@@ -2,9 +2,9 @@ package com.gorman.common.data
 
 import android.content.Context
 import android.util.Log
-import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.gorman.domainmodel.PointDomain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
@@ -18,31 +18,29 @@ class LocationProvider @Inject constructor(
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
-    suspend fun getLastKnownLocation(): Result<PointDomain> {
-        return try {
-            val lastLoc = fusedLocationClient.lastLocation.await()
-            if (lastLoc != null) Result.success(PointDomain(lastLoc.latitude, lastLoc.longitude))
+    @androidx.annotation.RequiresPermission(
+        allOf = [
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION
+        ]
+    )
+    suspend fun getLastKnownLocation(): Result<PointDomain> = runCatching {
+        val lastLoc = fusedLocationClient.lastLocation.await()
+        if (lastLoc != null) Result.success(PointDomain(lastLoc.latitude, lastLoc.longitude))
 
-            val currentLoc = fusedLocationClient.getCurrentLocation(
-                com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
-                null
-            ).await()
-            Log.e(
-                "LocationProvider",
-                "Coordinates: ${currentLoc.latitude} / ${currentLoc.longitude}"
-            )
-            val point = currentLoc?.let { PointDomain(lastLoc.latitude, lastLoc.longitude) }
-            if (point != null) {
-                Result.success(point)
-            } else {
-                Result.failure(Exception("Point Location is null"))
-            }
-        } catch (e: ApiException) {
-            Log.e("LocationProvider", "GMS API error: ${e.statusCode} - ${e.message}")
-            Result.failure(e)
-        } catch (e: SecurityException) {
-            Log.e("LocationProvider", "Permission denied: ${e.message}")
-            Result.failure(e)
+        val currentLoc = fusedLocationClient.getCurrentLocation(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            null
+        ).await()
+        Log.e(
+            "LocationProvider",
+            "Coordinates: ${currentLoc.latitude} / ${currentLoc.longitude}"
+        )
+        val point = currentLoc?.let { PointDomain(lastLoc.latitude, lastLoc.longitude) }
+        return if (point != null) {
+            Result.success(point)
+        } else {
+            Result.failure(Exception("Point Location is null"))
         }
     }
 }

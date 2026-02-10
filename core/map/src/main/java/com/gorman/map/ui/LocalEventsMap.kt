@@ -52,12 +52,12 @@ fun rememberMapControl(): MapControl {
 
 @Composable
 fun LocalEventsMap(
-    modifier: Modifier = Modifier,
     markers: ImmutableList<MapMarker>,
     mapControl: MapControl,
     config: MapConfig,
-    onMapReady: () -> Unit = {},
     onCameraIdle: (Double, Double) -> Unit,
+    modifier: Modifier = Modifier,
+    onMapReady: () -> Unit = {},
     onMarkerClick: (String) -> Unit
 ) {
     val context = LocalContext.current
