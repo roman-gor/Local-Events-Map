@@ -10,12 +10,3 @@ enum class Category(val value: String, val resource: Int) {
     FOOD("food", R.string.food),
     CINEMA("cinema", R.string.cinema)
 }
-
-fun categoryNameDefinition(category: String): Int {
-    val categoryEnum = try {
-        Category.valueOf(category.uppercase())
-    } catch (_: IllegalArgumentException) {
-        Category.EDUCATION
-    }
-    return categoryEnum.resource
-}

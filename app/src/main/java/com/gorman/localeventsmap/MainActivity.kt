@@ -73,7 +73,16 @@ class MainActivity : ComponentActivity() {
                         ) {
                             BottomNavigationBar(
                                 currentKey = currentKey,
-                                onNavigateTo = { key -> navigator.setRoot(key) },
+                                onNavigateTo = { destinationKey ->
+                                    if (currentKey == destinationKey) return@BottomNavigationBar
+
+                                    if (destinationKey is HomeScreenNavKey) {
+                                        navigator.popToRoot()
+                                    } else {
+                                        navigator.resetToRoot()
+                                        navigator.goTo(destinationKey)
+                                    }
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .pointerInput(Unit) {

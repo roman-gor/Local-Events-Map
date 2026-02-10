@@ -213,6 +213,7 @@ fun MapContent(
                 onUiEvent(ScreenUiEvent.OnEventSelected(event.id))
             },
             onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
+            onMapClick = { onUiEvent(ScreenUiEvent.OnMapClick) },
             onNavigateToDetailsScreen = { event ->
                 onUiEvent(ScreenUiEvent.OnNavigateToDetailsScreen(event))
             }
@@ -258,6 +259,7 @@ fun MapScreen(
             mapControl = mapControl,
             config = mapConfig,
             onCameraIdle = { lat, lon -> mapScreenActions.onCameraIdle(PointUiState(lat, lon)) },
+            onMapClick = { mapScreenActions.onMapClick() },
             onMarkerClick = { id -> uiState.eventsList.find { it.id == id }?.let { mapScreenActions.onEventClick(it) } }
         )
         MapTopOverlays(

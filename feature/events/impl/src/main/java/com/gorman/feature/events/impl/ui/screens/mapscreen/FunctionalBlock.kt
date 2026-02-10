@@ -25,9 +25,9 @@ import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.ui.components.FunctionalButton
 import com.gorman.feature.events.impl.ui.components.MapEventSelectedButton
 import com.gorman.feature.events.impl.ui.states.MapScreenActions
-import com.gorman.feature.events.impl.utils.getBottomBarPadding
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
+import com.gorman.ui.utils.getBottomBarPadding
 
 @SuppressLint("ComposeModifierMissing")
 @Composable

@@ -71,6 +71,7 @@ class MapViewModel @Inject constructor(
     private var cameraMoveJob: Job? = null
     private val cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
     private val isSyncLoading = MutableStateFlow<Boolean?>(null)
+    private var isInitialized = false
 
     private data class UserInputState(
         val filters: FiltersState,
@@ -193,14 +194,22 @@ class MapViewModel @Inject constructor(
             }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> {
-                viewModelScope.launch {
-                    fetchInitialLocation()
-                    syncEvents()
+                if (!isInitialized) {
+                    viewModelScope.launch {
+                        fetchInitialLocation()
+                        syncEvents()
+                        isInitialized = true
+                    }
+                } else {
+                    viewModelScope.launch {
+                        fetchInitialLocation()
+                    }
                 }
             }
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {
                 navigator.goTo(DetailsScreenNavKey(event.event.id))
             }
+            ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
         }
     }
 
@@ -319,6 +328,7 @@ class MapViewModel @Inject constructor(
     private suspend fun syncEvents() {
         isSyncLoading.value = true
         mapEventsRepository.syncWith().onSuccess {
+            Log.d("Sync", "Success")
             isSyncLoading.value = false
         }.onFailure { exception ->
             isSyncLoading.value = false
