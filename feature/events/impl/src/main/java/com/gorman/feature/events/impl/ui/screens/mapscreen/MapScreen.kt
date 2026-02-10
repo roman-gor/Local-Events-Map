@@ -274,6 +274,7 @@ fun MapScreen(
             mapScreenData = MapScreenData(
                 name = uiState.filterState.name,
                 selectedEvent = selectedEvent,
+                isSyncLoading = uiState.isSyncLoading ?: false,
                 listEventsButtonVerticalOffset = state.listEventsButtonOffset.value,
                 filtersButtonVerticalOffset = state.filtersButtonOffset.value,
                 mapScreenActions = mapScreenActions,
@@ -336,9 +337,9 @@ private fun MapTopOverlays(
             CitiesDropdownMenu(
                 expanded = state.citiesMenuExpanded,
                 onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
-                currentCity = it.toDisplayName(),
+                currentCity = stringResource(it.resource),
                 onCityClick = onCitySubmit,
-                citiesList = CityCoordinatesConstants.entries.toImmutableList()
+                citiesList = CityCoordinates.entries.toImmutableList()
             )
         }
         uiState.dataStatus?.let { StatusBanner(it) }

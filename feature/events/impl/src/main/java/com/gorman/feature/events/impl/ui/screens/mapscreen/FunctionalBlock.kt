@@ -38,6 +38,7 @@ fun BoxScope.FunctionalBlock(
         onClick = { mapScreenData.mapScreenActions.onSyncClick() },
         iconSize = 32.dp,
         imageVector = Icons.Outlined.Refresh,
+        isLoading = mapScreenData.isSyncLoading,
         modifier = Modifier
             .padding(
                 end = LocalEventsMapTheme.dimens.paddingExtraLarge,
@@ -85,7 +86,8 @@ fun BoxScope.FunctionalBlock(
                 MapEventSelectedButton(
                     onMapEventButtonClick = { mapScreenData.onMapEventSelectedItemClick(event) },
                     mapEvent = event,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(
                             top = LocalEventsMapTheme.dimens.paddingLarge,
                             bottom = LocalEventsMapTheme.dimens.paddingMedium
@@ -105,6 +107,7 @@ data class MapScreenData(
     val filtersButtonVerticalOffset: Dp,
     val mapScreenActions: MapScreenActions,
     val isEventSelected: Boolean,
+    val isSyncLoading: Boolean,
     val onMapEventsListExpanded: () -> Unit,
     val onFiltersExpanded: () -> Unit,
     val onMapEventSelectedItemClick: (MapUiEvent) -> Unit

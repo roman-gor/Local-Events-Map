@@ -3,7 +3,6 @@ package com.gorman.feature.events.impl.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.common.api.ApiException
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
@@ -42,7 +41,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -70,15 +68,15 @@ class MapViewModel @Inject constructor(
     private val filters = MutableStateFlow(FiltersState())
     private val selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
-
     private var cameraMoveJob: Job? = null
-
     private val cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
+    private val isSyncLoading = MutableStateFlow<Boolean?>(null)
 
     private data class UserInputState(
         val filters: FiltersState,
         val cityData: CityData,
-        val selectedEventId: String?
+        val selectedEventId: String?,
+        val isSyncLoading: Boolean?
     )
 
     private val isNetworkAvailable = networkObserver.observe()
@@ -91,31 +89,27 @@ class MapViewModel @Inject constructor(
     private val userInputs = combine(
         filters,
         cityData,
-        selectedEventId
-    ) { filters, cityData, selectedEventId ->
-        UserInputState(filters, cityData, selectedEventId)
+        selectedEventId,
+        isSyncLoading
+    ) { filters, cityData, selectedEventId, isSyncLoading ->
+        UserInputState(filters, cityData, selectedEventId, isSyncLoading)
     }
 
-    private val isOutdated = flow {
-        emit(mapEventsRepository.isOutdated())
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = false
-    )
+    private val isOutdated = mapEventsRepository.isOutdated()
 
     val uiState: StateFlow<ScreenState> = combine(
         mapEventsRepository.getAllEvents(),
         userInputs,
-        isNetworkAvailable
-    ) { events, inputs, hasInternet ->
-        val (filters, cityData, selectedEventId) = inputs
+        isNetworkAvailable,
+        isOutdated
+    ) { events, inputs, hasInternet, isOutdated ->
+        val (filters, cityData, selectedEventId, isSyncLoading) = inputs
 
         val filteredEvents = filterEvents(events, filters, cityData, selectedEventId).toImmutableList()
 
         val status = when {
             !hasInternet -> DataStatus.OFFLINE
-            isOutdated.value -> DataStatus.OUTDATED
+            isOutdated -> DataStatus.OUTDATED
             else -> DataStatus.FRESH
         }
         ScreenState.Success(
@@ -123,7 +117,8 @@ class MapViewModel @Inject constructor(
             filterState = filters,
             selectedMapEventId = selectedEventId,
             cityData = cityData.toUiState(),
-            dataStatus = status
+            dataStatus = status,
+            isSyncLoading = isSyncLoading
         ) as ScreenState
     }.catch { e ->
         emit(ScreenState.Error(e))
@@ -317,25 +312,18 @@ class MapViewModel @Inject constructor(
                 it.toUiState().cityCoordinates?.let { point ->
                     _sideEffect.send(ScreenSideEffect.MoveCamera(point))
                 }
-                Log.d(
-                    "Coordinates City Choose",
-                    "${it.toUiState().cityCoordinates?.latitude}" +
-                        " / ${it.toUiState().cityCoordinates?.longitude}"
-                )
-                Log.d("Real Name City Choose", "${it.city?.cityName}")
-                Log.d("Name City Choose", "${it.cityName}")
             }
         }
     }
 
     private suspend fun syncEvents() {
-        try {
-            mapEventsRepository.syncWith().getOrElse { exception ->
-                _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
-                Log.d("SyncError", "${exception.message}")
-            }
-        } catch (e: ApiException) {
-            Log.e("ViewModel", "Error when sync events ${e.message}")
+        isSyncLoading.value = true
+        mapEventsRepository.syncWith().onSuccess {
+            isSyncLoading.value = false
+        }.onFailure { exception ->
+            isSyncLoading.value = false
+            _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
+            Log.d("SyncError", "${exception.message}")
         }
     }
 

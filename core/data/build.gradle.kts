@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.bundles.room)
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
+    implementation(libs.kotlin.datetime)
 
     implementation(libs.yandex.android)
     implementation(libs.androidx.core.ktx)

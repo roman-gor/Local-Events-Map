@@ -13,7 +13,8 @@ sealed interface ScreenState {
         val filterState: FiltersState = FiltersState(),
         val selectedMapEventId: String? = null,
         val cityData: CityUiData = CityUiData(),
-        val dataStatus: DataStatus? = null
+        val dataStatus: DataStatus? = null,
+        val isSyncLoading: Boolean? = null
     ) : ScreenState
 }
 

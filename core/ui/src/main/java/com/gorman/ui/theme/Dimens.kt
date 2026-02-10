@@ -11,11 +11,7 @@ data class Dimens(
     val paddingMedium: Dp = 8.dp,
     val paddingLarge: Dp = 16.dp,
     val paddingExtraLarge: Dp = 24.dp,
-    val paddingTopTopBar: Dp = 40.dp,
-    val paddingBottomTopBar: Dp = 20.dp,
-    val avatarSize: Dp = 50.dp,
-    val profileAvatarSize: Dp = 160.dp,
-    val iconSizeSmall: Dp = 18.dp,
+    val paddingExtraExtraLarge: Dp = 40.dp,
     val cornerRadius: Dp = 12.dp
 )
 

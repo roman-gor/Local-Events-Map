@@ -25,7 +25,7 @@ class SyncWorker @AssistedInject constructor(
         try {
             Log.d("SyncWorker", "Worker")
             val result = mapEventRepository.syncWith()
-
+            
             result.fold(
                 onSuccess = {
                     Result.success()

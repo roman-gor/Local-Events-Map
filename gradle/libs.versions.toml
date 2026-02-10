@@ -29,6 +29,7 @@ kotlin = "2.1.0"
 kotlinCoroutines = "1.10.2"
 kotlinCoroutinesImmutable = "0.4.0"
 kotlinx-serialization = "1.7.3"
+kotlinDateTime = "0.5.0"
 ksp = "2.1.0-1.0.29"
 lifecycleVersion = "2.10.0"
 material = "1.10.0"
@@ -97,6 +98,7 @@ kotlinx-coroutines-tests = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-coroutines-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinCoroutinesImmutable" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlin-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinDateTime" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServices" }
