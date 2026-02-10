@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.gorman.common.constants.CategoryConstants
-import com.gorman.common.constants.CostConstants
+import com.gorman.common.constants.Category
+import com.gorman.common.constants.CostTier
 import com.gorman.feature.events.impl.ui.components.DateFilterType
 import com.gorman.feature.events.impl.ui.components.DateRangePickerDialog
 import com.gorman.feature.events.impl.ui.components.FiltersBottomSheet
@@ -51,8 +51,8 @@ fun FilterBottomSheetContent(
             sheetState = data.sheetState,
             filters = filtersState,
             options = FilterOptions(
-                categoryItems = CategoryConstants.entries,
-                costItems = CostConstants.entries.map { it.value }
+                categoryItems = Category.entries,
+                costItems = CostTier.entries.map { it.value }
             ),
             actions = FilterActions(
                 onCategoryChange = mapScreenActions.filterActions.onCategoryChange,

@@ -4,8 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.common.api.ApiException
-import com.gorman.cache.data.DataStoreManager
-import com.gorman.common.constants.CityCoordinatesConstants
+import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
 import com.gorman.data.repository.geo.IGeoRepository
@@ -43,6 +42,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -52,6 +52,7 @@ import kotlin.collections.filter
 import kotlin.collections.toMutableList
 import kotlin.ranges.contains
 
+@Suppress("TooManyFunctions")
 @HiltViewModel
 class MapViewModel @Inject constructor(
     private val mapManager: IMapManager,
@@ -60,25 +61,25 @@ class MapViewModel @Inject constructor(
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
     private val getPointByCityUseCase: GetPointByCityUseCase,
-    networkObserver: NetworkConnectivityObserver,
-    private val dataStoreManager: DataStoreManager
+    networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
-    private val _filters = MutableStateFlow(FiltersState())
-    private val _selectedEventId = MutableStateFlow<String?>(null)
+
+    private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
+    val sideEffect = _sideEffect.receiveAsFlow()
+
+    private val filters = MutableStateFlow(FiltersState())
+    private val selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
 
     private var cameraMoveJob: Job? = null
 
-    private val _cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
+    private val cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
 
     private data class UserInputState(
         val filters: FiltersState,
         val cityData: CityData,
         val selectedEventId: String?
     )
-
-    private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
-    val sideEffect = _sideEffect.receiveAsFlow()
 
     private val isNetworkAvailable = networkObserver.observe()
         .stateIn(
@@ -87,47 +88,62 @@ class MapViewModel @Inject constructor(
             initialValue = false
         )
 
-    val uiState: StateFlow<ScreenState> = run {
-        val userInputs = combine(
-            _filters,
-            _cityData,
-            _selectedEventId
-        ) { filters, cityData, selectedEventId ->
-            UserInputState(filters, cityData, selectedEventId)
+    private val userInputs = combine(
+        filters,
+        cityData,
+        selectedEventId
+    ) { filters, cityData, selectedEventId ->
+        UserInputState(filters, cityData, selectedEventId)
+    }
+
+    private val isOutdated = flow {
+        emit(mapEventsRepository.isOutdated())
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = false
+    )
+
+    val uiState: StateFlow<ScreenState> = combine(
+        mapEventsRepository.getAllEvents(),
+        userInputs,
+        isNetworkAvailable
+    ) { events, inputs, hasInternet ->
+        val (filters, cityData, selectedEventId) = inputs
+
+        val filteredEvents = filterEvents(events, filters, cityData, selectedEventId).toImmutableList()
+
+        val status = when {
+            !hasInternet -> DataStatus.OFFLINE
+            isOutdated.value -> DataStatus.OUTDATED
+            else -> DataStatus.FRESH
         }
-        combine(
-            mapEventsRepository.getAllEvents(),
-            dataStoreManager.permissionsState,
-            userInputs,
-            isNetworkAvailable
-        ) { events, permissions, inputs, hasInternet ->
-            val (filters, cityData, selectedEventId) = inputs
-            val filteredEvents = events.filter { event ->
-                event.filter(filters, cityData)
-            }.map { domainEvent ->
-                domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
-            }.toImmutableList()
-            val isOutdated = mapEventsRepository.isOutdated()
-            val status = when {
-                !hasInternet -> DataStatus.OFFLINE
-                isOutdated -> DataStatus.OUTDATED
-                else -> DataStatus.FRESH
-            }
-            ScreenState.Success(
-                eventsList = filteredEvents,
-                filterState = filters,
-                selectedMapEventId = selectedEventId,
-                cityData = cityData.toUiState(),
-                dataStatus = status,
-                isPermissionsRequested = permissions
-            ) as ScreenState
-        }.catch { e ->
-            emit(ScreenState.Error(e))
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ScreenState.Loading
-        )
+        ScreenState.Success(
+            eventsList = filteredEvents,
+            filterState = filters,
+            selectedMapEventId = selectedEventId,
+            cityData = cityData.toUiState(),
+            dataStatus = status
+        ) as ScreenState
+    }.catch { e ->
+        emit(ScreenState.Error(e))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ScreenState.Loading
+    )
+
+    private fun filterEvents(
+        events: List<MapEvent>,
+        filters: FiltersState,
+        cityData: CityData,
+        selectedEventId: String?
+    ): List<MapUiEvent> {
+        return events.filter { event ->
+            event.filter(filters, cityData)
+        }.map { domainEvent ->
+            domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
+        }
     }
 
     private fun MapEvent.filter(
@@ -163,35 +179,28 @@ class MapViewModel @Inject constructor(
 
     fun onUiEvent(event: ScreenUiEvent) {
         when (event) {
-            ScreenUiEvent.MapKitOnStart -> mapManager.onStart()
-            ScreenUiEvent.MapKitOnStop -> mapManager.onStop()
+            ScreenUiEvent.OnStart -> mapManager.onStart()
+            ScreenUiEvent.OnStop -> mapManager.onStop()
             is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
             is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
-            is ScreenUiEvent.OnNameChanged -> _filters.value = _filters.value.copy(name = event.name)
-            is ScreenUiEvent.OnCostChanged -> _filters.value = _filters.value.copy(isFree = event.isFree)
-            is ScreenUiEvent.OnDistanceChanged -> _filters.value = _filters.value.copy(distance = event.distance)
+            is ScreenUiEvent.OnNameChanged -> filters.value = filters.value.copy(name = event.name)
+            is ScreenUiEvent.OnCostChanged -> filters.value = filters.value.copy(isFree = event.isFree)
+            is ScreenUiEvent.OnDistanceChanged -> filters.value = filters.value.copy(distance = event.distance)
             is ScreenUiEvent.OnCitySearch -> {
-                viewModelScope.launch { dataStoreManager.updatePermissionsState(true) }
                 searchForCity(event.city)
             }
             is ScreenUiEvent.OnEventSelected -> {
                 viewModelScope.launch {
-                    val currentId = _selectedEventId.value
-                    _selectedEventId.value = if (currentId == event.id) null else event.id
+                    val currentId = selectedEventId.value
+                    selectedEventId.value = if (currentId == event.id) null else event.id
                 }
             }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> {
                 viewModelScope.launch {
-                    dataStoreManager.updatePermissionsState(true)
                     fetchInitialLocation()
                     syncEvents()
-                }
-            }
-            ScreenUiEvent.PermissionsRequested -> {
-                viewModelScope.launch {
-                    dataStoreManager.updatePermissionsState(true)
                 }
             }
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {
@@ -208,16 +217,16 @@ class MapViewModel @Inject constructor(
             userCityData?.let { geoRepository.saveCity(it) }
             _sideEffect.send(ScreenSideEffect.MoveCamera(location.toUiState()))
         }.onFailure {
-            searchForCity(CityCoordinatesConstants.MINSK)
+            searchForCity(CityCoordinates.MINSK)
         }
     }
 
     private fun filterDateChanged(dateState: DateFilterState) {
-        val currentType = _filters.value.dateRange.type
+        val currentType = filters.value.dateRange.type
         val newType = dateState.type
 
         if (currentType == newType && newType != DateFilterType.RANGE) {
-            _filters.value = _filters.value.copy(
+            filters.value = filters.value.copy(
                 dateRange = DateFilterState(
                     type = null,
                     startDate = null,
@@ -233,36 +242,36 @@ class MapViewModel @Inject constructor(
 
         when (dateState.type) {
             DateFilterType.RANGE -> {
-                _filters.value = _filters.value.copy(
+                filters.value = filters.value.copy(
                     dateRange = DateFilterState(
                         type = DateFilterType.RANGE,
                         startDate = dateState.startDate,
                         endDate = dateState.endDate
                     )
                 )
-                Log.d("Date Check State", _filters.value.dateRange.toString())
+                Log.d("Date Check State", filters.value.dateRange.toString())
             }
             DateFilterType.TODAY -> {
-                _filters.value = _filters.value.copy(
+                filters.value = filters.value.copy(
                     dateRange = DateFilterState(
                         type = dateState.type,
                         startDate = getStartOfDay(),
                         endDate = getEndOfDay()
                     )
                 )
-                Log.d("Date Check State", _filters.value.dateRange.toString())
+                Log.d("Date Check State", filters.value.dateRange.toString())
             }
             DateFilterType.WEEK -> {
-                _filters.value = _filters.value.copy(
+                filters.value = filters.value.copy(
                     dateRange = DateFilterState(
                         type = dateState.type,
                         startDate = getStartOfDay(),
                         endDate = getEndOfWeek()
                     )
                 )
-                Log.d("Date Check State", _filters.value.dateRange.toString())
+                Log.d("Date Check State", filters.value.dateRange.toString())
             }
-            else -> _filters.value = _filters.value.copy(
+            else -> filters.value = filters.value.copy(
                 dateRange = DateFilterState(
                     type = null,
                     startDate = null,
@@ -300,7 +309,7 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    fun searchForCity(city: CityCoordinatesConstants) {
+    fun searchForCity(city: CityCoordinates) {
         viewModelScope.launch {
             val resultCityData = getPointByCityUseCase(city)
             resultCityData?.let {
@@ -331,14 +340,14 @@ class MapViewModel @Inject constructor(
     }
 
     private fun onCategoryChanged(category: String) {
-        val currentCategories = _filters.value.categories.toMutableList()
+        val currentCategories = filters.value.categories.toMutableList()
         if (currentCategories.contains(category)) {
             currentCategories.remove(category)
         } else {
             currentCategories.add(category)
         }
-        Log.d("FilterList", _filters.value.categories.toString())
-        _filters.value = _filters.value.copy(categories = currentCategories)
+        Log.d("FilterList", filters.value.categories.toString())
+        filters.value = filters.value.copy(categories = currentCategories)
     }
 
     private fun updateCityIfChanged(newData: CityData) {
