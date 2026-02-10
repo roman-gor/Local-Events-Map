@@ -38,6 +38,7 @@ import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.gorman.ui.utils.DateFormatStyle
 import com.gorman.ui.utils.format
+import com.gorman.ui.utils.getBottomBarPadding
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable
@@ -50,7 +51,9 @@ fun BookmarkList(
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier,
-        contentPadding = PaddingValues(bottom = 100.dp)
+        contentPadding = PaddingValues(
+            bottom = getBottomBarPadding() + LocalEventsMapTheme.dimens.paddingMedium
+        )
     ) {
         items(
             items = events,
@@ -82,7 +85,13 @@ fun BookmarkEventCard(
     Box(
         modifier = modifier
     ) {
-        AsyncImage(event.photoUrl)
+        AsyncImage(
+            imageUrl = event.photoUrl,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+                .background(MaterialTheme.colorScheme.onPrimary)
+        )
         IconButton(
             onClick = { onLikeButtonClick() },
             modifier = Modifier
@@ -143,15 +152,13 @@ fun BookmarkEventCard(
 
 @Composable
 fun AsyncImage(
-    imageUrl: String?
+    imageUrl: String?,
+    modifier: Modifier = Modifier
 ) {
     SubcomposeAsyncImage(
         model = imageUrl,
         contentDescription = "Event Image with composable placeholder",
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(220.dp)
-            .background(MaterialTheme.colorScheme.onPrimary),
+        modifier = modifier,
         contentScale = ContentScale.Crop,
         loading = {
             Box(

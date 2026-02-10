@@ -1,4 +1,4 @@
-package com.gorman.feature.events.impl.utils
+package com.gorman.ui.utils
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
@@ -13,12 +13,12 @@ fun getBottomBarPadding(): Dp {
     val density = LocalDensity.current
     val systemBarInsets = WindowInsets.navigationBars
 
-    val bottomPaddingPx = remember(density, systemBarInsets) {
-        val systemBottom = systemBarInsets.getBottom(density)
+    return remember(density, systemBarInsets) {
+        val systemBottomPx = systemBarInsets.getBottom(density)
+        val barHeightPx = with(density) { 100.dp.roundToPx() }
 
-        val barHeightPx = with(density) { 32.dp.roundToPx() }
+        val totalPx = systemBottomPx + barHeightPx
 
-        systemBottom + barHeightPx
-    }.dp
-    return bottomPaddingPx
+        with(density) { totalPx.toDp() }
+    }
 }

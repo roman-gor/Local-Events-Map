@@ -16,17 +16,14 @@ class Navigator(startDestination: NavKey) {
         backStack.add(destination)
     }
 
-    fun popUpTo(route: NavKey, inclusive: Boolean) {
-        val index = backStack.indexOfLast { it == route }
-
-        if (index == -1) return
-
-        val targetSize = if (inclusive) index else index + 1
-
-        while (backStack.size > targetSize) {
-            backStack.removeLast()
-        }
-    }
+//    fun popToRoot() {
+//        val root = _backStack.value.firstOrNull() ?: return
+//        _backStack.value = listOf(root)
+//    }
+//
+//    fun resetToRoot() {
+//        popToRoot()
+//    }
 
     fun setRoot(destination: NavKey) {
         backStack.clear()

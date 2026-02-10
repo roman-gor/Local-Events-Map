@@ -28,6 +28,8 @@ import com.yandex.mapkit.map.CameraUpdateReason
 import com.yandex.mapkit.map.ClusterListener
 import com.yandex.mapkit.map.ClusterizedPlacemarkCollection
 import com.yandex.mapkit.map.IconStyle
+import com.yandex.mapkit.map.InputListener
+import com.yandex.mapkit.map.Map
 import com.yandex.mapkit.map.MapObjectTapListener
 import com.yandex.mapkit.map.PlacemarkMapObject
 import com.yandex.mapkit.mapview.MapView
@@ -58,6 +60,7 @@ fun LocalEventsMap(
     mapControl: MapControl,
     config: MapConfig,
     onCameraIdle: (Double, Double) -> Unit,
+    onMapClick: () -> Unit,
     modifier: Modifier = Modifier,
     onMapReady: () -> Unit = {},
     onMarkerClick: (String) -> Unit
@@ -104,8 +107,16 @@ fun LocalEventsMap(
                 onCameraIdle(target.latitude, target.longitude)
             }
         }
+        val inputListener = object : InputListener {
+            override fun onMapTap(p0: Map, p1: Point) { onMapClick() }
+            override fun onMapLongTap(p0: Map, p1: Point) {}
+        }
+        mapView.mapWindow.map.addInputListener(inputListener)
         mapView.mapWindow.map.addCameraListener(cameraListener)
-        onDispose { mapView.mapWindow.map.removeCameraListener(cameraListener) }
+        onDispose {
+            mapView.mapWindow.map.removeInputListener(inputListener)
+            mapView.mapWindow.map.removeCameraListener(cameraListener)
+        }
     }
 
     LaunchedEffect(config.userLocation) {
@@ -119,7 +130,9 @@ fun LocalEventsMap(
     }
 
     AndroidView(
-        factory = { mapView },
+        factory = {
+            mapView
+        },
         modifier = modifier,
         update = { view ->
             if (view.mapWindow.map.isNightModeEnabled != config.isDarkMode) {

@@ -91,7 +91,9 @@ fun DetailsEventScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Column(
-                modifier = Modifier.padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
+                modifier = Modifier
+                    .systemBarsPadding()
+                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
             ) {
                 TitleSection(
                     mapUiEvent = mapUiEvent,
@@ -135,6 +137,7 @@ fun DetailsEventScreen(
             onLinkClick = { openBrowser(context, mapUiEvent.link) },
             modifier = Modifier
                 .fillMaxWidth()
+                .systemBarsPadding()
                 .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
                 .height(58.dp)
                 .align(Alignment.BottomCenter)

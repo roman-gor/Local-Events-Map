@@ -27,6 +27,7 @@ sealed interface ScreenUiEvent {
 
     data class OnCameraIdle(val point: PointUiState) : ScreenUiEvent
     data class OnCitySearch(val city: CityCoordinates) : ScreenUiEvent
+    object OnMapClick : ScreenUiEvent
 
     data object OnSyncClicked : ScreenUiEvent
     data class OnCategoryChanged(val category: String) : ScreenUiEvent

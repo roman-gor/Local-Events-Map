@@ -11,5 +11,6 @@ data class MapScreenActions(
     val onEventClick: (MapUiEvent) -> Unit,
     val onCitySubmit: (CityCoordinates) -> Unit,
     val onNavigateToDetailsScreen: (MapUiEvent) -> Unit,
-    val filterActions: FilterActions
+    val filterActions: FilterActions,
+    val onMapClick: () -> Unit
 )

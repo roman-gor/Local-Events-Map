@@ -42,7 +42,8 @@ fun TitleSection(
                 fontSize = 20.sp
             )
             Text(
-                text = "${cityNameDefinition(mapUiEvent.cityName ?: "")}, ${mapUiEvent.address}",
+                text = stringResource(cityNameDefinition(mapUiEvent.cityName ?: "")) +
+                        ", ${mapUiEvent.address}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 fontSize = 16.sp
