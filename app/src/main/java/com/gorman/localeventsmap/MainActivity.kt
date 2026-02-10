@@ -1,8 +1,8 @@
 package com.gorman.localeventsmap
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,9 +12,14 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
@@ -48,7 +53,6 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var mapEventsRepository: IMapEventsRepository
 
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleDeepLink(intent)
@@ -78,17 +82,25 @@ class MainActivity : ComponentActivity() {
                                             onPress = {}
                                         )
                                     }
-                                    .padding(LocalEventsMapTheme.dimens.paddingLarge)
+                                    .padding(
+                                        horizontal = LocalEventsMapTheme.dimens.paddingExtraExtraLarge,
+                                        vertical = LocalEventsMapTheme.dimens.paddingLarge
+                                    )
+                                    .systemBarsPadding()
                                     .clip(CircleShape)
                             )
                         }
                     },
-                    contentWindowInsets = WindowInsets(0, 0, 0, 0),
-                ) {
+                    contentWindowInsets = WindowInsets.safeDrawing.only(
+                        sides = WindowInsetsSides.Horizontal
+                    ),
+                ) { paddingValues ->
                     LocalEventsMapNavigation(
                         navigator = navigator,
                         entryBuilders = entryBuilders,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .consumeWindowInsets(paddingValues)
                     )
                 }
             }
@@ -109,7 +121,9 @@ class MainActivity : ComponentActivity() {
             val eventId = uri.lastPathSegment
             if (!eventId.isNullOrBlank()) {
                 lifecycleScope.launch {
-                    val result = mapEventsRepository.syncEventById(eventId)
+                    val result = mapEventsRepository.syncEventById(eventId).onFailure { e ->
+                        Log.e("Sync Event By Id", "Failed saving event: ${e.message}")
+                    }
                     if (result.isSuccess) {
                         navigator.goTo(DetailsScreenNavKey(eventId))
                     } else {

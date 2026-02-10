@@ -4,9 +4,9 @@ import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class Notificator @Inject constructor(
+class NotificationTokenDataSource @Inject constructor(
     private val firebaseMessaging: FirebaseMessaging
-) : INotificator {
-    override suspend fun getUserToken(): String =
+) : INotificationTokenDataSource {
+    override suspend fun getNotificationToken(): String =
         firebaseMessaging.token.await()
 }

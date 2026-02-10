@@ -91,6 +91,7 @@ class MapEventsRepositoryTest {
         coVerify {
             dao.upsertEvent(
                 match { entities ->
+
                     entities.size == 2 && entities.any { it.id == "1" }
                 }
             )

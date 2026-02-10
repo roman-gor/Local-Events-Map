@@ -1,5 +1,6 @@
 package com.gorman.localeventsmap.ui.bottombar
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -20,6 +21,7 @@ fun BottomNavigationBar(
 ) {
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 1f),
+        windowInsets = WindowInsets(0, 0, 0, 0),
         modifier = modifier
     ) {
         NavEntries.entries.forEach { destination ->

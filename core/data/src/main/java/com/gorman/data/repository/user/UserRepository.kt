@@ -8,7 +8,7 @@ import com.gorman.domainmodel.UserData
 import com.gorman.network.data.datasource.users.IUserRemoteDataSource
 import com.gorman.network.mappers.toDomain
 import com.gorman.network.mappers.toRemote
-import com.gorman.notifications.notificator.INotificator
+import com.gorman.notifications.notificator.INotificationTokenDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 internal class UserRepository @Inject constructor(
     private val userRemoteDataSource: IUserRemoteDataSource,
-    private val notificator: INotificator,
+    private val notificationTokenDataSource: INotificationTokenDataSource,
     private val userDataDao: UserDataDao
 ) : IUserRepository {
 
@@ -44,7 +44,7 @@ internal class UserRepository @Inject constructor(
 
     @Suppress("TooGenericExceptionCaught")
     override suspend fun saveTokenToUser(uid: String): Result<Unit> = runCatching {
-        userRemoteDataSource.saveTokenToUser(uid, notificator.getUserToken())
+        userRemoteDataSource.saveTokenToUser(uid, notificationTokenDataSource.getNotificationToken())
     }
 
     @Suppress("TooGenericExceptionCaught")

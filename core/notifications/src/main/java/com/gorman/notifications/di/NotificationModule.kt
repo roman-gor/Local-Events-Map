@@ -1,8 +1,8 @@
 package com.gorman.notifications.di
 
 import com.google.firebase.messaging.FirebaseMessaging
-import com.gorman.notifications.notificator.INotificator
-import com.gorman.notifications.notificator.Notificator
+import com.gorman.notifications.notificator.INotificationTokenDataSource
+import com.gorman.notifications.notificator.NotificationTokenDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -20,5 +20,5 @@ object NotificationModule {
 @InstallIn(SingletonComponent::class)
 interface NotificatorModule {
     @Binds
-    fun bindNotificator(impl: Notificator): INotificator
+    fun bindNotificator(impl: NotificationTokenDataSource): INotificationTokenDataSource
 }

@@ -22,8 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.gorman.common.constants.CityCoordinatesConstants
-import com.gorman.common.constants.toDisplayName
+import com.gorman.common.constants.CityCoordinates
 import com.gorman.feature.events.impl.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
@@ -33,7 +32,7 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 fun CitySelectDropdownMenu(
     expanded: Boolean,
     onExpandedChange: () -> Unit,
-    onCityCheck: (CityCoordinatesConstants) -> Unit
+    onCityCheck: (CityCoordinates) -> Unit
 ) {
     val selectedCity = rememberSaveable { mutableStateOf("") }
     Box(
@@ -64,8 +63,8 @@ fun CitySelectDropdownMenu(
                 shape = LocalEventsMapTheme.shapes.medium,
                 containerColor = MaterialTheme.colorScheme.background
             ) {
-                CityCoordinatesConstants.entries.forEach { city ->
-                    val cityName = city.toDisplayName()
+                CityCoordinates.entries.forEach { city ->
+                    val cityName = stringResource(city.resource)
                     DropdownMenuItem(
                         text = {
                             Text(
