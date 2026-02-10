@@ -203,7 +203,6 @@ class MapViewModel @Inject constructor(
                     syncEvents()
                 }
             }
-            is ScreenUiEvent.OnNavigateToDetailsScreen -> {}
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {
                 navigator.goTo(DetailsScreenNavKey(event.event.id))
             }
