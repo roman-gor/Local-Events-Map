@@ -9,8 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -69,9 +71,11 @@ fun LocalEventsMap(
 
     val clusterListener = remember(context) { createClusterListener(context, mapView) }
 
-    val markerTapListener = remember(onMarkerClick) {
+    val latestOnMarkerClick by rememberUpdatedState(onMarkerClick)
+
+    val markerTapListener = remember {
         MapObjectTapListener { mapObject, _ ->
-            (mapObject.userData as? String)?.let { onMarkerClick(it) }
+            (mapObject.userData as? String)?.let { latestOnMarkerClick(it) }
             true
         }
     }
