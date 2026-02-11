@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.serialization)
     alias(libs.plugins.gms.google.services)
     id("localevents.android.library")
+    id("localevents.android.library.compose")
     id("localevents.hilt")
 }
 

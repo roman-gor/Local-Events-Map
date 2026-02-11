@@ -3,23 +3,13 @@ plugins {
     alias(libs.plugins.serialization)
     id("localevents.android.library")
     id("localevents.android.library.compose")
-    id("localevents.hilt")
 }
 
 android {
-    namespace = "com.gorman.feature.events.impl"
+    namespace = "com.gorman.feature.setup.api"
 }
 
 dependencies {
-
-    implementation(project(":feature"))
-    implementation(project(":feature:details-event:api"))
-    implementation(project(":core:navigation"))
-    api(project(":feature:events:api"))
-    implementation(project(":core:map"))
-    implementation(project(":core:navigation"))
-
-    implementation(libs.yandex.android)
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.core.ktx)
