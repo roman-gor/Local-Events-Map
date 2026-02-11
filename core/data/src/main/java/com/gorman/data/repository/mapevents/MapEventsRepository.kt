@@ -1,6 +1,5 @@
 package com.gorman.data.repository.mapevents
 
-import android.util.Log
 import androidx.room.withTransaction
 import com.gorman.cache.data.DataStoreManager
 import com.gorman.database.data.datasource.LocalEventsDatabase
@@ -10,12 +9,13 @@ import com.gorman.database.mappers.toEntity
 import com.gorman.domainmodel.MapEvent
 import com.gorman.firebase.data.datasource.mapevent.MapEventRemoteDataSource
 import com.gorman.firebase.mappers.toDomain
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
 
 private const val TTL_MS = 24 * 60 * 60 * 1000L
 
@@ -48,37 +48,31 @@ internal class MapEventsRepository @Inject constructor(
         }
     }
 
-    override suspend fun syncWith(): Result<Unit> {
-        return try {
-            val remoteEvents = getAllRemoteEvents()
-            if (remoteEvents != null) {
-                val entities = remoteEvents.map { it.toEntity() }
-                val remoteIds = entities.map { it.id }
-                database.withTransaction {
-                    if (remoteIds.isNotEmpty()) {
-                        mapEventsDao.deleteEventsNotIn(remoteIds)
-                        mapEventsDao.upsertEvent(entities)
-                    } else {
-                        mapEventsDao.clearAll()
-                    }
+    override suspend fun syncWith(): Result<Unit> = runCatching {
+        val remoteEvents = getAllRemoteEvents()
+        return if (remoteEvents != null) {
+            val entities = remoteEvents.map { it.toEntity() }
+            val remoteIds = entities.map { it.id }
+            database.withTransaction {
+                if (remoteIds.isNotEmpty()) {
+                    mapEventsDao.deleteEventsNotIn(remoteIds)
+                    mapEventsDao.upsertEvent(entities)
+                } else {
+                    mapEventsDao.clearAll()
                 }
-                dataStoreManager.saveSyncTimestamp(System.currentTimeMillis())
-                Result.success(Unit)
-            } else {
-                Result.failure(IOException("Error network connection"))
             }
-        } catch (e: TimeoutCancellationException) {
-            Log.e("Repository", "Sync failed ${e.message}")
-            Result.failure(e)
-        } catch (e: IOException) {
-            Log.e("Repository", "Sync failed ${e.message}")
-            Result.failure(e)
+            dataStoreManager.saveSyncTimestamp(System.currentTimeMillis())
+            Result.success(Unit)
+        } else {
+            Result.failure(IOException("Error network connection"))
         }
     }
 
-    override suspend fun isOutdated(): Boolean {
-        val lastSyncTime = dataStoreManager.lastSyncTimestamp.first()
-        val currentTime = System.currentTimeMillis()
-        return lastSyncTime?.let { (currentTime - it) > TTL_MS } == true
-    }
+    @OptIn(ExperimentalTime::class)
+    override fun isOutdated(): Flow<Boolean> =
+        dataStoreManager.lastSyncTimestamp.map { lastSyncTime ->
+            val currentZone = ZoneId.systemDefault()
+            val currentTime = ZonedDateTime.now(currentZone).toEpochSecond()
+            lastSyncTime?.let { (currentTime - it) > TTL_MS } == true
+        }
 }

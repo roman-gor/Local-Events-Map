@@ -6,6 +6,5 @@ import kotlinx.serialization.Serializable
 data class UserDataRemote(
     val uid: String = "",
     val email: String? = null,
-    val username: String? = null,
-    val favouriteEventsIds: HashMap<String, Boolean> = HashMap()
+    val username: String? = null
 )
