@@ -9,23 +9,11 @@ import dagger.hilt.android.scopes.ActivityRetainedScoped
  * Handles navigation events (forward and back) by updating the navigation state.
  */
 @ActivityRetainedScoped
-class Navigator(startDestination: NavKey) {
+class Navigator(private val startDestination: NavKey) {
     val backStack: SnapshotStateList<NavKey> = mutableStateListOf(startDestination)
 
     fun goTo(destination: NavKey) {
         backStack.add(destination)
-    }
-
-    fun popUpTo(route: NavKey, inclusive: Boolean) {
-        val index = backStack.indexOfLast { it == route }
-
-        if (index == -1) return
-
-        val targetSize = if (inclusive) index else index + 1
-
-        while (backStack.size > targetSize) {
-            backStack.removeLast()
-        }
     }
 
     fun setRoot(destination: NavKey) {
@@ -35,5 +23,21 @@ class Navigator(startDestination: NavKey) {
 
     fun goBack() {
         backStack.removeLastOrNull()
+    }
+
+    fun popToRoot() {
+        if (backStack.size > 1) {
+            backStack.removeRange(1, backStack.size)
+        }
+    }
+
+    fun switchTab(tab: NavKey) {
+        if (backStack.lastOrNull() == tab) return
+
+        popToRoot()
+
+        if (tab != startDestination) {
+            goTo(tab)
+        }
     }
 }
