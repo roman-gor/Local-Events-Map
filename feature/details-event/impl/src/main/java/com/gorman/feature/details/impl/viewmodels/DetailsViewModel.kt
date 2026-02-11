@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gorman.data.repository.mapevents.IMapEventsRepository
+import com.gorman.data.repository.user.IUserRepository
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.details.impl.states.DetailsScreenState
 import com.gorman.feature.details.impl.states.DetailsScreenUiEvent
@@ -28,12 +29,15 @@ import okio.IOException
 class DetailsViewModel @AssistedInject constructor(
     private val mapEventsRepository: IMapEventsRepository,
     private val navigator: Navigator,
+    private val userRepository: IUserRepository,
     @Assisted val navKey: DetailsScreenNavKey
 ) : ViewModel() {
+
     @AssistedFactory
     interface Factory {
         fun create(navKey: DetailsScreenNavKey): DetailsViewModel
     }
+
     private val _id = navKey.id
     private val retryTrigger = MutableSharedFlow<Unit>(replay = 1).apply {
         tryEmit(Unit)
@@ -70,10 +74,7 @@ class DetailsViewModel @AssistedInject constructor(
 
     private fun onFavouriteChange(id: String) {
         viewModelScope.launch {
-            val result = mapEventsRepository.updateFavouriteState(id)
-            result.onFailure { e ->
-                Log.e("Details VM", "Error updating state of favourite ${e.message}")
-            }
+
         }
     }
 }

@@ -19,13 +19,10 @@ class DataStoreManager @Inject constructor(
 ) {
     companion object {
         private val KEY_CITY_DATA = stringPreferencesKey("city_data")
-        private val USER_ID = stringPreferencesKey("user_id")
         private val KEY_LAST_SYNC = longPreferencesKey("key_last_sync")
     }
 
-    val savedUserId: Flow<String?> = dataStore.data.map { prefs -> prefs[USER_ID] }
     val lastSyncTimestamp: Flow<Long?> = dataStore.data.map { prefs -> prefs[KEY_LAST_SYNC] }
-
     val savedCity: Flow<CityData?> = dataStore.data.map { prefs ->
         val jsonString = prefs[KEY_CITY_DATA]
         if (jsonString != null) {
@@ -38,12 +35,6 @@ class DataStoreManager @Inject constructor(
     suspend fun saveSyncTimestamp(timestamp: Long) {
         dataStore.edit { prefs ->
             prefs[KEY_LAST_SYNC] = timestamp
-        }
-    }
-
-    suspend fun saveUserId(userId: String) {
-        dataStore.edit { prefs ->
-            prefs[USER_ID] = userId
         }
     }
 

@@ -1,4 +1,4 @@
-package com.gorman.database
+package com.gorman.database.mappers
 
 import com.gorman.database.data.model.MapEventEntity
 import com.gorman.domainmodel.MapEvent
@@ -15,8 +15,7 @@ fun MapEventEntity.toDomain(): MapEvent =
         link = link,
         photo = photo,
         category = category,
-        price = price,
-        isFavourite = isFavourite
+        price = price
     )
 
 fun MapEvent.toEntity(): MapEventEntity =
@@ -31,6 +30,5 @@ fun MapEvent.toEntity(): MapEventEntity =
         link = link,
         photo = photo,
         category = category,
-        price = price,
-        isFavourite = isFavourite
+        price = price
     )
