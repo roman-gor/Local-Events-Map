@@ -12,7 +12,6 @@ output-metadata.json
 *.bin
 *.dex
 .idea/
-.idea/*
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
