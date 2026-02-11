@@ -12,7 +12,7 @@ import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenState
 import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenUiEvent
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
-import com.gorman.navigation.navigator.Navigator
+import com.gorman.navigation.navigator.IAppNavigator
 import com.gorman.ui.mappers.toUiState
 import com.gorman.ui.states.UserUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,7 +34,7 @@ class BookmarksViewModel @Inject constructor(
     private val userRepository: IUserRepository,
     private val bookmarksRepository: IBookmarksRepository,
     private val signOutUserUseCase: SignOutUserUseCase,
-    private val navigator: Navigator
+    private val navigator: IAppNavigator
 ) : ViewModel() {
     private val retryTrigger = MutableSharedFlow<Unit>(replay = 1).apply {
         tryEmit(Unit)
@@ -76,7 +76,7 @@ class BookmarksViewModel @Inject constructor(
     fun onUiEvent(event: BookmarksScreenUiEvent) {
         when (event) {
             BookmarksScreenUiEvent.OnRetryClick -> retryTrigger.tryEmit(Unit)
-            is BookmarksScreenUiEvent.OnEventClick -> navigator.goTo(DetailsScreenNavKey(event.eventId))
+            is BookmarksScreenUiEvent.OnEventClick -> navigator.navigateTo(DetailsScreenNavKey(event.eventId))
             is BookmarksScreenUiEvent.ChangeLikeState -> {
                 viewModelScope.launch {
                     val uid = (uiState.value as BookmarksScreenState.Success).userUiState.uid
@@ -96,7 +96,7 @@ class BookmarksViewModel @Inject constructor(
             }
             BookmarksScreenUiEvent.OnSignInClick -> {
                 viewModelScope.launch {
-                    navigator.goTo(SignInScreenNavKey)
+                    navigator.navigateTo(SignInScreenNavKey)
                 }
             }
         }

@@ -12,7 +12,7 @@ import com.gorman.feature.auth.impl.ui.states.AuthScreenState
 import com.gorman.feature.auth.impl.ui.states.AuthScreenUiEvent
 import com.gorman.feature.auth.impl.ui.states.AuthSideEffects
 import com.gorman.feature.events.api.HomeScreenNavKey
-import com.gorman.navigation.navigator.Navigator
+import com.gorman.navigation.navigator.IAppNavigator
 import com.gorman.ui.mappers.toDomain
 import com.gorman.ui.states.UserUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,7 +28,7 @@ class AuthViewModel @Inject constructor(
     private val signInUserUseCase: SignInUserUseCase,
     private val signUpUserUseCase: SignUpUserUseCase,
     private val signInAnonUserUseCase: SignInAnonUserUseCase,
-    private val navigator: Navigator
+    private val navigator: IAppNavigator
 ) : ViewModel() {
     private val _uiState =
         MutableStateFlow<AuthScreenState>(AuthScreenState.Idle(user = UserUiState(), password = ""))
@@ -44,8 +44,8 @@ class AuthViewModel @Inject constructor(
             is AuthScreenUiEvent.OnSignInClick -> signIn(uiEvent.email, uiEvent.password)
             is AuthScreenUiEvent.OnSignUpClick -> signUp(uiEvent.user, uiEvent.password)
             AuthScreenUiEvent.OnGuestSignIn -> guestSignIn()
-            AuthScreenUiEvent.OnNavigateToSignInClicked -> navigator.goTo(SignInScreenNavKey)
-            AuthScreenUiEvent.OnNavigateToSignUpClicked -> navigator.goTo(SignUpScreenNavKey)
+            AuthScreenUiEvent.OnNavigateToSignInClicked -> navigator.navigateTo(SignInScreenNavKey)
+            AuthScreenUiEvent.OnNavigateToSignUpClicked -> navigator.navigateTo(SignUpScreenNavKey)
             is AuthScreenUiEvent.ShowToast -> {
                 val currentTime = System.currentTimeMillis()
                 if (currentTime - lastToastTime >= 3000L) {

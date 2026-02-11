@@ -1,17 +1,17 @@
 package com.gorman.navigation.di
 
-import com.gorman.feature.setup.api.SetupScreenNavKey
-import com.gorman.navigation.navigator.Navigator
+import com.gorman.navigation.navigator.AppNavigator
+import com.gorman.navigation.navigator.IAppNavigator
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityRetainedComponent
-import dagger.hilt.android.scopes.ActivityRetainedScoped
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
-@InstallIn(ActivityRetainedComponent::class)
-object NavigatorModule {
-    @Provides
-    @ActivityRetainedScoped
-    fun provideNavigator(): Navigator = Navigator(startDestination = SetupScreenNavKey)
+@InstallIn(SingletonComponent::class)
+interface NavigatorModule {
+    @Binds
+    @Singleton
+    fun bindAppNavigator(impl: AppNavigator): IAppNavigator
 }
