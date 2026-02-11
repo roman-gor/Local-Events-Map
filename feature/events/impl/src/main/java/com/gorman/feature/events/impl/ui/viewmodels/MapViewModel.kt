@@ -12,14 +12,6 @@ import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.details.api.DetailsScreenNavKey
-import com.gorman.feature.events.impl.components.DateFilterType
-import com.gorman.feature.events.impl.mappers.toUiState
-import com.gorman.feature.events.impl.states.DataStatus
-import com.gorman.feature.events.impl.states.DateFilterState
-import com.gorman.feature.events.impl.states.FiltersState
-import com.gorman.feature.events.impl.states.ScreenSideEffect
-import com.gorman.feature.events.impl.states.ScreenState
-import com.gorman.feature.events.impl.states.ScreenUiEvent
 import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
 import com.gorman.feature.events.impl.domain.GetPointByCityUseCase
 import com.gorman.feature.events.impl.ui.components.DateFilterType

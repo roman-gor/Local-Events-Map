@@ -2,7 +2,7 @@ package com.gorman.feature.setup.impl.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gorman.cache.data.DataStoreManager
+import com.gorman.data.repository.user.IUserRepository
 import com.gorman.feature.auth.api.SignInScreenNavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.feature.setup.impl.states.SetupScreenState
@@ -21,7 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LocalEventsMapViewModel @Inject constructor(
-    dataStoreManager: DataStoreManager,
+    userRepository: IUserRepository,
     private val navigator: Navigator
 ) : ViewModel() {
 
@@ -32,9 +32,10 @@ class LocalEventsMapViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val state: StateFlow<SetupScreenState> = retryTrigger
         .flatMapLatest {
-            dataStoreManager.savedUserId
+            userRepository
+                .getUserData().map { it?.uid }
                 .map { id ->
-                    if (id != null) {
+                    if (id != null && id.isNotEmpty()) {
                         SetupScreenState.Success(true)
                     } else {
                         SetupScreenState.Success(false)
