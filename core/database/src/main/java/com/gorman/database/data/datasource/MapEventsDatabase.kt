@@ -5,10 +5,8 @@ import androidx.room.RoomDatabase
 import com.gorman.database.data.model.MapEventEntity
 
 @Database(
-    entities = [
-        MapEventEntity::class
-    ],
-    version = 1,
+    entities = [MapEventEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class MapEventsDatabase : RoomDatabase() {

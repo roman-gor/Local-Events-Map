@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -21,9 +22,14 @@ dependencyResolutionManagement {
 
 rootProject.name = "LocalEventsMap"
 include(":app")
-include(":core")
 include(":core:common")
-include(":core:firebase")
+include(":core:network")
 include(":core:ui")
 include(":core:database")
 include(":core:domain-model")
+include(":core:data")
+include(":core:cache")
+include(":sync:work")
+include(":feature:events:api")
+include(":feature:events:impl")
+include(":core:map")
