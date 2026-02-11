@@ -33,13 +33,14 @@ class LocalEventsMapViewModel @Inject constructor(
     val state: StateFlow<SetupScreenState> = retryTrigger
         .flatMapLatest {
             userRepository
-                .getUserData().map { it?.uid }
+                .getUserData().map { it.uid }
                 .map { id ->
-                    if (id != null && id.isNotEmpty()) {
-                        SetupScreenState.Success(true)
+                    if (id.isNotEmpty()) {
+                        navigator.setRoot(HomeScreenNavKey)
                     } else {
-                        SetupScreenState.Success(false)
-                    } as SetupScreenState
+                        navigator.setRoot(SignInScreenNavKey)
+                    }
+                    SetupScreenState.Loading
                 }
         }.catch { e ->
             SetupScreenState.Error(e)
@@ -51,8 +52,6 @@ class LocalEventsMapViewModel @Inject constructor(
 
     fun onUiEvent(uiEvent: SetupScreenUiEvent) {
         when (uiEvent) {
-            SetupScreenUiEvent.NavigateToMain -> navigator.setRoot(HomeScreenNavKey)
-            SetupScreenUiEvent.NavigateToSignIn -> navigator.goTo(SignInScreenNavKey)
             SetupScreenUiEvent.TryAgain -> retryTrigger.tryEmit(Unit)
         }
     }
