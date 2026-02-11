@@ -1,7 +1,7 @@
-package com.gorman.feature.auth.impl.mappers
+package com.gorman.ui.mappers
 
 import com.gorman.domainmodel.UserData
-import com.gorman.feature.auth.impl.states.UserUiState
+import com.gorman.ui.states.UserUiState
 import kotlinx.collections.immutable.toImmutableList
 
 fun UserUiState.toDomain(): UserData =
