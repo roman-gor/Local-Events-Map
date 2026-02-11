@@ -73,24 +73,10 @@ class MainActivity : ComponentActivity() {
                         ) {
                             BottomNavigationBar(
                                 currentKey = currentKey,
-                                onNavigateTo = { destinationKey ->
-                                    if (currentKey == destinationKey) return@BottomNavigationBar
-
-                                    if (destinationKey is HomeScreenNavKey) {
-                                        navigator.popToRoot()
-                                    } else {
-                                        navigator.resetToRoot()
-                                        navigator.goTo(destinationKey)
-                                    }
-                                },
+                                onNavigateTo = { key -> navigator.switchTab(key) },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .pointerInput(Unit) {
-                                        detectTapGestures(
-                                            onTap = {},
-                                            onPress = {}
-                                        )
-                                    }
+                                    .pointerInput(Unit) { detectTapGestures(onTap = {}, onPress = {}) }
                                     .padding(
                                         horizontal = LocalEventsMapTheme.dimens.paddingExtraExtraLarge,
                                         vertical = LocalEventsMapTheme.dimens.paddingLarge

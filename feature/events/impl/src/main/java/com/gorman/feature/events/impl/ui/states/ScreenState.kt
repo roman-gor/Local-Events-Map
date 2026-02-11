@@ -14,7 +14,8 @@ sealed interface ScreenState {
         val selectedMapEventId: String? = null,
         val cityData: CityUiData = CityUiData(),
         val dataStatus: DataStatus? = null,
-        val isSyncLoading: Boolean? = null
+        val isSyncLoading: Boolean? = null,
+        val initialCameraPosition: Pair<PointUiState?, Float?>
     ) : ScreenState
 }
 
@@ -25,7 +26,7 @@ sealed interface ScreenUiEvent {
 
     data object PermissionsGranted : ScreenUiEvent
 
-    data class OnCameraIdle(val point: PointUiState) : ScreenUiEvent
+    data class OnCameraIdle(val point: PointUiState, val zoom: Float) : ScreenUiEvent
     data class OnCitySearch(val city: CityCoordinates) : ScreenUiEvent
     object OnMapClick : ScreenUiEvent
 
