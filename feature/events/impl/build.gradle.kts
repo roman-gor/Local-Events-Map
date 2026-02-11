@@ -13,6 +13,8 @@ android {
 dependencies {
 
     implementation(project(":feature"))
+    implementation(project(":feature:details-event:api"))
+    implementation(project(":core:navigation"))
     api(project(":feature:events:api"))
     implementation(project(":core:map"))
 

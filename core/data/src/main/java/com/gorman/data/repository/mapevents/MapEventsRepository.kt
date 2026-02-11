@@ -32,8 +32,23 @@ internal class MapEventsRepository @Inject constructor(
         }
     }
 
-    override fun getEventById(id: Long): Flow<MapEvent> {
+    override fun getEventById(id: String): Flow<MapEvent> {
         return mapEventsDao.getEventById(id).map { it.toDomain() }
+    }
+
+    @Suppress("TooGenericExceptionCaught")
+    override suspend fun updateFavouriteState(id: String): Result<Unit> {
+        return try {
+            val updatedRows = mapEventsDao.toggleFavouriteState(id)
+            if (updatedRows > 0) {
+                Log.d("Repository", "Updated favourite for map Event")
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Event with id $id not found"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override fun getEventsByName(name: String): Flow<List<MapEvent>> {
