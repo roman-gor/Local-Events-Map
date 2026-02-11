@@ -13,8 +13,10 @@ android {
 dependencies {
 
     implementation(project(":feature"))
-    implementation(project(":feature:events:api"))
+    implementation(project(":feature:details-event:api"))
     implementation(project(":core:navigation"))
+    api(project(":feature:events:api"))
+    implementation(project(":core:map"))
 
     implementation(libs.yandex.android)
     implementation(libs.kotlinx.serialization.json)
