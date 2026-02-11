@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
-import com.gorman.feature.events.impl.screens.mapscreen.MapScreenEntry
+import com.gorman.feature.events.impl.ui.screens.mapscreen.MapScreenEntry
 
 fun EntryProviderScope<NavKey>.featureEventsEntryBuilder() {
     entry<HomeScreenNavKey> {

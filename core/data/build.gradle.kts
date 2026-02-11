@@ -12,6 +12,7 @@ android {
 dependencies {
 
     implementation(project(":core:database"))
+    implementation(project(":core:map"))
     implementation(project(":core:network"))
     implementation(project(":core:auth"))
     implementation(project(":core:common"))

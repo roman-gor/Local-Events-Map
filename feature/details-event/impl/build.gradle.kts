@@ -22,4 +22,5 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.runtime)
+    implementation(libs.androidx.ui.graphics)
 }
