@@ -10,19 +10,6 @@ android {
 }
 
 dependencies {
-
-    implementation(project(":core:database"))
-    implementation(project(":core:network"))
-    implementation(project(":core:auth"))
-    implementation(project(":core:common"))
-
-    ksp(libs.room.compiler)
-    implementation(libs.bundles.room)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
-
-    implementation(libs.yandex.android)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
 }

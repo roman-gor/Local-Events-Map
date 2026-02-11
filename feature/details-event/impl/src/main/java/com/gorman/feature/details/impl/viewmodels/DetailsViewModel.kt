@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gorman.data.repository.mapevents.IMapEventsRepository
-import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.details.impl.states.DetailsScreenState
@@ -22,7 +21,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okio.IOException
@@ -76,9 +74,7 @@ class DetailsViewModel @AssistedInject constructor(
 
     private fun onFavouriteChange(id: String) {
         viewModelScope.launch {
-            userRepository.updateFavouriteEventsState(id).onFailure { e ->
-                Log.e("Details VM", "Error updating state of favourite: ${e.message}")
-            }
+
         }
     }
 }
