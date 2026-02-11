@@ -10,14 +10,6 @@ android {
 }
 
 dependencies {
-
-    ksp(libs.room.compiler)
-    implementation(libs.bundles.room)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.bundles.firebase)
-
-    implementation(libs.yandex.android)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
 }

@@ -23,7 +23,6 @@ class DataStoreManager @Inject constructor(
     }
 
     val lastSyncTimestamp: Flow<Long?> = dataStore.data.map { prefs -> prefs[KEY_LAST_SYNC] }
-
     val savedCity: Flow<CityData?> = dataStore.data.map { prefs ->
         val jsonString = prefs[KEY_CITY_DATA]
         if (jsonString != null) {
