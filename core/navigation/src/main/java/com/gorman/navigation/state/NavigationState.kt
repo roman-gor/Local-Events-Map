@@ -17,13 +17,19 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.serialization.NavKeySerializer
 import androidx.savedstate.compose.serialization.serializers.MutableStateSerializer
+import com.gorman.feature.auth.api.SignInScreenNavKey
 import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.feature.setup.api.SetupScreenNavKey
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentSetOf
 
-val TOP_LEVEL_ROUTES = persistentSetOf(HomeScreenNavKey, BookmarksScreenNavKey, SetupScreenNavKey)
+val TOP_LEVEL_ROUTES = persistentSetOf(
+    HomeScreenNavKey,
+    BookmarksScreenNavKey,
+    SetupScreenNavKey,
+    SignInScreenNavKey
+)
 
 /**
  * Create a navigation state that persists config changes and process death.

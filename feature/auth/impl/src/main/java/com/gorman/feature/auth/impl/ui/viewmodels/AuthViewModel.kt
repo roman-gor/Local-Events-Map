@@ -84,7 +84,7 @@ class AuthViewModel @AssistedInject constructor(
             signInUserUseCase(email, password)
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Success
+                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
                 }.onFailure { e ->
                     _uiState.value = AuthScreenState.Idle(UserUiState(email = email), password)
                     _sideEffect.send(AuthSideEffects.ShowError(e))
@@ -99,7 +99,7 @@ class AuthViewModel @AssistedInject constructor(
             signInAnonUserUseCase()
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Success
+                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
                     Log.d("Auth VM", "Successfully Sign In")
                 }.onFailure { e ->
                     _uiState.value = AuthScreenState.Idle(UserUiState(), "")
@@ -115,7 +115,7 @@ class AuthViewModel @AssistedInject constructor(
             signUpUserUseCase(user.toDomain(), password)
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Success
+                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
                 }
                 .onFailure { e ->
                     _uiState.value = AuthScreenState.Idle(user, password)

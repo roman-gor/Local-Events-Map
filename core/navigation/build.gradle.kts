@@ -12,6 +12,7 @@ android {
 
 dependencies {
     implementation(project(":feature:setup:api"))
+    implementation(project(":feature:auth:api"))
     implementation(project(":feature:events:api"))
     implementation(project(":feature:details-event:api"))
     implementation(project(":feature:bookmarks:api"))
