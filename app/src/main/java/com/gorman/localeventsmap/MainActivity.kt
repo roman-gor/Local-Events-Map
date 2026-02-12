@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val showBottomBar = navState.currentVisibleKey is HomeScreenNavKey ||
-                        navState.currentVisibleKey is BookmarksScreenNavKey
+                    navState.currentVisibleKey is BookmarksScreenNavKey
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {

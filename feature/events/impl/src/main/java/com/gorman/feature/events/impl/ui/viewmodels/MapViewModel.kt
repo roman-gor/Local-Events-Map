@@ -189,34 +189,15 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCitySearch -> {
                 searchForCity(event.city)
             }
-            is ScreenUiEvent.OnEventSelected -> {
-                viewModelScope.launch {
-                    val currentId = selectedEventId.value
-                    if (currentId != event.id) {
-                        selectedEventId.value = event.id
-                        val events = (uiState.value as ScreenState.Success).eventsList
-                        val eventObj = events.find { it.id == event.id }
-                        val coords = eventObj?.coordinates?.split(",")
-                        if (coords != null && coords.size >= 2) {
-                            val point = PointDomain(coords[0].trim().toDouble(), coords[1].trim().toDouble())
-
-                            _sideEffect.send(ScreenSideEffect.MoveCamera(point.toUiState(), 15f))
-                        }
-                    } else {
-                        selectedEventId.value = null
-                    }
-                }
-            }
+            is ScreenUiEvent.OnEventSelected -> { viewModelScope.launch { onEventSelected(event.id) } }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> {
-                if (!isInitialized) {
-                    viewModelScope.launch {
+                viewModelScope.launch {
+                    if (!isInitialized) {
                         fetchInitialLocation()
                         syncEvents()
                         isInitialized = true
-                    }
-                } else {
-                    viewModelScope.launch {
+                    } else {
                         fetchInitialLocation()
                     }
                 }
@@ -225,6 +206,23 @@ class MapViewModel @Inject constructor(
                 navigator.navigateTo(DetailsScreenNavKey(event.event.id))
             }
             ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
+        }
+    }
+
+    private suspend fun onEventSelected(id: String) {
+        val currentId = selectedEventId.value
+        if (currentId != id) {
+            selectedEventId.value = id
+            val events = (uiState.value as ScreenState.Success).eventsList
+            val eventObj = events.find { it.id == id }
+            val coords = eventObj?.coordinates?.split(",")
+            if (coords != null && coords.size >= 2) {
+                val point = PointDomain(coords[0].trim().toDouble(), coords[1].trim().toDouble())
+
+                _sideEffect.send(ScreenSideEffect.MoveCamera(point.toUiState(), 15f))
+            }
+        } else {
+            selectedEventId.value = null
         }
     }
 

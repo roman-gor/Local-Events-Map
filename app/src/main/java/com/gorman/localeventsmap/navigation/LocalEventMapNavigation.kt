@@ -1,5 +1,6 @@
 package com.gorman.localeventsmap.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -15,6 +16,9 @@ fun LocalEventsMapNavigation(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    BackHandler(true) {
+        onBack()
+    }
     Box(
         modifier = modifier
     ) {

@@ -33,9 +33,9 @@ fun rememberNavigationState(
     startRoute: NavKey,
     topLevelRoutes: ImmutableSet<NavKey> = TOP_LEVEL_ROUTES
 ): NavigationState {
-
     val topLevelRouteState = rememberSerializable(
-        startRoute, topLevelRoutes,
+        startRoute,
+        topLevelRoutes,
         serializer = MutableStateSerializer(NavKeySerializer())
     ) {
         mutableStateOf(startRoute)
@@ -89,13 +89,11 @@ class NavigationState(
         return if (stack.size > 1) {
             stack.removeAt(stack.lastIndex)
             true
+        } else if (currentTab != HomeScreenNavKey) {
+            currentTab = HomeScreenNavKey
+            true
         } else {
-            if (currentTab != startRoute) {
-                currentTab = startRoute
-                true
-            } else {
-                false
-            }
+            false
         }
     }
 
@@ -115,7 +113,7 @@ class NavigationState(
 
     fun popToRoot() {
         if (currentBackStack.size > 1) {
-            while(currentBackStack.size > 1) {
+            while (currentBackStack.size > 1) {
                 currentBackStack.removeAt(currentBackStack.lastIndex)
             }
         }
@@ -129,7 +127,6 @@ class NavigationState(
 fun NavigationState.toEntries(
     entryProvider: (NavKey) -> NavEntry<NavKey>
 ): List<NavEntry<NavKey>> {
-
     val decoratedEntries = backStacks.mapValues { (_, stack) ->
         val decorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator<NavKey>(),

@@ -54,6 +54,7 @@ fun rememberMapControl(): MapControl {
     return remember { MapControlImpl() }
 }
 
+@Suppress("LongMethod", "LongParameterList")
 @Composable
 fun LocalEventsMap(
     markers: ImmutableList<MapMarker>,
@@ -126,7 +127,7 @@ fun LocalEventsMap(
         }
         val inputListener = object : InputListener {
             override fun onMapTap(p0: Map, p1: Point) { onMapClick() }
-            override fun onMapLongTap(p0: Map, p1: Point) {}
+            override fun onMapLongTap(p0: Map, p1: Point) { return }
         }
         mapView.mapWindow.map.addInputListener(inputListener)
         mapView.mapWindow.map.addCameraListener(cameraListener)
