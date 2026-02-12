@@ -37,5 +37,4 @@ sealed interface ScreenUiEvent {
     data class OnCostChanged(val isFree: Boolean) : ScreenUiEvent
     data class OnDistanceChanged(val distance: Int?) : ScreenUiEvent
     data class OnEventSelected(val id: String) : ScreenUiEvent
-    data class OnNavigateToDetailsScreen(val event: MapUiEvent) : ScreenUiEvent
 }

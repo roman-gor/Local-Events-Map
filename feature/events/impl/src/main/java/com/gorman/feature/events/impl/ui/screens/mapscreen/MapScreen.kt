@@ -30,6 +30,7 @@ import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.feature.events.impl.R
+import com.gorman.feature.events.impl.navigation.EventsNavDelegate
 import com.gorman.feature.events.impl.ui.components.CitiesDropdownMenu
 import com.gorman.feature.events.impl.ui.components.StatusBanner
 import com.gorman.feature.events.impl.ui.mappers.toDomain
@@ -45,6 +46,7 @@ import com.gorman.map.ui.MapConfig
 import com.gorman.map.ui.MapControl
 import com.gorman.map.ui.MapMarker
 import com.gorman.map.ui.rememberMapControl
+import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.theme.LocalEventsMapTheme
@@ -160,6 +162,7 @@ fun MapContent(
     mapControl: MapControl,
     modifier: Modifier = Modifier
 ) {
+    val navigator = EventsNavDelegate(LocalNavigator.current)
     LifecycleStartEffect(Unit) {
         onUiEvent(ScreenUiEvent.OnStart)
         onStopOrDispose {
@@ -200,9 +203,7 @@ fun MapContent(
     MapScreen(
         mapScreenActions = MapScreenActions(
             onCameraIdle = { location, zoom ->
-                location?.let {
-                    onUiEvent(ScreenUiEvent.OnCameraIdle(location, zoom))
-                }
+                location?.let { onUiEvent(ScreenUiEvent.OnCameraIdle(location, zoom)) }
             },
             filterActions = FilterActions(
                 onCategoryChange = { onUiEvent(ScreenUiEvent.OnCategoryChanged(it)) },
@@ -212,14 +213,10 @@ fun MapContent(
                 onNameChange = { onUiEvent(ScreenUiEvent.OnNameChanged(it)) }
             ),
             onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
-            onEventClick = { event ->
-                onUiEvent(ScreenUiEvent.OnEventSelected(event.id))
-            },
+            onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
             onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
             onMapClick = { onUiEvent(ScreenUiEvent.OnMapClick) },
-            onNavigateToDetailsScreen = { event ->
-                onUiEvent(ScreenUiEvent.OnNavigateToDetailsScreen(event))
-            }
+            onNavigateToDetailsScreen = { event -> navigator.navigateToDetails(event.id) }
         ),
         uiState = uiState,
         mapControl = mapControl,

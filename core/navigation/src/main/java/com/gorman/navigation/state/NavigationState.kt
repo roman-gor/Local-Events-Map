@@ -68,56 +68,12 @@ class NavigationState(
     val backStacks: Map<NavKey, NavBackStack<NavKey>>
 ) {
     var currentTab: NavKey by topLevelRoute
-        private set
 
     val currentBackStack: NavBackStack<NavKey>
         get() = backStacks[currentTab] ?: error("No stack found for $currentTab")
 
     val currentVisibleKey: NavKey
         get() = currentBackStack.lastOrNull() ?: currentTab
-
-    fun navigateTo(key: NavKey) {
-        if (key in backStacks) {
-            currentTab = key
-        } else {
-            currentBackStack.add(key)
-        }
-    }
-
-    fun goBack(): Boolean {
-        val stack = currentBackStack
-        return if (stack.size > 1) {
-            stack.removeAt(stack.lastIndex)
-            true
-        } else if (currentTab != HomeScreenNavKey) {
-            currentTab = HomeScreenNavKey
-            true
-        } else {
-            false
-        }
-    }
-
-    fun setRoot(key: NavKey) {
-        if (key in backStacks) {
-            currentTab = key
-            popToRoot()
-            return
-        }
-
-        val stack = currentBackStack
-        while (stack.isNotEmpty()) {
-            stack.removeAt(stack.lastIndex)
-        }
-        stack.add(key)
-    }
-
-    fun popToRoot() {
-        if (currentBackStack.size > 1) {
-            while (currentBackStack.size > 1) {
-                currentBackStack.removeAt(currentBackStack.lastIndex)
-            }
-        }
-    }
 }
 
 /**

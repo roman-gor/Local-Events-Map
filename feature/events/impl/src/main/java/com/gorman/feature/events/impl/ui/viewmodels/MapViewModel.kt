@@ -10,7 +10,6 @@ import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
-import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
 import com.gorman.feature.events.impl.domain.GetPointByCityUseCase
 import com.gorman.feature.events.impl.ui.components.DateFilterType
@@ -24,7 +23,6 @@ import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
 import com.gorman.feature.events.impl.ui.states.ScreenState
 import com.gorman.feature.events.impl.ui.states.ScreenUiEvent
 import com.gorman.map.mapmanager.IMapManager
-import com.gorman.navigation.navigator.IAppNavigator
 import com.gorman.ui.mappers.toUiState
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.utils.getEndOfDay
@@ -54,7 +52,6 @@ import kotlin.ranges.contains
 @HiltViewModel
 class MapViewModel @Inject constructor(
     private val mapManager: IMapManager,
-    private val navigator: IAppNavigator,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
@@ -201,9 +198,6 @@ class MapViewModel @Inject constructor(
                         fetchInitialLocation()
                     }
                 }
-            }
-            is ScreenUiEvent.OnNavigateToDetailsScreen -> {
-                navigator.navigateTo(DetailsScreenNavKey(event.event.id))
             }
             ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
         }

@@ -4,8 +4,9 @@ import androidx.compose.runtime.Immutable
 
 @Immutable
 data class DetailsActions(
-    val onFavouriteClick: () -> Unit,
+    val onCalendarClick: () -> Unit,
     val onLocationClick: () -> Unit,
     val onShareClick: () -> Unit,
-    val onLinkClick: () -> Unit
+    val onLinkClick: () -> Unit,
+    val onNavigateBack: () -> Unit
 )
