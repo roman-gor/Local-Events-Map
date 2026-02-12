@@ -84,7 +84,6 @@ fun SignInScreenEntry(
                 )
             }
         }
-        else -> {}
     }
 }
 

@@ -54,12 +54,13 @@ fun rememberMapControl(): MapControl {
     return remember { MapControlImpl() }
 }
 
+@Suppress("LongMethod", "LongParameterList")
 @Composable
 fun LocalEventsMap(
     markers: ImmutableList<MapMarker>,
     mapControl: MapControl,
     config: MapConfig,
-    onCameraIdle: (Double, Double) -> Unit,
+    onCameraIdle: (Double, Double, Float) -> Unit,
     onMapClick: () -> Unit,
     modifier: Modifier = Modifier,
     onMapReady: () -> Unit = {},
@@ -75,6 +76,8 @@ fun LocalEventsMap(
     val clusterListener = remember(context) { createClusterListener(context, mapView) }
 
     val latestOnMarkerClick by rememberUpdatedState(onMarkerClick)
+
+    val mapInitialized = remember { mutableStateOf(false) }
 
     val markerTapListener = remember {
         MapObjectTapListener { mapObject, _ ->
@@ -100,32 +103,37 @@ fun LocalEventsMap(
         }
     }
 
+    LaunchedEffect(Unit) {
+        if (!mapInitialized.value) {
+            if (config.initialPosition != null && config.initialZoom != null) {
+                mapView.mapWindow.map.move(
+                    CameraPosition(config.initialPosition.toYandex(), config.initialZoom, 0.0f, 0.0f)
+                )
+            } else if (config.userLocation != null) {
+                mapView.mapWindow.map.move(
+                    CameraPosition(config.userLocation.toYandex(), 11.0f, 0.0f, 0.0f)
+                )
+            }
+            mapInitialized.value = true
+        }
+    }
+
     DisposableEffect(mapView) {
         val cameraListener = CameraListener { _, _, reason, finished ->
             if (finished && reason == CameraUpdateReason.GESTURES) {
-                val target = mapView.mapWindow.map.cameraPosition.target
-                onCameraIdle(target.latitude, target.longitude)
+                val position = mapView.mapWindow.map.cameraPosition
+                onCameraIdle(position.target.latitude, position.target.longitude, position.zoom)
             }
         }
         val inputListener = object : InputListener {
             override fun onMapTap(p0: Map, p1: Point) { onMapClick() }
-            override fun onMapLongTap(p0: Map, p1: Point) {}
+            override fun onMapLongTap(p0: Map, p1: Point) { return }
         }
         mapView.mapWindow.map.addInputListener(inputListener)
         mapView.mapWindow.map.addCameraListener(cameraListener)
         onDispose {
             mapView.mapWindow.map.removeInputListener(inputListener)
             mapView.mapWindow.map.removeCameraListener(cameraListener)
-        }
-    }
-
-    LaunchedEffect(config.userLocation) {
-        config.userLocation?.let {
-            mapView.mapWindow.map.move(
-                CameraPosition(it.toYandex(), 11.0f, 0.0f, 0.0f),
-                Animation(Animation.Type.SMOOTH, 1f),
-                null
-            )
         }
     }
 

@@ -32,9 +32,11 @@ import com.gorman.feature.details.impl.ui.contextUtils.openBrowser
 import com.gorman.feature.details.impl.ui.contextUtils.openCalendar
 import com.gorman.feature.details.impl.ui.contextUtils.openMap
 import com.gorman.feature.details.impl.ui.contextUtils.shareContent
+import com.gorman.feature.details.impl.ui.states.DetailsActions
 import com.gorman.feature.details.impl.ui.states.DetailsScreenState
 import com.gorman.feature.details.impl.ui.states.DetailsScreenUiEvent
 import com.gorman.feature.details.impl.ui.viewmodels.DetailsViewModel
+import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.states.MapUiEvent
@@ -45,6 +47,8 @@ fun DetailsEventScreenEntry(
     modifier: Modifier = Modifier,
     detailsViewModel: DetailsViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val navigator = LocalNavigator.current
     val uiState by detailsViewModel.uiState.collectAsStateWithLifecycle()
     when (val state = uiState) {
         is DetailsScreenState.Error.NoNetwork -> ErrorDataScreen(
@@ -65,6 +69,20 @@ fun DetailsEventScreenEntry(
             DetailsEventScreen(
                 mapUiEvent = state.event,
                 onUiEvent = detailsViewModel::onUiEvent,
+                detailsActions = DetailsActions(
+                    onCalendarClick = {
+                        openCalendar(
+                            context = context,
+                            dateTime = state.event.date,
+                            title = state.event.name,
+                            description = state.event.description
+                        )
+                    },
+                    onLocationClick = { openMap(context, state.event.coordinates) },
+                    onShareClick = { shareContent(context, state.event.link) },
+                    onLinkClick = { openBrowser(context, state.event.link) },
+                    onNavigateBack = { navigator.goBack() }
+                ),
                 modifier = modifier
             )
         }
@@ -75,9 +93,9 @@ fun DetailsEventScreenEntry(
 fun DetailsEventScreen(
     mapUiEvent: MapUiEvent,
     onUiEvent: (DetailsScreenUiEvent) -> Unit,
-    modifier: Modifier = Modifier,
+    detailsActions: DetailsActions,
+    modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
     val backgroundColorValue = MaterialTheme.colorScheme.background.value
 
     Box(modifier = modifier) {
@@ -102,15 +120,8 @@ fun DetailsEventScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 DateTimeSection(
                     mapUiEvent = mapUiEvent,
-                    onCalendarClick = {
-                        openCalendar(
-                            context = context,
-                            dateTime = mapUiEvent.date,
-                            title = mapUiEvent.name,
-                            description = mapUiEvent.description
-                        )
-                    },
-                    onLocationClick = { openMap(context, mapUiEvent.coordinates) },
+                    onCalendarClick = { detailsActions.onCalendarClick() },
+                    onLocationClick = { detailsActions.onLocationClick() },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -122,8 +133,8 @@ fun DetailsEventScreen(
         }
         HeaderSection(
             name = mapUiEvent.name,
-            onNavigateToBack = { onUiEvent(DetailsScreenUiEvent.OnNavigateToBack) },
-            onShareClick = { shareContent(context, mapUiEvent.link) },
+            onNavigateToBack = { detailsActions.onNavigateBack() },
+            onShareClick = { detailsActions.onShareClick() },
             modifier = Modifier.fillMaxWidth()
                 .padding(
                     horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge,
@@ -134,7 +145,7 @@ fun DetailsEventScreen(
         BottomSection(
             isLike = mapUiEvent.isFavourite ?: false,
             onLikeClick = { onUiEvent(DetailsScreenUiEvent.OnFavouriteClick(mapUiEvent.id)) },
-            onLinkClick = { openBrowser(context, mapUiEvent.link) },
+            onLinkClick = { detailsActions.onLinkClick() },
             modifier = Modifier
                 .fillMaxWidth()
                 .systemBarsPadding()

@@ -16,7 +16,7 @@ import com.gorman.database.data.model.UserDataEntity
         UserDataEntity::class,
         BookmarkDataEntity::class
     ],
-    version = 2,
+    version = 1,
     exportSchema = false
 )
 abstract class LocalEventsDatabase : RoomDatabase() {

@@ -5,7 +5,6 @@ import com.gorman.ui.states.UserUiState
 sealed interface AuthScreenState {
     data class Idle(val user: UserUiState, val password: String) : AuthScreenState
     object Loading : AuthScreenState
-    object Success : AuthScreenState
 }
 
 sealed interface AuthScreenUiEvent {

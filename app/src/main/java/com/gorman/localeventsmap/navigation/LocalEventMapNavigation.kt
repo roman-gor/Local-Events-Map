@@ -1,37 +1,31 @@
 package com.gorman.localeventsmap.navigation
 
-import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.gorman.navigation.navigator.Navigator
+import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 fun LocalEventsMapNavigation(
-    navigator: Navigator,
-    @SuppressLint("ComposeUnstableCollections")
-    entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>,
+    entries: ImmutableList<NavEntry<NavKey>>,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    BackHandler(true) {
+        onBack()
+    }
     Box(
         modifier = modifier
     ) {
         NavDisplay(
-            backStack = navigator.backStack,
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator()
-            ),
+            entries = entries,
             modifier = Modifier.fillMaxSize(),
-            onBack = { navigator.goBack() },
-            entryProvider = entryProvider { entryBuilders.forEach { builder -> this.builder() } }
+            onBack = onBack
         )
     }
 }

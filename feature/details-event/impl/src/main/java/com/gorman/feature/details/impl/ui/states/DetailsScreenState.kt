@@ -14,5 +14,4 @@ sealed interface DetailsScreenState {
 sealed interface DetailsScreenUiEvent {
     data class OnFavouriteClick(val id: String) : DetailsScreenUiEvent
     object OnRetryClick : DetailsScreenUiEvent
-    object OnNavigateToBack : DetailsScreenUiEvent
 }

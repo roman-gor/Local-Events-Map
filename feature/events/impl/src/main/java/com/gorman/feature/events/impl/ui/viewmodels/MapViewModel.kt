@@ -10,7 +10,6 @@ import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
-import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
 import com.gorman.feature.events.impl.domain.GetPointByCityUseCase
 import com.gorman.feature.events.impl.ui.components.DateFilterType
@@ -24,7 +23,6 @@ import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
 import com.gorman.feature.events.impl.ui.states.ScreenState
 import com.gorman.feature.events.impl.ui.states.ScreenUiEvent
 import com.gorman.map.mapmanager.IMapManager
-import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.mappers.toUiState
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.utils.getEndOfDay
@@ -54,7 +52,6 @@ import kotlin.ranges.contains
 @HiltViewModel
 class MapViewModel @Inject constructor(
     private val mapManager: IMapManager,
-    private val navigator: Navigator,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
@@ -72,6 +69,7 @@ class MapViewModel @Inject constructor(
     private val cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
     private val isSyncLoading = MutableStateFlow<Boolean?>(null)
     private var isInitialized = false
+    private val cameraState = MutableStateFlow<Pair<PointDomain, Float>?>(null)
 
     private data class UserInputState(
         val filters: FiltersState,
@@ -102,8 +100,9 @@ class MapViewModel @Inject constructor(
         mapEventsRepository.getAllEvents(),
         userInputs,
         isNetworkAvailable,
-        isOutdated
-    ) { events, inputs, hasInternet, isOutdated ->
+        isOutdated,
+        cameraState
+    ) { events, inputs, hasInternet, isOutdated, cameraState ->
         val (filters, cityData, selectedEventId, isSyncLoading) = inputs
 
         val filteredEvents = filterEvents(events, filters, cityData, selectedEventId).toImmutableList()
@@ -119,7 +118,8 @@ class MapViewModel @Inject constructor(
             selectedMapEventId = selectedEventId,
             cityData = cityData.toUiState(),
             dataStatus = status,
-            isSyncLoading = isSyncLoading
+            isSyncLoading = isSyncLoading,
+            initialCameraPosition = cameraState?.let { it.first.toUiState() to it.second } ?: (null to null)
         ) as ScreenState
     }.catch { e ->
         emit(ScreenState.Error(e))
@@ -177,7 +177,7 @@ class MapViewModel @Inject constructor(
         when (event) {
             ScreenUiEvent.OnStart -> mapManager.onStart()
             ScreenUiEvent.OnStop -> mapManager.onStop()
-            is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
+            is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point, event.zoom)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
             is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
             is ScreenUiEvent.OnNameChanged -> filters.value = filters.value.copy(name = event.name)
@@ -186,35 +186,43 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCitySearch -> {
                 searchForCity(event.city)
             }
-            is ScreenUiEvent.OnEventSelected -> {
-                viewModelScope.launch {
-                    val currentId = selectedEventId.value
-                    selectedEventId.value = if (currentId == event.id) null else event.id
-                }
-            }
+            is ScreenUiEvent.OnEventSelected -> { viewModelScope.launch { onEventSelected(event.id) } }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> {
-                if (!isInitialized) {
-                    viewModelScope.launch {
+                viewModelScope.launch {
+                    if (!isInitialized) {
                         fetchInitialLocation()
                         syncEvents()
                         isInitialized = true
-                    }
-                } else {
-                    viewModelScope.launch {
+                    } else {
                         fetchInitialLocation()
                     }
                 }
-            }
-            is ScreenUiEvent.OnNavigateToDetailsScreen -> {
-                navigator.goTo(DetailsScreenNavKey(event.event.id))
             }
             ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
         }
     }
 
+    private suspend fun onEventSelected(id: String) {
+        val currentId = selectedEventId.value
+        if (currentId != id) {
+            selectedEventId.value = id
+            val events = (uiState.value as ScreenState.Success).eventsList
+            val eventObj = events.find { it.id == id }
+            val coords = eventObj?.coordinates?.split(",")
+            if (coords != null && coords.size >= 2) {
+                val point = PointDomain(coords[0].trim().toDouble(), coords[1].trim().toDouble())
+                cameraState.value = point to 15f
+                _sideEffect.send(ScreenSideEffect.MoveCamera(point.toUiState(), 15f))
+            }
+        } else {
+            selectedEventId.value = null
+        }
+    }
+
     private suspend fun fetchInitialLocation() {
-        if (isInitialLocationFetched) return
+        if (isInitialLocationFetched || cameraState.value != null) return
+
         isInitialLocationFetched = true
         geoRepository.getUserLocation().onSuccess { location ->
             val userCityData = getCityByPointUseCase(location)
@@ -302,7 +310,9 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    fun onCameraIdle(cameraPosition: PointUiState) {
+    private fun onCameraIdle(cameraPosition: PointUiState, zoom: Float) {
+        cameraState.value = cameraPosition.toDomain() to zoom
+
         cameraMoveJob?.cancel()
         cameraMoveJob = viewModelScope.launch {
             delay(100L)
@@ -313,12 +323,13 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    fun searchForCity(city: CityCoordinates) {
+    private fun searchForCity(city: CityCoordinates) {
         viewModelScope.launch {
             val resultCityData = getPointByCityUseCase(city)
             resultCityData?.let {
                 geoRepository.saveCity(it)
                 it.toUiState().cityCoordinates?.let { point ->
+                    cameraState.value = point.toDomain() to 11f
                     _sideEffect.send(ScreenSideEffect.MoveCamera(point))
                 }
             }

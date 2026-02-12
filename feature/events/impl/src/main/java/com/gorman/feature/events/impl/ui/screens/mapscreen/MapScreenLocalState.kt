@@ -86,5 +86,4 @@ data class MapScreenLocalState(
     var mapEventsListExpanded by mapEventsListExpandedState
     var filtersExpanded by filtersExpandedState
     var citiesMenuExpanded by citiesMenuExpandedState
-    var isEventSelected by isEventSelectedState
 }

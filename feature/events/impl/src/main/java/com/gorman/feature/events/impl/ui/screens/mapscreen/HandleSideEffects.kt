@@ -19,7 +19,11 @@ fun HandleSideEffects(
         mapViewModel.sideEffect.collect { effect ->
             when (effect) {
                 is ScreenSideEffect.MoveCamera -> {
-                    mapControl.moveCamera(effect.point.toDomain(), effect.zoom)
+                    val zoom = effect.zoom
+                    mapControl.moveCamera(
+                        point = effect.point.toDomain(),
+                        zoom = zoom
+                    )
                 }
                 is ScreenSideEffect.ShowToast -> {
                     Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()

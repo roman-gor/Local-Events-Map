@@ -6,7 +6,7 @@ import com.gorman.ui.states.MapUiEvent
 
 @Immutable
 data class MapScreenActions(
-    val onCameraIdle: (PointUiState?) -> Unit,
+    val onCameraIdle: (PointUiState?, Float) -> Unit,
     val onSyncClick: () -> Unit,
     val onEventClick: (MapUiEvent) -> Unit,
     val onCitySubmit: (CityCoordinates) -> Unit,

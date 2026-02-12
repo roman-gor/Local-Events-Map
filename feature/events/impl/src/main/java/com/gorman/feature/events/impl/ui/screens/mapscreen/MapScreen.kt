@@ -29,8 +29,8 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CityCoordinates
-import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.events.impl.R
+import com.gorman.feature.events.impl.navigation.EventsNavDelegate
 import com.gorman.feature.events.impl.ui.components.CitiesDropdownMenu
 import com.gorman.feature.events.impl.ui.components.StatusBanner
 import com.gorman.feature.events.impl.ui.mappers.toDomain
@@ -46,6 +46,7 @@ import com.gorman.map.ui.MapConfig
 import com.gorman.map.ui.MapControl
 import com.gorman.map.ui.MapMarker
 import com.gorman.map.ui.rememberMapControl
+import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.theme.LocalEventsMapTheme
@@ -161,6 +162,7 @@ fun MapContent(
     mapControl: MapControl,
     modifier: Modifier = Modifier
 ) {
+    val navigator = EventsNavDelegate(LocalNavigator.current)
     LifecycleStartEffect(Unit) {
         onUiEvent(ScreenUiEvent.OnStart)
         onStopOrDispose {
@@ -169,6 +171,8 @@ fun MapContent(
     }
 
     val state = rememberMapScreenLocalState()
+
+    val (initialPoint, initialZoom) = uiState.initialCameraPosition
 
     val mapMarkers = remember(uiState.eventsList) {
         uiState.eventsList.mapNotNull { event ->
@@ -191,15 +195,15 @@ fun MapContent(
     val mapConfig = MapConfig(
         isDarkMode = state.isDarkMode,
         userLocation = uiState.cityData.cityCoordinates?.toDomain(),
-        userLocationIconRes = R.drawable.ic_location_marker
+        userLocationIconRes = R.drawable.ic_location_marker,
+        initialPosition = initialPoint?.toDomain(),
+        initialZoom = initialZoom
     )
 
     MapScreen(
         mapScreenActions = MapScreenActions(
-            onCameraIdle = { location ->
-                location?.let {
-                    onUiEvent(ScreenUiEvent.OnCameraIdle(location))
-                }
+            onCameraIdle = { location, zoom ->
+                location?.let { onUiEvent(ScreenUiEvent.OnCameraIdle(location, zoom)) }
             },
             filterActions = FilterActions(
                 onCategoryChange = { onUiEvent(ScreenUiEvent.OnCategoryChanged(it)) },
@@ -209,14 +213,10 @@ fun MapContent(
                 onNameChange = { onUiEvent(ScreenUiEvent.OnNameChanged(it)) }
             ),
             onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
-            onEventClick = { event ->
-                onUiEvent(ScreenUiEvent.OnEventSelected(event.id))
-            },
+            onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
             onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
             onMapClick = { onUiEvent(ScreenUiEvent.OnMapClick) },
-            onNavigateToDetailsScreen = { event ->
-                onUiEvent(ScreenUiEvent.OnNavigateToDetailsScreen(event))
-            }
+            onNavigateToDetailsScreen = { event -> navigator.navigateToDetails(event.id) }
         ),
         uiState = uiState,
         mapControl = mapControl,
@@ -240,25 +240,13 @@ fun MapScreen(
 ) {
     val selectedEvent = uiState.eventsList.firstOrNull { it.id == uiState.selectedMapEventId }
 
-    LaunchedEffect(selectedEvent) {
-        if (selectedEvent != null) {
-            val coordinates = selectedEvent.coordinates?.split(",")
-            if (coordinates != null && coordinates.size >= 2) {
-                mapControl.moveCamera(
-                    point = PointDomain(coordinates[0].trim().toDouble(), coordinates[1].trim().toDouble()),
-                    zoom = 15f
-                )
-            }
-        }
-    }
-
     Box(modifier = modifier) {
         LocalEventsMap(
             modifier = Modifier.fillMaxSize(),
             markers = mapMarkers,
             mapControl = mapControl,
             config = mapConfig,
-            onCameraIdle = { lat, lon -> mapScreenActions.onCameraIdle(PointUiState(lat, lon)) },
+            onCameraIdle = { lat, lon, zoom -> mapScreenActions.onCameraIdle(PointUiState(lat, lon), zoom) },
             onMapClick = { mapScreenActions.onMapClick() },
             onMarkerClick = { id -> uiState.eventsList.find { it.id == id }?.let { mapScreenActions.onEventClick(it) } }
         )

@@ -10,7 +10,6 @@ import com.gorman.domainmodel.BookmarkData
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.details.impl.ui.states.DetailsScreenState
 import com.gorman.feature.details.impl.ui.states.DetailsScreenUiEvent
-import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.mappers.toUiState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -33,7 +32,6 @@ class DetailsViewModel @AssistedInject constructor(
     mapEventsRepository: IMapEventsRepository,
     private val bookmarksRepository: IBookmarksRepository,
     private val userRepository: IUserRepository,
-    private val navigator: Navigator,
     @Assisted val navKey: DetailsScreenNavKey
 ) : ViewModel() {
 
@@ -87,7 +85,6 @@ class DetailsViewModel @AssistedInject constructor(
     fun onUiEvent(uiEvent: DetailsScreenUiEvent) {
         when (uiEvent) {
             is DetailsScreenUiEvent.OnFavouriteClick -> onFavouriteChange(uiEvent.id)
-            DetailsScreenUiEvent.OnNavigateToBack -> navigator.goBack()
             DetailsScreenUiEvent.OnRetryClick -> retryTrigger.tryEmit(Unit)
         }
     }

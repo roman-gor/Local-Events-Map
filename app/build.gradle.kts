@@ -53,6 +53,7 @@ android {
 
 dependencies {
 
+    implementation(project(":feature:setup:api"))
     implementation(project(":feature:setup:impl"))
     implementation(project(":feature:events:impl"))
     implementation(project(":feature:bookmarks:impl"))

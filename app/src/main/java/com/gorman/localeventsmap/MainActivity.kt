@@ -2,7 +2,6 @@ package com.gorman.localeventsmap
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,30 +21,39 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.core.util.Consumer
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
+import com.gorman.feature.setup.api.SetupScreenNavKey
 import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
 import com.gorman.localeventsmap.ui.bottombar.BottomNavigationBar
+import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.navigation.navigator.Navigator
+import com.gorman.navigation.state.rememberNavigationState
+import com.gorman.navigation.state.toEntries
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var navigator: Navigator
 
     @Inject
     lateinit var entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>
@@ -55,95 +63,92 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleDeepLink(intent)
         enableEdgeToEdge()
         setContent {
             MapKitFactory.getInstance().onStart()
             LocalEventsMapTheme {
-                val currentKey = navigator.backStack.lastOrNull()
+                val navState = rememberNavigationState(startRoute = SetupScreenNavKey)
+                val navigator = Navigator(navState)
+                val scope = rememberCoroutineScope()
+                val context = LocalContext.current
+                val errorMessage = stringResource(R.string.eventNotFound)
 
-                val showBottomBar = currentKey is HomeScreenNavKey || currentKey is BookmarksScreenNavKey
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
-                        AnimatedVisibility(
-                            visible = showBottomBar,
-                            enter = slideInVertically { it },
-                            exit = slideOutVertically { it }
-                        ) {
-                            BottomNavigationBar(
-                                currentKey = currentKey,
-                                onNavigateTo = { destinationKey ->
-                                    if (currentKey == destinationKey) return@BottomNavigationBar
+                fun handleDeepLink(intent: Intent?) {
+                    if (intent?.action != Intent.ACTION_VIEW) return
+                    val uri = intent.data ?: return
 
-                                    if (destinationKey is HomeScreenNavKey) {
-                                        navigator.popToRoot()
-                                    } else {
-                                        navigator.resetToRoot()
-                                        navigator.goTo(destinationKey)
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .pointerInput(Unit) {
-                                        detectTapGestures(
-                                            onTap = {},
-                                            onPress = {}
-                                        )
-                                    }
-                                    .padding(
-                                        horizontal = LocalEventsMapTheme.dimens.paddingExtraExtraLarge,
-                                        vertical = LocalEventsMapTheme.dimens.paddingLarge
-                                    )
-                                    .systemBarsPadding()
-                                    .clip(CircleShape)
-                            )
+                    if (uri.scheme == "app" && uri.host == "events") {
+                        val eventId = uri.lastPathSegment
+                        if (!eventId.isNullOrBlank()) {
+                            scope.launch {
+                                val result = mapEventsRepository.syncEventById(eventId)
+
+                                if (result.isSuccess) {
+                                    navigator.navigateTo(DetailsScreenNavKey(eventId))
+                                } else {
+                                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            intent.data = null
                         }
-                    },
-                    contentWindowInsets = WindowInsets.safeDrawing.only(
-                        sides = WindowInsetsSides.Horizontal
-                    ),
-                ) { paddingValues ->
-                    LocalEventsMapNavigation(
-                        navigator = navigator,
-                        entryBuilders = entryBuilders,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .consumeWindowInsets(paddingValues)
-                    )
-                }
-            }
-        }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        handleDeepLink(intent)
-    }
-
-    private fun handleDeepLink(intent: Intent?) {
-        if (intent?.action != Intent.ACTION_VIEW) return
-
-        val uri = intent.data ?: return
-        if (uri.scheme == "app" && uri.host == "events") {
-            val eventId = uri.lastPathSegment
-            if (!eventId.isNullOrBlank()) {
-                lifecycleScope.launch {
-                    val result = mapEventsRepository.syncEventById(eventId).onFailure { e ->
-                        Log.e("Sync Event By Id", "Failed saving event: ${e.message}")
-                    }
-                    if (result.isSuccess) {
-                        navigator.goTo(DetailsScreenNavKey(eventId))
-                    } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.eventNotFound),
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                 }
-                setIntent(null)
+
+                LaunchedEffect(Unit) {
+                    handleDeepLink(intent)
+                }
+
+                DisposableEffect(Unit) {
+                    val listener = Consumer<Intent> { newIntent ->
+                        handleDeepLink(newIntent)
+                    }
+                    addOnNewIntentListener(listener)
+                    onDispose { removeOnNewIntentListener(listener) }
+                }
+                CompositionLocalProvider(LocalNavigator provides navigator) {
+                    val showBottomBar = navState.currentVisibleKey is HomeScreenNavKey ||
+                        navState.currentVisibleKey is BookmarksScreenNavKey
+
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        bottomBar = {
+                            AnimatedVisibility(
+                                visible = showBottomBar,
+                                enter = slideInVertically { it },
+                                exit = slideOutVertically { it }
+                            ) {
+                                BottomNavigationBar(
+                                    currentKey = navState.currentTab,
+                                    onNavigateTo = { key -> navigator.switchTab(key) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .pointerInput(Unit) { detectTapGestures(onTap = {}, onPress = {}) }
+                                        .padding(
+                                            horizontal = LocalEventsMapTheme.dimens.paddingExtraExtraLarge,
+                                            vertical = LocalEventsMapTheme.dimens.paddingLarge
+                                        )
+                                        .systemBarsPadding()
+                                        .clip(CircleShape)
+                                )
+                            }
+                        },
+                        contentWindowInsets = WindowInsets.safeDrawing.only(
+                            sides = WindowInsetsSides.Horizontal
+                        ),
+                    ) { paddingValues ->
+                        val combinedEntryProvider = entryProvider {
+                            entryBuilders.forEach { builder -> this.builder() }
+                        }
+                        val currentEntries = navState.toEntries(combinedEntryProvider)
+                        LocalEventsMapNavigation(
+                            entries = currentEntries.toPersistentList(),
+                            onBack = { if (!navigator.goBack()) finish() },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .consumeWindowInsets(paddingValues)
+                        )
+                    }
+                }
             }
         }
     }
