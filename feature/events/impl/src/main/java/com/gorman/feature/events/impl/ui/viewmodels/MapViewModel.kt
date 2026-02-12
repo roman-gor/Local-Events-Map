@@ -218,7 +218,7 @@ class MapViewModel @Inject constructor(
             val coords = eventObj?.coordinates?.split(",")
             if (coords != null && coords.size >= 2) {
                 val point = PointDomain(coords[0].trim().toDouble(), coords[1].trim().toDouble())
-
+                cameraState.value = point to 15f
                 _sideEffect.send(ScreenSideEffect.MoveCamera(point.toUiState(), 15f))
             }
         } else {
@@ -335,6 +335,7 @@ class MapViewModel @Inject constructor(
             resultCityData?.let {
                 geoRepository.saveCity(it)
                 it.toUiState().cityCoordinates?.let { point ->
+                    cameraState.value = point.toDomain() to 11f
                     _sideEffect.send(ScreenSideEffect.MoveCamera(point))
                 }
             }
