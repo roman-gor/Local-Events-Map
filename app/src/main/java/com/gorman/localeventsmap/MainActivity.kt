@@ -1,6 +1,8 @@
 package com.gorman.localeventsmap
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -20,14 +22,20 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.util.Consumer
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
+import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.feature.setup.api.SetupScreenNavKey
 import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
@@ -40,7 +48,9 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.compose.ui.res.stringResource
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -53,13 +63,48 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        handleDeepLink(intent)
         enableEdgeToEdge()
         setContent {
             MapKitFactory.getInstance().onStart()
             LocalEventsMapTheme {
                 val navState = rememberNavigationState(startRoute = SetupScreenNavKey)
                 val navigator = Navigator(navState)
+                val scope = rememberCoroutineScope()
+                val context = LocalContext.current
+                val errorMessage = stringResource(R.string.eventNotFound)
+
+                fun handleDeepLink(intent: Intent?) {
+                    if (intent?.action != Intent.ACTION_VIEW) return
+                    val uri = intent.data ?: return
+
+                    if (uri.scheme == "app" && uri.host == "events") {
+                        val eventId = uri.lastPathSegment
+                        if (!eventId.isNullOrBlank()) {
+                            scope.launch {
+                                val result = mapEventsRepository.syncEventById(eventId)
+
+                                if (result.isSuccess) {
+                                    navigator.navigateTo(DetailsScreenNavKey(eventId))
+                                } else {
+                                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            intent.data = null
+                        }
+                    }
+                }
+
+                LaunchedEffect(Unit) {
+                    handleDeepLink(intent)
+                }
+
+                DisposableEffect(Unit) {
+                    val listener = Consumer<Intent> { newIntent ->
+                        handleDeepLink(newIntent)
+                    }
+                    addOnNewIntentListener(listener)
+                    onDispose { removeOnNewIntentListener(listener) }
+                }
                 CompositionLocalProvider(LocalNavigator provides navigator) {
                     val showBottomBar = navState.currentVisibleKey is HomeScreenNavKey ||
                         navState.currentVisibleKey is BookmarksScreenNavKey
@@ -107,36 +152,4 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-//    override fun onNewIntent(intent: Intent) {
-//        super.onNewIntent(intent)
-//        setIntent(intent)
-//        handleDeepLink(intent)
-//    }
-//
-//    private fun handleDeepLink(intent: Intent?) {
-//        if (intent?.action != Intent.ACTION_VIEW) return
-//
-//        val uri = intent.data ?: return
-//        if (uri.scheme == "app" && uri.host == "events") {
-//            val eventId = uri.lastPathSegment
-//            if (!eventId.isNullOrBlank()) {
-//                lifecycleScope.launch {
-//                    val result = mapEventsRepository.syncEventById(eventId).onFailure { e ->
-//                        Log.e("Sync Event By Id", "Failed saving event: ${e.message}")
-//                    }
-//                    if (result.isSuccess) {
-//                        navigator.navigateTo(DetailsScreenNavKey(eventId))
-//                    } else {
-//                        Toast.makeText(
-//                            this@MainActivity,
-//                            getString(R.string.eventNotFound),
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-//                    }
-//                }
-//                setIntent(null)
-//            }
-//        }
-//    }
 }
