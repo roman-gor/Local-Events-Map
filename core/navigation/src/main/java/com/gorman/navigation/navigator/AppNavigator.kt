@@ -4,9 +4,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class AppNavigator @Inject constructor() : IAppNavigator {
     private val _navigationEvents = Channel<NavIntent>(Channel.BUFFERED)
     override val navigationEvents = _navigationEvents.receiveAsFlow()
