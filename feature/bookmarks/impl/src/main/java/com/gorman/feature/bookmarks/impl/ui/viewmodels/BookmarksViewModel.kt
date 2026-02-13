@@ -56,17 +56,12 @@ class BookmarksViewModel @AssistedInject constructor(
             } else {
                 bookmarksRepository.getBookmarkedEvents(user.uid)
                     .flatMapLatest { bookmarks ->
-                        if (bookmarks.isEmpty()) {
-                            flowOf(BookmarksScreenState.Success(persistentListOf(), user.toUiState()))
-                        } else {
-                            val events = bookmarks.map { bookmark -> bookmark.toUiState() }
-                            flowOf(
-                                BookmarksScreenState.Success(
-                                    bookmarks = events.toPersistentList(),
-                                    userUiState = user.toUiState()
-                                ) as BookmarksScreenState
-                            )
-                        }
+                        flowOf(
+                            BookmarksScreenState.Success(
+                                bookmarks = bookmarks.map { it.toUiState() }.toPersistentList(),
+                                userUiState = user.toUiState()
+                            ) as BookmarksScreenState
+                        )
                     }
             }
         }.catch { e ->

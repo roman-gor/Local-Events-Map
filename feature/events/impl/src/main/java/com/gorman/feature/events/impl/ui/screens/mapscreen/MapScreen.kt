@@ -15,8 +15,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -48,7 +50,7 @@ import com.gorman.map.ui.MapMarker
 import com.gorman.map.ui.rememberMapControl
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
-import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.components.LoadingIndicator
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -95,7 +97,7 @@ fun MapScreenEntry(
             text = stringResource(com.gorman.ui.R.string.errorDataLoading),
             onRetryClick = {}
         )
-        ScreenState.Loading -> LoadingStub()
+        ScreenState.Loading -> LoadingIndicator()
         is ScreenState.Success -> MapSuccessContent(
             state = state,
             permissionsState = permissionsState,
@@ -115,6 +117,15 @@ private fun MapSuccessContent(
     onUiEvent: (ScreenUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val showPreLocationDialog = rememberSaveable {
+        mutableStateOf(!permissionsState.allPermissionsGranted)
+    }
+
+    LaunchedEffect(permissionsState.allPermissionsGranted) {
+        if (permissionsState.allPermissionsGranted) {
+            showPreLocationDialog.value = false
+        }
+    }
     val hasCoordinates = state.cityData.cityCoordinates != null
 
     when {
@@ -126,22 +137,37 @@ private fun MapSuccessContent(
                 mapControl = mapControl
             )
         }
+        showPreLocationDialog.value -> {
+            PermissionRequestScreen(
+                isPreRequest = true,
+                onDeclineClick = { showPreLocationDialog.value = false },
+                shouldShowRationale = permissionsState.shouldShowRationale,
+                requestPermissions = {
+                    permissionsState.launchMultiplePermissionRequest()
+                    showPreLocationDialog.value = false
+                },
+                showManualInput = false,
+                onCitySubmit = {}
+            )
+        }
         permissionsState.shouldShowRationale -> {
             PermissionRequestScreen(
+                isPreRequest = false,
                 showManualInput = false,
                 onCitySubmit = { },
                 shouldShowRationale = true,
-                requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+                requestPermissions = { permissionsState.launchMultiplePermissionRequest() },
+                onDeclineClick = { }
             )
         }
         !hasCoordinates -> {
             PermissionRequestScreen(
+                isPreRequest = false,
                 showManualInput = true,
-                onCitySubmit = { city ->
-                    onUiEvent(ScreenUiEvent.OnCitySearch(city))
-                },
+                onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
                 shouldShowRationale = false,
-                requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+                requestPermissions = { permissionsState.launchMultiplePermissionRequest() },
+                onDeclineClick = { }
             )
         }
         else -> {
@@ -358,15 +384,10 @@ private fun BindPermissionLogic(
     onPermissionsGranted: () -> Unit
 ) {
     val onPermissionsGrantedState by rememberUpdatedState(onPermissionsGranted)
+
     LaunchedEffect(permissionsState.allPermissionsGranted) {
         if (permissionsState.allPermissionsGranted) {
             onPermissionsGrantedState()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (!permissionsState.allPermissionsGranted && !permissionsState.shouldShowRationale) {
-            permissionsState.launchMultiplePermissionRequest()
         }
     }
 }

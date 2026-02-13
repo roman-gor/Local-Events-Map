@@ -35,7 +35,7 @@ import com.gorman.feature.auth.impl.ui.states.AuthSideEffects
 import com.gorman.feature.auth.impl.ui.utils.isEmailValid
 import com.gorman.feature.auth.impl.ui.utils.isPasswordValid
 import com.gorman.feature.auth.impl.ui.viewmodels.AuthViewModel
-import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.components.LoadingIndicator
 
 @Composable
 fun SignInScreenEntry(
@@ -71,7 +71,7 @@ fun SignInScreenEntry(
     }
 
     when (val state = uiState) {
-        AuthScreenState.Loading -> LoadingStub()
+        AuthScreenState.Loading -> LoadingIndicator()
         is AuthScreenState.Idle -> {
             Box(
                 modifier = modifier,

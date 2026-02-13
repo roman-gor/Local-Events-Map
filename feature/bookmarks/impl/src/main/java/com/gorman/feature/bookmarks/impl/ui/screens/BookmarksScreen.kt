@@ -27,7 +27,7 @@ import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenState
 import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenUiEvent
 import com.gorman.feature.bookmarks.impl.ui.viewmodels.BookmarksViewModel
 import com.gorman.ui.components.ErrorDataScreen
-import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.components.LoadingIndicator
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
@@ -41,7 +41,7 @@ fun BookmarksScreenEntry(
             text = stringResource(com.gorman.ui.R.string.errorDataLoading),
             onRetryClick = { bookmarksViewModel.onUiEvent(BookmarksScreenUiEvent.OnRetryClick) }
         )
-        BookmarksScreenState.Loading -> LoadingStub()
+        BookmarksScreenState.Loading -> LoadingIndicator()
         is BookmarksScreenState.Success -> BookmarksScreen(
             uiState = state,
             onUiEvent = bookmarksViewModel::onUiEvent,
