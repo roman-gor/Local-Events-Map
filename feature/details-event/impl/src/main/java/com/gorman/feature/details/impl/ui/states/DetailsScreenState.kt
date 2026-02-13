@@ -9,7 +9,7 @@ sealed interface DetailsScreenState {
         data class NotFound(val eventId: String) : Error
         data class Unknown(val exception: Throwable) : Error
     }
-    data class Success(val uid: String?, val event: MapUiEvent) : DetailsScreenState
+    data class Success(val event: MapUiEvent) : DetailsScreenState
 }
 sealed interface DetailsScreenUiEvent {
     data class OnFavouriteClick(val id: String) : DetailsScreenUiEvent
