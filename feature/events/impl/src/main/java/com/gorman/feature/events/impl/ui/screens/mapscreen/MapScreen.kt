@@ -50,7 +50,7 @@ import com.gorman.map.ui.MapMarker
 import com.gorman.map.ui.rememberMapControl
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
-import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.components.LoadingIndicator
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
@@ -97,7 +97,7 @@ fun MapScreenEntry(
             text = stringResource(com.gorman.ui.R.string.errorDataLoading),
             onRetryClick = {}
         )
-        ScreenState.Loading -> LoadingStub()
+        ScreenState.Loading -> LoadingIndicator()
         is ScreenState.Success -> MapSuccessContent(
             state = state,
             permissionsState = permissionsState,

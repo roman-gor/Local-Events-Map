@@ -38,7 +38,7 @@ import com.gorman.feature.details.impl.ui.states.DetailsScreenUiEvent
 import com.gorman.feature.details.impl.ui.viewmodels.DetailsViewModel
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
-import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.components.LoadingIndicator
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 
@@ -63,7 +63,7 @@ fun DetailsEventScreenEntry(
             text = stringResource(R.string.errorDataLoading),
             onRetryClick = {}
         )
-        DetailsScreenState.Loading -> LoadingStub()
+        DetailsScreenState.Loading -> LoadingIndicator()
         is DetailsScreenState.Success -> {
             Log.d("State", "${state.event}")
             DetailsEventScreen(
