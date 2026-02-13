@@ -7,6 +7,7 @@ import com.gorman.data.repository.bookmarks.IBookmarksRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.domainmodel.BookmarkData
+import com.gorman.domainmodel.UserData
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.details.impl.ui.states.DetailsScreenState
 import com.gorman.feature.details.impl.ui.states.DetailsScreenUiEvent
@@ -17,6 +18,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +32,7 @@ import okio.IOException
 
 @HiltViewModel(assistedFactory = DetailsViewModel.Factory::class)
 class DetailsViewModel @AssistedInject constructor(
-    mapEventsRepository: IMapEventsRepository,
+    private val mapEventsRepository: IMapEventsRepository,
     private val bookmarksRepository: IBookmarksRepository,
     private val userRepository: IUserRepository,
     private val navigator: Navigator,
@@ -53,24 +55,7 @@ class DetailsViewModel @AssistedInject constructor(
             userRepository.getUserData()
         }
         .flatMapLatest { user ->
-            val eventFlow = mapEventsRepository.getEventById(_id)
-            if (user == null) {
-                eventFlow.map { event ->
-                    DetailsScreenState.Success(
-                        uid = null,
-                        event = event.toUiState().copy(isFavourite = false)
-                    ) as DetailsScreenState
-                }
-            } else {
-                val bookmarksFlow = bookmarksRepository.getBookmarkedEvents(user.uid)
-                combine(eventFlow, bookmarksFlow) { event, bookmarkedEvents ->
-                    val isFav = bookmarkedEvents.any { it.id == event.id }
-                    DetailsScreenState.Success(
-                        uid = user.uid,
-                        event.toUiState().copy(isFavourite = isFav)
-                    ) as DetailsScreenState
-                }
-            }
+            observeScreenState(user, _id)
         }.catch { e ->
             when (e) {
                 is IOException -> emit(DetailsScreenState.Error.NoNetwork(e.message))
@@ -84,6 +69,24 @@ class DetailsViewModel @AssistedInject constructor(
             initialValue = DetailsScreenState.Loading
         )
 
+    private fun observeScreenState(user: UserData?, eventId: String): Flow<DetailsScreenState> {
+        val eventFlow = mapEventsRepository.getEventById(eventId)
+
+        if (user == null) {
+            return eventFlow.map { event ->
+                DetailsScreenState.Success(event.toUiState().copy(isFavourite = false))
+            }
+        }
+
+        return combine(
+            eventFlow,
+            bookmarksRepository.getBookmarkedEvents(user.uid)
+        ) { event, bookmarkedEvents ->
+            val isFav = bookmarkedEvents.any { it.id == event.id }
+            DetailsScreenState.Success(event.toUiState().copy(isFavourite = isFav))
+        }
+    }
+
     fun onUiEvent(uiEvent: DetailsScreenUiEvent) {
         when (uiEvent) {
             is DetailsScreenUiEvent.OnFavouriteClick -> onFavouriteChange(uiEvent.id)
@@ -94,9 +97,11 @@ class DetailsViewModel @AssistedInject constructor(
 
     private fun onFavouriteChange(id: String) {
         viewModelScope.launch {
-            (uiState.value as DetailsScreenState.Success).uid?.let {
-                bookmarksRepository.updateBookmark(it, BookmarkData(id)).onFailure { e ->
-                    Log.e("Details VM", "Error updating state of favourite: ${e.message}")
+            userRepository.getUserData().collect {
+                it?.uid?.let { uid ->
+                    bookmarksRepository.updateBookmark(uid, BookmarkData(id)).onFailure { e ->
+                        Log.e("Details VM", "Error updating state of favourite: ${e.message}")
+                    }
                 }
             }
         }
