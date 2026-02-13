@@ -17,18 +17,11 @@ fun LocalEventsMapScreen(
     viewModel: LocalEventsMapViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
-    when (val state = uiState) {
+    when (uiState) {
         is SetupScreenState.Error -> ErrorDataScreen(
             text = stringResource(R.string.errorDataLoading),
             onRetryClick = { viewModel.onUiEvent(SetupScreenUiEvent.TryAgain) }
         )
         SetupScreenState.Loading -> LoadingStub()
-        is SetupScreenState.Success -> {
-            if (state.isIdExists) {
-                viewModel.onUiEvent(SetupScreenUiEvent.NavigateToMain)
-            } else {
-                viewModel.onUiEvent(SetupScreenUiEvent.NavigateToSignIn)
-            }
-        }
     }
 }
