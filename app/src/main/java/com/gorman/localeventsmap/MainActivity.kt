@@ -122,7 +122,6 @@ class MainActivity : ComponentActivity() {
                                     onNavigateTo = { key -> navigator.switchTab(key) },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .pointerInput(Unit) { detectTapGestures(onTap = {}, onPress = {}) }
                                         .padding(
                                             horizontal = LocalEventsMapTheme.dimens.paddingExtraExtraLarge,
                                             vertical = LocalEventsMapTheme.dimens.paddingLarge
