@@ -102,7 +102,7 @@ class MainActivity : ComponentActivity() {
                     onDispose { removeOnNewIntentListener(listener) }
                 }
                 CompositionLocalProvider(LocalNavigator provides navigator) {
-                    val showBottomBar = showBottomBar(currentKey)
+                    val showBottomBar = showBottomBar(navState.currentVisibleKey)
 
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
