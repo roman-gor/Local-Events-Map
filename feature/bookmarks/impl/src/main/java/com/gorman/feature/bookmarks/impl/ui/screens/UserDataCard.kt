@@ -2,11 +2,9 @@ package com.gorman.feature.bookmarks.impl.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -30,35 +28,35 @@ fun UserDataCard(
     onSignUpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier) {
-        if (!user.email.isNullOrEmpty()) {
-            Log.d("User EMAIL", "${user.email}")
-            UserCard(
-                user = user,
-                onSignOutClick = onSignOutClick
-            )
-        } else {
-            SignUpCard(
-                onSignUpClick = onSignUpClick
-            )
-        }
+    if (!user.email.isNullOrEmpty()) {
+        Log.d("User EMAIL", "${user.email}")
+        UserCard(
+            user = user,
+            onSignOutClick = onSignOutClick,
+            modifier = modifier
+        )
+    } else {
+        SignUpCard(
+            onSignUpClick = onSignUpClick,
+            modifier = modifier
+        )
     }
 }
 
 @Composable
 fun UserCard(
     user: UserUiState,
-    onSignOutClick: () -> Unit
+    onSignOutClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
             modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.Start
         ) {
             user.username?.let {
                 Text(
@@ -67,7 +65,7 @@ fun UserCard(
                 )
             }
             Text(
-                text = user.email!!,
+                text = user.email.orEmpty(),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -86,10 +84,11 @@ fun UserCard(
 
 @Composable
 fun SignUpCard(
-    onSignUpClick: () -> Unit
+    onSignUpClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {

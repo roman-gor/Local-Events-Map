@@ -23,8 +23,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,8 +34,6 @@ import coil3.compose.SubcomposeAsyncImage
 import com.gorman.feature.bookmarks.impl.R
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.gorman.ui.utils.DateFormatStyle
-import com.gorman.ui.utils.format
 import com.gorman.ui.utils.getBottomBarPadding
 import kotlinx.collections.immutable.ImmutableList
 
@@ -80,8 +76,7 @@ fun BookmarkEventCard(
     onLikeButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val date = event.date?.format(DateFormatStyle.DATE_ONLY)
-    val isLike = rememberSaveable { mutableStateOf(true) }
+    val isLike = event.isFavourite ?: true
     Box(
         modifier = modifier
     ) {
@@ -94,12 +89,10 @@ fun BookmarkEventCard(
         )
         IconButton(
             onClick = { onLikeButtonClick() },
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(42.dp)
+            modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Icon(
-                imageVector = if (isLike.value) {
+                imageVector = if (isLike) {
                     Icons.Filled.Favorite
                 } else {
                     Icons.Filled.FavoriteBorder
@@ -128,7 +121,7 @@ fun BookmarkEventCard(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = event.name ?: "",
+                    text = event.name.orEmpty(),
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.bodyLarge,
                     maxLines = 1,
@@ -137,7 +130,7 @@ fun BookmarkEventCard(
                         .padding(horizontal = LocalEventsMapTheme.dimens.paddingMedium)
                 )
                 Text(
-                    text = date ?: "",
+                    text = event.dateDisplay.orEmpty(),
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,

@@ -38,7 +38,7 @@ fun ErrorDataScreen(
         ) {
             Text(
                 text = text,
-                fontSize = 18.sp,
+                style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(LocalEventsMapTheme.dimens.paddingLarge)
             )

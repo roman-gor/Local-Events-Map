@@ -39,6 +39,7 @@ import com.gorman.feature.details.impl.ui.viewmodels.DetailsViewModel
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.states.DateEventUiModel
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 
@@ -68,6 +69,7 @@ fun DetailsEventScreenEntry(
             Log.d("State", "${state.event}")
             DetailsEventScreen(
                 mapUiEvent = state.event,
+                dateUi = state.dateUi,
                 onUiEvent = detailsViewModel::onUiEvent,
                 detailsActions = DetailsActions(
                     onCalendarClick = {
@@ -92,6 +94,7 @@ fun DetailsEventScreenEntry(
 @Composable
 fun DetailsEventScreen(
     mapUiEvent: MapUiEvent,
+    dateUi: DateEventUiModel,
     onUiEvent: (DetailsScreenUiEvent) -> Unit,
     detailsActions: DetailsActions,
     modifier: Modifier = Modifier
