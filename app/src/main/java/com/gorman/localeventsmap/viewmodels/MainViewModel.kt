@@ -7,7 +7,7 @@ import com.gorman.deeplinks.states.DeepLinkResult
 import com.gorman.deeplinks.strategies.EventId
 import com.gorman.localeventsmap.R
 import com.gorman.localeventsmap.states.MainUiSideEffects
-import com.gorman.localeventsmap.states.MainUiSideEffects.*
+import com.gorman.localeventsmap.states.MainUiSideEffects.NavigateToEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow

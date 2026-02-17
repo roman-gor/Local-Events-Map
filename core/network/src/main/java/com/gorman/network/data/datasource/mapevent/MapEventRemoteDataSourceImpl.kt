@@ -64,10 +64,10 @@ class MapEventRemoteDataSourceImpl @Inject constructor(
         val snapshot = database.child("events").child(id).get().await()
 
         if (!snapshot.exists()) {
-            throw NoSuchElementException("Event with id $id not found")
+            error(NoSuchElementException("Event with id $id not found"))
         }
 
         snapshot.getValue(MapEventRemote::class.java)
-            ?: throw IllegalStateException("Failed to parse event data")
+            ?: error(IllegalStateException("Failed to parse event data"))
     }
 }
