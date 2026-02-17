@@ -19,27 +19,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gorman.feature.details.impl.R
-import com.gorman.ui.states.MapUiEvent
-import com.gorman.ui.utils.DateFormatStyle
-import com.gorman.ui.utils.format
+import com.gorman.ui.states.DateEventUiModel
 
 @Composable
 fun DateTimeSection(
-    mapUiEvent: MapUiEvent,
+    dateUi: DateEventUiModel,
     onCalendarClick: () -> Unit,
     onLocationClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val day = mapUiEvent.date?.format(DateFormatStyle.DAY_ONLY) ?: ""
-    val month = mapUiEvent.date?.format(DateFormatStyle.MONTH_ONLY) ?: ""
-    val dayOfWeek = mapUiEvent.date?.format(DateFormatStyle.DAY_WEEK_FULL)
-        ?.replaceFirstChar { it.titlecase() } ?: ""
-    val time = mapUiEvent.date?.format(DateFormatStyle.TIME_ONLY) ?: ""
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Column {
             Text(
-                text = day,
+                text = dateUi.day,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -47,7 +39,7 @@ fun DateTimeSection(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = month,
+                text = dateUi.month,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -62,7 +54,7 @@ fun DateTimeSection(
         ) {
             Column {
                 Text(
-                    text = dayOfWeek,
+                    text = dateUi.dayOfWeek.replaceFirstChar { it.titlecase() },
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -70,7 +62,7 @@ fun DateTimeSection(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = time,
+                    text = dateUi.time,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

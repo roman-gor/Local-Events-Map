@@ -1,14 +1,12 @@
 package com.gorman.feature.bookmarks.impl.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,7 +28,6 @@ import com.gorman.feature.bookmarks.impl.ui.viewmodels.BookmarksViewModel
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.gorman.ui.utils.getBottomBarPadding
 
 @Composable
 fun BookmarksScreenEntry(
@@ -58,58 +55,54 @@ fun BookmarksScreen(
     onUiEvent: (BookmarksScreenUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
-        ) {
-            Text(
-                text = stringResource(R.string.account),
-                style = MaterialTheme.typography.titleLarge,
-                fontSize = 22.sp,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Start,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
+        Text(
+            text = stringResource(R.string.account),
+            style = MaterialTheme.typography.titleLarge,
+            fontSize = 22.sp,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        UserDataCard(
+            user = uiState.userUiState,
+            onSignOutClick = { onUiEvent(BookmarksScreenUiEvent.OnSignOutClick) },
+            onSignUpClick = { onUiEvent(BookmarksScreenUiEvent.OnSignInClick) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.favoriteEvents),
+            style = MaterialTheme.typography.titleLarge,
+            fontSize = 22.sp,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        if (uiState.bookmarks.isNotEmpty()) {
+            BookmarkList(
+                events = uiState.bookmarks,
+                onEventClick = { onUiEvent(BookmarksScreenUiEvent.OnEventClick(it)) },
+                onLikeButtonClick = { onUiEvent(BookmarksScreenUiEvent.ChangeLikeState(it)) },
+                modifier = Modifier.padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            UserDataCard(
-                user = uiState.userUiState,
-                onSignOutClick = { onUiEvent(BookmarksScreenUiEvent.OnSignOutClick) },
-                onSignUpClick = { onUiEvent(BookmarksScreenUiEvent.OnSignInClick) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
+        } else {
+            EmptyListPlaceholder(
+                onExploreClick = { onUiEvent(BookmarksScreenUiEvent.OnExploreClick) },
+                modifier = Modifier.fillMaxSize()
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.favoriteEvents),
-                style = MaterialTheme.typography.titleLarge,
-                fontSize = 22.sp,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Start,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (uiState.bookmarks.isNotEmpty()) {
-                BookmarkList(
-                    events = uiState.bookmarks,
-                    onEventClick = { onUiEvent(BookmarksScreenUiEvent.OnEventClick(it)) },
-                    onLikeButtonClick = { onUiEvent(BookmarksScreenUiEvent.ChangeLikeState(it)) },
-                    modifier = Modifier.padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
-                )
-            } else {
-                EmptyListPlaceholder(
-                    onExploreClick = { onUiEvent(BookmarksScreenUiEvent.OnExploreClick) },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
         }
     }
 }

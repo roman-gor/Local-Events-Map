@@ -15,6 +15,7 @@ import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.mappers.toUiState
 import com.gorman.ui.states.UserUiState
+import com.gorman.ui.utils.DateFormatStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -50,13 +52,11 @@ class BookmarksViewModel @Inject constructor(
                 flowOf(BookmarksScreenState.Success(persistentListOf(), UserUiState()))
             } else {
                 bookmarksRepository.getBookmarkedEvents(user.uid)
-                    .flatMapLatest { bookmarks ->
-                        flowOf(
-                            BookmarksScreenState.Success(
-                                bookmarks = bookmarks.map { it.toUiState() }.toPersistentList(),
-                                userUiState = user.toUiState()
-                            ) as BookmarksScreenState
-                        )
+                    .mapLatest { bookmarks ->
+                        BookmarksScreenState.Success(
+                            bookmarks = bookmarks.map { it.toUiState(DateFormatStyle.DATE_ONLY) }.toPersistentList(),
+                            userUiState = user.toUiState()
+                        ) as BookmarksScreenState
                     }
             }
         }.catch { e ->
