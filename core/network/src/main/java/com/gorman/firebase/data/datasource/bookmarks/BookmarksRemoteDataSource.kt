@@ -30,7 +30,7 @@ class BookmarksRemoteDataSource @Inject constructor(
     override suspend fun toggleBookmark(uid: String, bookmark: BookmarkDataRemote): Result<Unit> {
         val favRef = database
             .child("$uid/${bookmark.favoriteEventId}")
-        return try {
+        return runCatching {
             val snapshot = favRef.get().await()
             if (snapshot.exists()) {
                 favRef.removeValue().await()
@@ -41,9 +41,6 @@ class BookmarksRemoteDataSource @Inject constructor(
                 Log.d("UserRemoteDS", "Event successfully added to favourites")
                 Result.success(Unit)
             }
-        } catch (e: FirebaseException) {
-            Log.e("UserRemoteDS", "Error toggling favourites: ${e.message}")
-            Result.failure(e)
         }
     }
 }

@@ -1,4 +1,5 @@
 .gradle/
+release/
 build/
 local.properties
 *.log

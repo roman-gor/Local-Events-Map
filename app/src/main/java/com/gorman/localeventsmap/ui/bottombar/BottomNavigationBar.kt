@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavKey
-import com.gorman.localeventsmap.navigation.NavEntries
+import com.gorman.localeventsmap.navigation.TopLevelNavEntries
 
 @Composable
 fun BottomNavigationBar(
@@ -22,19 +22,19 @@ fun BottomNavigationBar(
         containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 1f),
         modifier = modifier
     ) {
-        NavEntries.entries.forEach { destination ->
+        TopLevelNavEntries.entries.forEach { entry ->
             NavigationBarItem(
-                selected = currentKey == destination.route,
+                selected = currentKey == entry.route,
                 icon = {
                     Icon(
-                        painter = painterResource(destination.icon),
-                        contentDescription = stringResource(destination.title)
+                        painter = painterResource(entry.icon),
+                        contentDescription = stringResource(entry.title)
                     )
                 },
                 onClick = {
-                    onNavigateTo(destination.route)
+                    onNavigateTo(entry.route)
                 },
-                label = { Text(stringResource(destination.title)) }
+                label = { Text(stringResource(entry.title)) }
             )
         }
     }
