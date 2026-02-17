@@ -22,16 +22,12 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -43,14 +39,12 @@ import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
 import com.gorman.localeventsmap.states.MainUiSideEffects
 import com.gorman.localeventsmap.ui.bottombar.BottomNavigationBar
 import com.gorman.localeventsmap.viewmodels.MainViewModel
-import com.gorman.localeventsmap.viewmodel.MainViewModel
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.navigation.navigator.Navigator
 import com.gorman.navigation.state.rememberNavigationState
 import com.gorman.navigation.state.toEntries
 import com.gorman.ui.theme.LocalEventsMapTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.Flow
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -75,9 +69,9 @@ class MainActivity : ComponentActivity() {
                 val resources = LocalResources.current
 
                 SideEffectsListener(
-                    sideEffect = mainViewModel.deepLinkSideEffect,
+                    sideEffect = mainViewModel.sideEffect,
                     intent = intent,
-                    onNavigateToDetails = { navigator.navigateTo(DetailsScreenNavKey(it)) },
+                    onNavigateToEvent = { navigator.navigateTo(DetailsScreenNavKey(it)) },
                     showErrorToast = { Toast.makeText(context, resources.getString(it), Toast.LENGTH_SHORT).show() }
                 )
 
@@ -139,7 +133,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun SideEffectsListener(
     sideEffect: Flow<MainUiSideEffects>,
-    onNavigate: (String) -> Unit,
+    onNavigateToEvent: (String) -> Unit,
     showErrorToast: (Int) -> Unit,
     intent: Intent
 ) {
@@ -147,7 +141,7 @@ private fun SideEffectsListener(
         sideEffect.collect { effect ->
             when (effect) {
                 is MainUiSideEffects.NavigateToEvent -> {
-                    onNavigate(effect.eventId)
+                    onNavigateToEvent(effect.eventId)
                     intent.data = null
                 }
                 is MainUiSideEffects.ShowToast -> { showErrorToast(effect.res) }
