@@ -36,7 +36,6 @@ import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
 import com.gorman.localeventsmap.ui.bottombar.BottomNavigationBar
 import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -58,11 +57,10 @@ class MainActivity : ComponentActivity() {
         handleDeepLink(intent)
         enableEdgeToEdge()
         setContent {
-            MapKitFactory.getInstance().onStart()
             LocalEventsMapTheme {
                 val currentKey = navigator.backStack.lastOrNull()
 
-                val showBottomBar = currentKey is HomeScreenNavKey || currentKey is BookmarksScreenNavKey
+                val showBottomBar = showBottomBar(currentKey)
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
@@ -100,6 +98,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    fun showBottomBar(currentKey: NavKey?): Boolean {
+        return currentKey is HomeScreenNavKey || currentKey is BookmarksScreenNavKey
     }
 
     override fun onNewIntent(intent: Intent) {

@@ -12,6 +12,7 @@ import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.details.impl.ui.states.DetailsScreenState
 import com.gorman.feature.details.impl.ui.states.DetailsScreenUiEvent
 import com.gorman.navigation.navigator.Navigator
+import com.gorman.ui.mappers.toDateUiModel
 import com.gorman.ui.mappers.toUiState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -74,7 +75,10 @@ class DetailsViewModel @AssistedInject constructor(
 
         if (user == null) {
             return eventFlow.map { event ->
-                DetailsScreenState.Success(event.toUiState().copy(isFavourite = false))
+                DetailsScreenState.Success(
+                    event = event.toUiState().copy(isFavourite = false),
+                    dateUi = event.toUiState().toDateUiModel()
+                )
             }
         }
 
@@ -83,7 +87,10 @@ class DetailsViewModel @AssistedInject constructor(
             bookmarksRepository.getBookmarkedEvents(user.uid)
         ) { event, bookmarkedEvents ->
             val isFav = bookmarkedEvents.any { it.id == event.id }
-            DetailsScreenState.Success(event.toUiState().copy(isFavourite = isFav))
+            DetailsScreenState.Success(
+                event = event.toUiState().copy(isFavourite = isFav),
+                dateUi = event.toUiState().toDateUiModel()
+            )
         }
     }
 
