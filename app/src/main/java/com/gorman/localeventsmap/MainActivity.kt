@@ -44,7 +44,6 @@ import com.gorman.navigation.navigator.Navigator
 import com.gorman.navigation.state.rememberNavigationState
 import com.gorman.navigation.state.toEntries
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.yandex.mapkit.MapKitFactory
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
@@ -63,7 +62,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MapKitFactory.getInstance().onStart()
             LocalEventsMapTheme {
                 val navState = rememberNavigationState(startRoute = SetupScreenNavKey)
                 val navigator = Navigator(navState)
@@ -104,8 +102,7 @@ class MainActivity : ComponentActivity() {
                     onDispose { removeOnNewIntentListener(listener) }
                 }
                 CompositionLocalProvider(LocalNavigator provides navigator) {
-                    val showBottomBar = navState.currentVisibleKey is HomeScreenNavKey ||
-                        navState.currentVisibleKey is BookmarksScreenNavKey
+                    val showBottomBar = showBottomBar(currentKey)
 
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
@@ -148,5 +145,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    fun showBottomBar(currentKey: NavKey?): Boolean {
+        return currentKey is HomeScreenNavKey || currentKey is BookmarksScreenNavKey
     }
 }
