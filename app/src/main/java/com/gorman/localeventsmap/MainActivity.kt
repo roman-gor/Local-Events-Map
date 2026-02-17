@@ -22,10 +22,14 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.EntryProviderScope
@@ -38,6 +42,7 @@ import com.gorman.feature.setup.api.SetupScreenNavKey
 import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
 import com.gorman.localeventsmap.states.MainUiSideEffects
 import com.gorman.localeventsmap.ui.bottombar.BottomNavigationBar
+import com.gorman.localeventsmap.viewmodels.MainViewModel
 import com.gorman.localeventsmap.viewmodel.MainViewModel
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.navigation.navigator.Navigator
@@ -45,6 +50,7 @@ import com.gorman.navigation.state.rememberNavigationState
 import com.gorman.navigation.state.toEntries
 import com.gorman.ui.theme.LocalEventsMapTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.Flow
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -59,20 +65,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        mainViewModel.onDeepLinkReceived(intent.data.toString())
         enableEdgeToEdge()
-        mainViewModel.handleDeepLink(intent)
         setContent {
             LocalEventsMapTheme {
                 val navState = rememberNavigationState(startRoute = SetupScreenNavKey)
                 val navigator = Navigator(navState)
                 val context = LocalContext.current
-                val errorMessage = stringResource(R.string.eventNotFound)
+                val resources = LocalResources.current
 
                 SideEffectsListener(
                     sideEffect = mainViewModel.deepLinkSideEffect,
                     intent = intent,
                     onNavigateToDetails = { navigator.navigateTo(DetailsScreenNavKey(it)) },
-                    showErrorToast = { Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show() }
+                    showErrorToast = { Toast.makeText(context, resources.getString(it), Toast.LENGTH_SHORT).show() }
                 )
 
                 CompositionLocalProvider(LocalNavigator provides navigator) {
@@ -121,8 +127,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        this.intent = intent
-        mainViewModel.handleDeepLink(intent)
+        setIntent(intent)
+        mainViewModel.onDeepLinkReceived(intent.data.toString())
     }
 
     private fun showBottomBar(currentKey: NavKey?): Boolean {
@@ -133,18 +139,18 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun SideEffectsListener(
     sideEffect: Flow<MainUiSideEffects>,
-    onNavigateToDetails: (String) -> Unit,
-    showErrorToast: () -> Unit,
+    onNavigate: (String) -> Unit,
+    showErrorToast: (Int) -> Unit,
     intent: Intent
 ) {
     LaunchedEffect(sideEffect) {
         sideEffect.collect { effect ->
             when (effect) {
-                is MainUiSideEffects.OnNavigateToDetails -> {
-                    onNavigateToDetails(effect.id)
+                is MainUiSideEffects.NavigateToEvent -> {
+                    onNavigate(effect.eventId)
                     intent.data = null
                 }
-                MainUiSideEffects.ShowErrorToast -> { showErrorToast() }
+                is MainUiSideEffects.ShowToast -> { showErrorToast(effect.res) }
             }
         }
     }
