@@ -3,6 +3,9 @@
     <string name="homeItemTitle">Главная</string>
     <string name="bookmarksItemTitle">Избранное</string>
     <string name="eventNotFound">Событие не найдено</string>
+    <string name="errorInvalidLink">Неверная ссылка</string>
+    <string name="errorNetwork">Ошибка подключения</string>
+    <string name="errorGeneric">Произошла ошибка</string>
     <string name="notificationTitle">Новое событие в твоем городе!</string>
     <string name="notificationText">Перейди, чтобы узнать подробности...</string>
 </resources>

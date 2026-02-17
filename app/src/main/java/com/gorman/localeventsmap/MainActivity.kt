@@ -2,15 +2,14 @@ package com.gorman.localeventsmap
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -22,22 +21,25 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
+import com.gorman.localeventsmap.states.MainUiSideEffects
 import com.gorman.localeventsmap.ui.bottombar.BottomNavigationBar
+import com.gorman.localeventsmap.viewmodels.MainViewModel
 import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.theme.LocalEventsMapTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -49,23 +51,30 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>
 
-    @Inject
-    lateinit var mapEventsRepository: IMapEventsRepository
+    val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleDeepLink(intent)
+        mainViewModel.onDeepLinkReceived(intent.data.toString())
         enableEdgeToEdge()
         setContent {
             LocalEventsMapTheme {
+                val context = LocalContext.current
+                val resources = LocalResources.current
                 val currentKey = navigator.backStack.lastOrNull()
 
-                val showBottomBar = showBottomBar(currentKey)
+                SideEffectsListener(
+                    sideEffect = mainViewModel.sideEffect,
+                    intent = intent,
+                    onNavigate = { navigator.goTo(DetailsScreenNavKey(it)) },
+                    showErrorToast = { Toast.makeText(context, resources.getString(it), Toast.LENGTH_SHORT).show() }
+                )
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         AnimatedVisibility(
-                            visible = showBottomBar,
+                            visible = showBottomBar(currentKey),
                             enter = slideInVertically { it },
                             exit = slideOutVertically { it }
                         ) {
@@ -74,7 +83,6 @@ class MainActivity : ComponentActivity() {
                                 onNavigateTo = { key -> navigator.switchTab(key) },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .pointerInput(Unit) { detectTapGestures(onTap = {}, onPress = {}) }
                                     .padding(
                                         horizontal = LocalEventsMapTheme.dimens.paddingExtraExtraLarge,
                                         vertical = LocalEventsMapTheme.dimens.paddingLarge
@@ -107,31 +115,25 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleDeepLink(intent)
+        mainViewModel.onDeepLinkReceived(intent.data.toString())
     }
+}
 
-    private fun handleDeepLink(intent: Intent?) {
-        if (intent?.action != Intent.ACTION_VIEW) return
-
-        val uri = intent.data ?: return
-        if (uri.scheme == "app" && uri.host == "events") {
-            val eventId = uri.lastPathSegment
-            if (!eventId.isNullOrBlank()) {
-                lifecycleScope.launch {
-                    val result = mapEventsRepository.syncEventById(eventId).onFailure { e ->
-                        Log.e("Sync Event By Id", "Failed saving event: ${e.message}")
-                    }
-                    if (result.isSuccess) {
-                        navigator.goTo(DetailsScreenNavKey(eventId))
-                    } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            getString(R.string.eventNotFound),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+@Composable
+private fun SideEffectsListener(
+    sideEffect: Flow<MainUiSideEffects>,
+    onNavigate: (String) -> Unit,
+    showErrorToast: (Int) -> Unit,
+    intent: Intent
+) {
+    LaunchedEffect(sideEffect) {
+        sideEffect.collect { effect ->
+            when (effect) {
+                is MainUiSideEffects.NavigateToEvent -> {
+                    onNavigate(effect.eventId)
+                    intent.data = null
                 }
-                setIntent(null)
+                is MainUiSideEffects.ShowToast -> { showErrorToast(effect.res) }
             }
         }
     }
