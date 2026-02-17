@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gorman.feature.details.impl.R
 import com.gorman.ui.states.DateEventUiModel
 
 @Composable
