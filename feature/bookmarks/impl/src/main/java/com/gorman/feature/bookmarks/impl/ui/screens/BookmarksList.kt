@@ -34,8 +34,6 @@ import coil3.compose.SubcomposeAsyncImage
 import com.gorman.feature.bookmarks.impl.R
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
-import com.gorman.ui.utils.DateFormatStyle
-import com.gorman.ui.utils.format
 import com.gorman.ui.utils.getBottomBarPadding
 import kotlinx.collections.immutable.ImmutableList
 
