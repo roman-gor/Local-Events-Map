@@ -93,7 +93,7 @@ fun SignInScreen(
     onUiEvent: (AuthScreenUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val email = uiState.user.email ?: ""
+    val email = uiState.user.email.orEmpty()
     val password = uiState.password
     val incorrectEmailText = stringResource(R.string.incorrectEmail)
     val incorrectPasswordText = stringResource(R.string.incorrectPassword)

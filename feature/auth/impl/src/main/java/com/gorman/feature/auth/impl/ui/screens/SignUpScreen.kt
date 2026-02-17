@@ -102,10 +102,10 @@ fun SignUpScreen(
     modifier: Modifier = Modifier,
     onUiEvent: (AuthScreenUiEvent) -> Unit
 ) {
-    val email = uiState.user.email ?: ""
+    val email = uiState.user.email.orEmpty()
     val password = uiState.password
     var repeatPassword by remember { mutableStateOf("") }
-    val username = uiState.user.username ?: ""
+    val username = uiState.user.username.orEmpty()
     val incorrectEmailText = stringResource(R.string.incorrectEmail)
     val incorrectPasswordText = stringResource(R.string.incorrectPassword)
     Column(

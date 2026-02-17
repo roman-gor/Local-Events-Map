@@ -122,14 +122,14 @@ fun DetailsEventScreen(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 DateTimeSection(
-                    mapUiEvent = mapUiEvent,
+                    dateUi = dateUi,
                     onCalendarClick = { detailsActions.onCalendarClick() },
                     onLocationClick = { detailsActions.onLocationClick() },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 AboutEventSection(
-                    description = mapUiEvent.description ?: "",
+                    description = mapUiEvent.description.orEmpty(),
                     modifier = Modifier.fillMaxWidth()
                 )
             }

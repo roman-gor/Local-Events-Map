@@ -12,10 +12,10 @@ import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenState
 import com.gorman.feature.bookmarks.impl.ui.states.BookmarksScreenUiEvent
 import com.gorman.ui.mappers.toUiState
 import com.gorman.ui.states.UserUiState
+import com.gorman.ui.utils.DateFormatStyle
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import com.gorman.ui.utils.DateFormatStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
