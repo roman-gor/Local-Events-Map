@@ -54,13 +54,17 @@ fun rememberMapControl(): MapControl {
     return remember { MapControlImpl() }
 }
 
+internal typealias Latitude = Double
+internal typealias Longitude = Double
+internal typealias Zoom = Float
+
 @Suppress("LongMethod", "LongParameterList")
 @Composable
 fun LocalEventsMap(
     markers: ImmutableList<MapMarker>,
     mapControl: MapControl,
     config: MapConfig,
-    onCameraIdle: (Double, Double, Float) -> Unit,
+    onCameraIdle: (Latitude, Longitude, Zoom) -> Unit,
     onMapClick: () -> Unit,
     modifier: Modifier = Modifier,
     onMapReady: () -> Unit = {},

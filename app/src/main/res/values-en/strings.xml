@@ -3,6 +3,9 @@
     <string name="homeItemTitle">Home</string>
     <string name="bookmarksItemTitle">Bookmarks</string>
     <string name="eventNotFound">Event was not found</string>
+    <string name="errorNetwork">Network Error</string>
+    <string name="errorGeneric">Error Occurred</string>
+    <string name="errorInvalidLink">Invalid Link</string>
     <string name="notificationTitle">New Event In Your City!</string>
-    <string name="notificationText">Click To Learn More...</string>
+    <string name="notificationText">Click To Learn More…</string>
 </resources>
