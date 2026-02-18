@@ -1,6 +1,5 @@
 package com.gorman.feature.events.impl.ui.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gorman.common.constants.CityCoordinates
@@ -198,9 +197,9 @@ class MapViewModel @Inject constructor(
                 viewModelScope.launch {
                     isPermissionDeclined.value = false
                     if (!isInitialized) {
-                        fetchInitialLocation()
-                        syncEvents()
                         isInitialized = true
+                        launch { fetchInitialLocation() }
+                        launch { syncEvents() }
                     } else {
                         fetchInitialLocation()
                     }
@@ -239,7 +238,7 @@ class MapViewModel @Inject constructor(
             userCityData?.let { geoRepository.saveCity(it) }
             _sideEffect.send(ScreenSideEffect.MoveCamera(location.toUiState()))
         }.onFailure {
-            isPermissionDeclined.value = true
+            searchForCity(CityCoordinates.MINSK)
         }
     }
 
@@ -271,7 +270,6 @@ class MapViewModel @Inject constructor(
                         endDate = dateState.endDate
                     )
                 )
-                Log.d("Date Check State", filters.value.dateRange.toString())
             }
             DateFilterType.TODAY -> {
                 filters.value = filters.value.copy(
@@ -281,7 +279,6 @@ class MapViewModel @Inject constructor(
                         endDate = getEndOfDay()
                     )
                 )
-                Log.d("Date Check State", filters.value.dateRange.toString())
             }
             DateFilterType.WEEK -> {
                 filters.value = filters.value.copy(
@@ -291,7 +288,6 @@ class MapViewModel @Inject constructor(
                         endDate = getEndOfWeek()
                     )
                 )
-                Log.d("Date Check State", filters.value.dateRange.toString())
             }
             else -> filters.value = filters.value.copy(
                 dateRange = DateFilterState(
@@ -349,12 +345,10 @@ class MapViewModel @Inject constructor(
     private suspend fun syncEvents() {
         isSyncLoading.value = true
         mapEventsRepository.syncWith().onSuccess {
-            Log.d("Sync", "Success")
             isSyncLoading.value = false
         }.onFailure { exception ->
             isSyncLoading.value = false
             _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
-            Log.d("SyncError", "${exception.message}")
         }
     }
 
@@ -365,7 +359,6 @@ class MapViewModel @Inject constructor(
         } else {
             currentCategories.add(category)
         }
-        Log.d("FilterList", filters.value.categories.toString())
         filters.value = filters.value.copy(categories = currentCategories)
     }
 

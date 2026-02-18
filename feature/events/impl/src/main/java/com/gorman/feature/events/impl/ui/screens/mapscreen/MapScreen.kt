@@ -99,10 +99,10 @@ fun MapScreenEntry(
                 onCitySubmit = { mapViewModel.onUiEvent(ScreenUiEvent.OnCitySearch(it)) },
                 isPreRequest = !state.requiresManualInput && !locationPermissionsState.shouldShowRationale
             )
-            LaunchedEffect(locationPermissionsState.allPermissionsGranted) {
-                if (locationPermissionsState.allPermissionsGranted) {
-                    mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted)
-                }
+            if (locationPermissionsState.allPermissionsGranted) {
+                LaunchedEffect(Unit) { mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted) }
+                LoadingIndicator()
+                return
             }
         }
         is ScreenState.Success -> {
