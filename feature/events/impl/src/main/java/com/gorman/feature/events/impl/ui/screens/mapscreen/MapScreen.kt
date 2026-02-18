@@ -91,6 +91,10 @@ fun MapScreenEntry(
         )
         ScreenState.Loading -> LoadingIndicator()
         is ScreenState.CitySelection -> {
+            if (state.isLoading) {
+                LoadingIndicator()
+                return
+            }
             PermissionRequestScreen(
                 showManualInput = state.requiresManualInput,
                 shouldShowRationale = locationPermissionsState.shouldShowRationale,
@@ -99,11 +103,6 @@ fun MapScreenEntry(
                 onCitySubmit = { mapViewModel.onUiEvent(ScreenUiEvent.OnCitySearch(it)) },
                 isPreRequest = !state.requiresManualInput && !locationPermissionsState.shouldShowRationale
             )
-            if (locationPermissionsState.allPermissionsGranted) {
-                LaunchedEffect(Unit) { mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted) }
-                LoadingIndicator()
-                return
-            }
         }
         is ScreenState.Success -> {
             MapContent(

@@ -65,7 +65,6 @@ class MapViewModel @Inject constructor(
     private val selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
     private var cameraMoveJob: Job? = null
-    private val isPermissionDeclined = MutableStateFlow(false)
     private val cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
     private val isSyncLoading = MutableStateFlow<Boolean?>(null)
     private var isInitialized = false
@@ -76,7 +75,18 @@ class MapViewModel @Inject constructor(
         val cityData: CityData,
         val selectedEventId: String?,
         val isSyncLoading: Boolean?,
-        val isPermissionDeclined: Boolean
+        val permissionState: PermissionState
+    )
+
+    private data class PermissionState(
+        val isPermissionDeclined: Boolean,
+        val isLoading: Boolean
+    )
+    private val permissionState = MutableStateFlow(
+        PermissionState(
+            isPermissionDeclined = false,
+            isLoading = false
+        )
     )
 
     private val isNetworkAvailable = networkObserver.observe()
@@ -91,9 +101,9 @@ class MapViewModel @Inject constructor(
         cityData,
         selectedEventId,
         isSyncLoading,
-        isPermissionDeclined
-    ) { filters, cityData, selectedEventId, isSyncLoading, isPermissionDeclined ->
-        UserInputState(filters, cityData, selectedEventId, isSyncLoading, isPermissionDeclined)
+        permissionState
+    ) { filters, cityData, selectedEventId, isSyncLoading, permissionState ->
+        UserInputState(filters, cityData, selectedEventId, isSyncLoading, permissionState)
     }
 
     private val isOutdated = mapEventsRepository.isOutdated()
@@ -107,7 +117,10 @@ class MapViewModel @Inject constructor(
     ) { events, inputs, hasInternet, isOutdated, cameraState ->
         val (filters, cityData, selectedEventId, isSyncLoading, isPermissionDeclined) = inputs
         if (cityData.cityName == null || cityData.city == null) {
-            return@combine ScreenState.CitySelection(isPermissionDeclined)
+            return@combine ScreenState.CitySelection(
+                requiresManualInput = permissionState.value.isPermissionDeclined,
+                isLoading = permissionState.value.isLoading
+            )
         }
 
         val filteredEvents = filterEvents(events, filters, cityData, selectedEventId).toImmutableList()
@@ -195,18 +208,25 @@ class MapViewModel @Inject constructor(
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> {
                 viewModelScope.launch {
-                    isPermissionDeclined.value = false
+                    permissionState.value = permissionState.value.copy(
+                        isPermissionDeclined = false,
+                        isLoading = true
+                    )
                     if (!isInitialized) {
                         isInitialized = true
-                        launch { fetchInitialLocation() }
-                        launch { syncEvents() }
+                        fetchInitialLocation()
+                        syncEvents()
                     } else {
                         fetchInitialLocation()
                     }
+                    permissionState.value = permissionState.value.copy(isLoading = false)
                 }
             }
             ScreenUiEvent.PermissionDenied -> {
-                isPermissionDeclined.value = true
+                permissionState.value = permissionState.value.copy(
+                    isPermissionDeclined = true,
+                    isLoading = false
+                )
             }
             ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
         }
