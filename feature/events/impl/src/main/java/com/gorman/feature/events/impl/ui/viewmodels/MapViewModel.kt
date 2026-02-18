@@ -10,7 +10,6 @@ import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
-import com.gorman.feature.events.impl.domain.GetPointByCityUseCase
 import com.gorman.feature.events.impl.ui.components.DateFilterType
 import com.gorman.feature.events.impl.ui.mappers.toDomain
 import com.gorman.feature.events.impl.ui.mappers.toUiState
@@ -54,7 +53,6 @@ class MapViewModel @Inject constructor(
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
-    private val getPointByCityUseCase: GetPointByCityUseCase,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
 
@@ -201,34 +199,31 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnNameChanged -> filters.value = filters.value.copy(name = event.name)
             is ScreenUiEvent.OnCostChanged -> filters.value = filters.value.copy(isFree = event.isFree)
             is ScreenUiEvent.OnDistanceChanged -> filters.value = filters.value.copy(distance = event.distance)
-            is ScreenUiEvent.OnCitySearch -> {
-                searchForCity(event.city)
-            }
+            is ScreenUiEvent.OnCitySearch -> { searchForCity(event.city) }
             is ScreenUiEvent.OnEventSelected -> { viewModelScope.launch { onEventSelected(event.id) } }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
-            ScreenUiEvent.PermissionsGranted -> {
-                viewModelScope.launch {
-                    permissionState.value = permissionState.value.copy(
-                        isPermissionDeclined = false,
-                        isLoading = true
-                    )
-                    if (!isInitialized) {
-                        isInitialized = true
-                        fetchInitialLocation()
-                        syncEvents()
-                    } else {
-                        fetchInitialLocation()
-                    }
-                    permissionState.value = permissionState.value.copy(isLoading = false)
-                }
-            }
+            ScreenUiEvent.PermissionsGranted -> { onPermissionsGranted() }
             ScreenUiEvent.PermissionDenied -> {
-                permissionState.value = permissionState.value.copy(
-                    isPermissionDeclined = true,
-                    isLoading = false
-                )
+                permissionState.value = permissionState.value.copy(isPermissionDeclined = true, isLoading = false)
             }
             ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
+        }
+    }
+
+    private fun onPermissionsGranted() {
+        viewModelScope.launch {
+            permissionState.value = permissionState.value.copy(
+                isPermissionDeclined = false,
+                isLoading = true
+            )
+            if (!isInitialized) {
+                isInitialized = true
+                fetchInitialLocation()
+                syncEvents()
+            } else {
+                fetchInitialLocation()
+            }
+            permissionState.value = permissionState.value.copy(isLoading = false)
         }
     }
 
@@ -255,6 +250,7 @@ class MapViewModel @Inject constructor(
         isInitialLocationFetched = true
         geoRepository.getUserLocation().onSuccess { location ->
             val userCityData = getCityByPointUseCase(location)
+
             userCityData?.let { geoRepository.saveCity(it) }
             _sideEffect.send(ScreenSideEffect.MoveCamera(location.toUiState()))
         }.onFailure {
@@ -351,13 +347,15 @@ class MapViewModel @Inject constructor(
 
     private fun searchForCity(city: CityCoordinates) {
         viewModelScope.launch {
-            val resultCityData = getPointByCityUseCase(city)
-            resultCityData?.let {
-                geoRepository.saveCity(it)
-                it.toUiState().cityCoordinates?.let { point ->
-                    cameraState.value = point.toDomain() to 11f
-                    _sideEffect.send(ScreenSideEffect.MoveCamera(point))
-                }
+            val resultCityData = CityData(
+                city = city,
+                latitude = city.cityCenter.latitude,
+                longitude = city.cityCenter.longitude
+            )
+            geoRepository.saveCity(resultCityData)
+            resultCityData.toUiState().cityCoordinates?.let { point ->
+                cameraState.value = point.toDomain() to 11f
+                _sideEffect.send(ScreenSideEffect.MoveCamera(point))
             }
         }
     }
