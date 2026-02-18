@@ -61,7 +61,7 @@ class MapEventRemoteDataSourceImpl @Inject constructor(
     }
 
     override suspend fun getSingleEvent(id: String): Result<MapEventRemote> = runCatching {
-        val snapshot = database.child("events").child(id).get().await()
+        val snapshot = database.child(id).get().await()
 
         if (!snapshot.exists()) {
             error(NoSuchElementException("Event with id $id not found"))
