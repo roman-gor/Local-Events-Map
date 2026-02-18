@@ -66,6 +66,7 @@ class MapViewModel @Inject constructor(
     private val selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
     private var cameraMoveJob: Job? = null
+    private val isPermissionDeclined = MutableStateFlow(false)
     private val cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
     private val isSyncLoading = MutableStateFlow<Boolean?>(null)
     private var isInitialized = false
@@ -75,7 +76,8 @@ class MapViewModel @Inject constructor(
         val filters: FiltersState,
         val cityData: CityData,
         val selectedEventId: String?,
-        val isSyncLoading: Boolean?
+        val isSyncLoading: Boolean?,
+        val isPermissionDeclined: Boolean
     )
 
     private val isNetworkAvailable = networkObserver.observe()
@@ -89,9 +91,10 @@ class MapViewModel @Inject constructor(
         filters,
         cityData,
         selectedEventId,
-        isSyncLoading
-    ) { filters, cityData, selectedEventId, isSyncLoading ->
-        UserInputState(filters, cityData, selectedEventId, isSyncLoading)
+        isSyncLoading,
+        isPermissionDeclined
+    ) { filters, cityData, selectedEventId, isSyncLoading, isPermissionDeclined ->
+        UserInputState(filters, cityData, selectedEventId, isSyncLoading, isPermissionDeclined)
     }
 
     private val isOutdated = mapEventsRepository.isOutdated()
@@ -103,7 +106,10 @@ class MapViewModel @Inject constructor(
         isOutdated,
         cameraState
     ) { events, inputs, hasInternet, isOutdated, cameraState ->
-        val (filters, cityData, selectedEventId, isSyncLoading) = inputs
+        val (filters, cityData, selectedEventId, isSyncLoading, isPermissionDeclined) = inputs
+        if (cityData.cityName == null || cityData.city == null) {
+            return@combine ScreenState.CitySelection(isPermissionDeclined)
+        }
 
         val filteredEvents = filterEvents(events, filters, cityData, selectedEventId).toImmutableList()
 
@@ -190,6 +196,7 @@ class MapViewModel @Inject constructor(
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> {
                 viewModelScope.launch {
+                    isPermissionDeclined.value = false
                     if (!isInitialized) {
                         fetchInitialLocation()
                         syncEvents()
@@ -198,6 +205,9 @@ class MapViewModel @Inject constructor(
                         fetchInitialLocation()
                     }
                 }
+            }
+            ScreenUiEvent.PermissionDenied -> {
+                isPermissionDeclined.value = true
             }
             ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
         }
@@ -229,7 +239,7 @@ class MapViewModel @Inject constructor(
             userCityData?.let { geoRepository.saveCity(it) }
             _sideEffect.send(ScreenSideEffect.MoveCamera(location.toUiState()))
         }.onFailure {
-            searchForCity(CityCoordinates.MINSK)
+            isPermissionDeclined.value = true
         }
     }
 
