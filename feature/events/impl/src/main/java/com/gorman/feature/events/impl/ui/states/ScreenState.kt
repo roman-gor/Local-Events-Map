@@ -8,6 +8,10 @@ import kotlinx.collections.immutable.persistentListOf
 sealed interface ScreenState {
     object Loading : ScreenState
     data class Error(val throwable: Throwable) : ScreenState
+    data class CitySelection(
+        val requiresManualInput: Boolean,
+        val isLoading: Boolean
+    ) : ScreenState
     data class Success(
         val eventsList: ImmutableList<MapUiEvent> = persistentListOf(),
         val filterState: FiltersState = FiltersState(),
@@ -25,6 +29,7 @@ sealed interface ScreenUiEvent {
     data object OnStop : ScreenUiEvent
 
     data object PermissionsGranted : ScreenUiEvent
+    data object PermissionDenied : ScreenUiEvent
 
     data class OnCameraIdle(val point: PointUiState, val zoom: Float) : ScreenUiEvent
     data class OnCitySearch(val city: CityCoordinates) : ScreenUiEvent

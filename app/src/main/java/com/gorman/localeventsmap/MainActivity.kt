@@ -105,9 +105,9 @@ class MainActivity : ComponentActivity() {
                         val combinedEntryProvider = entryProvider {
                             entryBuilders.forEach { builder -> this.builder() }
                         }
-                        val currentEntries = navState.toEntries(combinedEntryProvider)
+                        val currentEntries = navState.toEntries(combinedEntryProvider).toPersistentList()
                         LocalEventsMapNavigation(
-                            entries = currentEntries.toPersistentList(),
+                            entries = currentEntries,
                             onBack = { if (!navigator.goBack()) finish() },
                             modifier = Modifier
                                 .fillMaxSize()
