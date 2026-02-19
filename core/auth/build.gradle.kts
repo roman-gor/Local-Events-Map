@@ -9,6 +9,13 @@ plugins {
 
 android {
     namespace = "com.gorman.auth"
+    defaultConfig {
+        val webClientId: String by rootProject.extra
+        buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
+    }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -16,6 +23,7 @@ dependencies {
     implementation(project(":core:domain-model"))
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
+    implementation(libs.bundles.credentials)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

@@ -1,13 +1,19 @@
 package com.gorman.feature.auth.impl.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -16,7 +22,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -36,6 +45,7 @@ import com.gorman.feature.auth.impl.ui.utils.isEmailValid
 import com.gorman.feature.auth.impl.ui.utils.isPasswordValid
 import com.gorman.feature.auth.impl.ui.viewmodels.AuthViewModel
 import com.gorman.ui.components.LoadingIndicator
+import com.gorman.ui.theme.LocalEventsMapTheme
 
 @Composable
 fun SignInScreenEntry(
@@ -142,6 +152,20 @@ fun SignInScreen(
             },
             modifier = Modifier.fillMaxWidth().height(55.dp)
         )
+        Spacer(modifier = Modifier.height(32.dp))
+        IconButton(
+            onClick = { onUiEvent(AuthScreenUiEvent.OnSignInWithGoogleClick) },
+            modifier = Modifier
+                .size(28.dp)
+                .clip(LocalEventsMapTheme.shapes.large)
+                .background(Color.White)
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_google),
+                contentDescription = "Google Entry",
+                modifier = Modifier.size(24.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(
             onClick = { onUiEvent(AuthScreenUiEvent.OnGuestSignIn) }

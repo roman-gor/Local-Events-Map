@@ -10,6 +10,7 @@ sealed interface AuthScreenState {
 sealed interface AuthScreenUiEvent {
     data class OnSignUpClick(val user: UserUiState, val password: String) : AuthScreenUiEvent
     data class OnSignInClick(val email: String, val password: String) : AuthScreenUiEvent
+    object OnSignInWithGoogleClick : AuthScreenUiEvent
     object OnGuestSignIn : AuthScreenUiEvent
     object OnNavigateToSignUpClicked : AuthScreenUiEvent
     object OnNavigateToSignInClicked : AuthScreenUiEvent
