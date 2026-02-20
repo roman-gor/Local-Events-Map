@@ -75,7 +75,7 @@ fun BoxScope.FunctionalBlock(
             FunctionalButton(
                 onClick = { mapScreenData.onFiltersExpanded() },
                 iconSize = 32.dp,
-                painter = painterResource(R.drawable.filter_alt),
+                painter = painterResource(R.drawable.ic_filter),
                 modifier = Modifier
                     .size(48.dp)
                     .offset(y = mapScreenData.filtersButtonVerticalOffset)

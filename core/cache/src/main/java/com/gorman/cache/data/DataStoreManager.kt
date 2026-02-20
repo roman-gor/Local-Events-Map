@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.gorman.common.models.CityData
+import com.gorman.common.models.FiltersState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
@@ -20,6 +21,7 @@ class DataStoreManager @Inject constructor(
     companion object {
         private val KEY_CITY_DATA = stringPreferencesKey("city_data")
         private val KEY_LAST_SYNC = longPreferencesKey("key_last_sync")
+        private val KEY_FILTERS_STATE = stringPreferencesKey("key_filters_state")
     }
 
     val lastSyncTimestamp: Flow<Long?> = dataStore.data.map { prefs -> prefs[KEY_LAST_SYNC] }
@@ -27,6 +29,14 @@ class DataStoreManager @Inject constructor(
         val jsonString = prefs[KEY_CITY_DATA]
         if (jsonString != null) {
             Json.decodeFromString<CityData>(jsonString)
+        } else {
+            null
+        }
+    }
+    val savedFilters: Flow<FiltersState?> = dataStore.data.map { prefs ->
+        val jsonString = prefs[KEY_FILTERS_STATE]
+        if (jsonString != null) {
+            Json.decodeFromString<FiltersState>(jsonString)
         } else {
             null
         }
@@ -41,6 +51,12 @@ class DataStoreManager @Inject constructor(
     suspend fun saveCity(cityData: CityData) {
         dataStore.edit { prefs ->
             prefs[KEY_CITY_DATA] = Json.encodeToString(cityData)
+        }
+    }
+
+    suspend fun saveFiltersState(state: FiltersState) {
+        dataStore.edit { prefs ->
+            prefs[KEY_FILTERS_STATE] = Json.encodeToString(state)
         }
     }
 }

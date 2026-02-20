@@ -167,7 +167,7 @@ fun SignInScreen(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        TextButton(onClick = { onUiEvent(AuthScreenUiEvent.OnGuestSignIn) } ) {
+        TextButton(onClick = { onUiEvent(AuthScreenUiEvent.OnGuestSignIn) }) {
             Text(
                 text = stringResource(R.string.guestSignIn),
                 style = MaterialTheme.typography.bodyLarge,

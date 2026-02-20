@@ -1,6 +1,7 @@
 package com.gorman.feature.events.impl.ui.components
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +28,7 @@ fun IsFreeFilter(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = { onCheckedChange(!isFree) })
             .padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start

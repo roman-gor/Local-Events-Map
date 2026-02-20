@@ -2,20 +2,21 @@ package com.gorman.feature.events.impl.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gorman.cache.data.DataStoreManager
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
+import com.gorman.common.models.DateFilterState
+import com.gorman.common.models.DateFilterType
+import com.gorman.common.models.FiltersState
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
-import com.gorman.feature.events.impl.ui.components.DateFilterType
 import com.gorman.feature.events.impl.ui.mappers.toDomain
 import com.gorman.feature.events.impl.ui.mappers.toUiState
 import com.gorman.feature.events.impl.ui.states.DataStatus
-import com.gorman.feature.events.impl.ui.states.DateFilterState
-import com.gorman.feature.events.impl.ui.states.FiltersState
 import com.gorman.feature.events.impl.ui.states.PointUiState
 import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
 import com.gorman.feature.events.impl.ui.states.ScreenState
@@ -53,13 +54,20 @@ class MapViewModel @Inject constructor(
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
+    private val dataStore: DataStoreManager,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
 
     private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
 
-    private val filters = MutableStateFlow(FiltersState())
+    private val filters = dataStore.savedFilters
+        .map { it ?: FiltersState() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = FiltersState()
+        )
     private val selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
     private var cameraMoveJob: Job? = null
@@ -169,7 +177,7 @@ class MapViewModel @Inject constructor(
         val matchesCategory = filters.categories.isEmpty() || this.category in filters.categories
 
         val matchesDate = if (filters.dateRange.startDate != null && filters.dateRange.endDate != null) {
-            this.date in filters.dateRange.startDate..filters.dateRange.endDate
+            this.date in filters.dateRange.startDate!!..filters.dateRange.endDate!!
         } else {
             true
         }
@@ -179,7 +187,7 @@ class MapViewModel @Inject constructor(
         val matchesDistance = if (filters.distance != null) {
             val userPoint = cityData.toUiState().cityCoordinates
             val dist = checkDistanceBetween(this.toUiState(), userPoint?.toDomain())
-            dist?.let { it <= filters.distance } ?: true
+            dist?.let { it <= filters.distance!! } ?: true
         } else {
             true
         }
@@ -196,10 +204,11 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point, event.zoom)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
             is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
-            is ScreenUiEvent.OnNameChanged -> filters.value = filters.value.copy(name = event.name)
-            is ScreenUiEvent.OnCostChanged -> filters.value = filters.value.copy(isFree = event.isFree)
-            is ScreenUiEvent.OnDistanceChanged -> filters.value = filters.value.copy(distance = event.distance)
+            is ScreenUiEvent.OnNameChanged -> updateFilters { it.copy(name = event.name) }
+            is ScreenUiEvent.OnCostChanged -> updateFilters { it.copy(isFree = event.isFree) }
+            is ScreenUiEvent.OnDistanceChanged -> updateFilters { it.copy(distance = event.distance) }
             is ScreenUiEvent.OnCitySearch -> { searchForCity(event.city) }
+            ScreenUiEvent.OnResetFilters -> { viewModelScope.launch { dataStore.saveFiltersState(FiltersState()) } }
             is ScreenUiEvent.OnEventSelected -> { viewModelScope.launch { onEventSelected(event.id) } }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> { onPermissionsGranted() }
@@ -258,60 +267,68 @@ class MapViewModel @Inject constructor(
         }
     }
 
+    private fun updateFilters(transform: (FiltersState) -> FiltersState) {
+        viewModelScope.launch {
+            val current = filters.value
+            val newFilters = transform(current)
+            dataStore.saveFiltersState(newFilters)
+        }
+    }
+
     private fun filterDateChanged(dateState: DateFilterState) {
-        val currentType = filters.value.dateRange.type
-        val newType = dateState.type
+        viewModelScope.launch {
+            val currentFilters = filters.value
+            val currentType = filters.value.dateRange.type
+            val newType = dateState.type
 
-        if (currentType == newType && newType != DateFilterType.RANGE) {
-            filters.value = filters.value.copy(
-                dateRange = DateFilterState(
-                    type = null,
-                    startDate = null,
-                    endDate = null
-                )
-            )
-            return
-        }
-
-        if (newType == DateFilterType.RANGE && dateState.startDate == null) {
-            return
-        }
-
-        when (dateState.type) {
-            DateFilterType.RANGE -> {
-                filters.value = filters.value.copy(
+            if (currentType == newType && newType != DateFilterType.RANGE) {
+                val newFilters = currentFilters.copy(
                     dateRange = DateFilterState(
+                        type = null,
+                        startDate = null,
+                        endDate = null
+                    )
+                )
+                dataStore.saveFiltersState(newFilters)
+                return@launch
+            }
+
+            if (newType == DateFilterType.RANGE && dateState.startDate == null) {
+                return@launch
+            }
+
+            val newDateRange = when (dateState.type) {
+                DateFilterType.RANGE -> {
+                    DateFilterState(
                         type = DateFilterType.RANGE,
                         startDate = dateState.startDate,
                         endDate = dateState.endDate
                     )
-                )
-            }
-            DateFilterType.TODAY -> {
-                filters.value = filters.value.copy(
-                    dateRange = DateFilterState(
-                        type = dateState.type,
+                }
+                DateFilterType.TODAY -> {
+                    DateFilterState(
+                        type = DateFilterType.TODAY,
                         startDate = getStartOfDay(),
                         endDate = getEndOfDay()
                     )
-                )
-            }
-            DateFilterType.WEEK -> {
-                filters.value = filters.value.copy(
-                    dateRange = DateFilterState(
-                        type = dateState.type,
+                }
+                DateFilterType.WEEK -> {
+                    DateFilterState(
+                        type = DateFilterType.WEEK,
                         startDate = getStartOfDay(),
                         endDate = getEndOfWeek()
                     )
-                )
+                }
+                else -> {
+                    DateFilterState(
+                        type = null,
+                        startDate = null,
+                        endDate = null
+                    )
+                }
             }
-            else -> filters.value = filters.value.copy(
-                dateRange = DateFilterState(
-                    type = null,
-                    startDate = null,
-                    endDate = null
-                )
-            )
+            val newFilters = currentFilters.copy(dateRange = newDateRange)
+            dataStore.saveFiltersState(newFilters)
         }
     }
 
@@ -371,13 +388,15 @@ class MapViewModel @Inject constructor(
     }
 
     private fun onCategoryChanged(category: String) {
-        val currentCategories = filters.value.categories.toMutableList()
-        if (currentCategories.contains(category)) {
-            currentCategories.remove(category)
-        } else {
-            currentCategories.add(category)
+        viewModelScope.launch {
+            val currentCategories = filters.value.categories.toMutableList()
+            if (currentCategories.contains(category)) {
+                currentCategories.remove(category)
+            } else {
+                currentCategories.add(category)
+            }
+            dataStore.saveFiltersState(filters.value.copy(categories = currentCategories))
         }
-        filters.value = filters.value.copy(categories = currentCategories)
     }
 
     private fun updateCityIfChanged(newData: CityData) {

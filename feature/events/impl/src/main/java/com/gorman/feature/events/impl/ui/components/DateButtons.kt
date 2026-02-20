@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.gorman.feature.events.impl.R
+import com.gorman.common.models.DateFilterType
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @SuppressLint("ComposeModifierMissing")
@@ -83,10 +83,4 @@ fun DateButtonItem(
             )
         )
     }
-}
-
-enum class DateFilterType(val title: Int) {
-    TODAY(R.string.today),
-    WEEK(R.string.week),
-    RANGE(R.string.range)
 }

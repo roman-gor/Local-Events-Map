@@ -25,9 +25,6 @@
     <string name="gomel">Gomel</string>
     <string name="brest">Brest</string>
     <string name="mogilev">Mogilev</string>
-    <string name="today">Today</string>
-    <string name="week">Week</string>
-    <string name="range">Range</string>
     <string name="selectDateRange">Select date range</string>
     <string name="confirm">OK</string>
     <string name="dismiss">Close</string>
