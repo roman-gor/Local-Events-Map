@@ -22,9 +22,11 @@ import dagger.hilt.components.SingletonComponent
 object AuthModule {
     @Provides
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
     @Provides
     fun provideCredentialManager(@ApplicationContext context: Context): CredentialManager =
         CredentialManager.create(context)
+
     @Provides
     fun provideGoogleIdOption(): GetGoogleIdOption =
         GetGoogleIdOption.Builder()
@@ -45,6 +47,7 @@ object AuthModule {
 internal interface AuthDataModule {
     @Binds
     fun bindAuthenticator(impl: Authenticator): IAuthenticator
+
     @Binds
     fun bindGoogleAuthClient(impl: GoogleAuthClient): IGoogleAuthClient
 }

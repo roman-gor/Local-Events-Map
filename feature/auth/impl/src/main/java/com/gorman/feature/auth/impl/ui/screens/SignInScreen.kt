@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -123,9 +122,7 @@ fun SignInScreen(
             color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.weight(1f))
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             DefaultOutlinedTextField(
                 value = email,
                 onValueChange = { onUiEvent(AuthScreenUiEvent.OnEmailChange(it)) },
@@ -161,7 +158,7 @@ fun SignInScreen(
             modifier = Modifier
                 .size(28.dp)
                 .clip(LocalEventsMapTheme.shapes.large)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_google),
@@ -170,9 +167,7 @@ fun SignInScreen(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        TextButton(
-            onClick = { onUiEvent(AuthScreenUiEvent.OnGuestSignIn) }
-        ) {
+        TextButton(onClick = { onUiEvent(AuthScreenUiEvent.OnGuestSignIn) } ) {
             Text(
                 text = stringResource(R.string.guestSignIn),
                 style = MaterialTheme.typography.bodyLarge,
