@@ -16,7 +16,6 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:auth"))
     implementation(project(":core:common"))
-    implementation(project(":core:cache"))
     implementation(project(":core:domain-model"))
     implementation(project(":core:notifications"))
 

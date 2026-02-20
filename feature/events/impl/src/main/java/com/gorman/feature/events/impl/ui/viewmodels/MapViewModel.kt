@@ -2,13 +2,13 @@ package com.gorman.feature.events.impl.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gorman.cache.data.DataStoreManager
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
 import com.gorman.common.models.DateFilterState
 import com.gorman.common.models.DateFilterType
 import com.gorman.common.models.FiltersState
+import com.gorman.data.cache.IPreferencesDataSource
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
@@ -53,15 +53,15 @@ class MapViewModel @Inject constructor(
     private val mapManager: IMapManager,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
+    private val cacheRepository: IPreferencesDataSource,
     private val getCityByPointUseCase: GetCityByPointUseCase,
-    private val dataStore: DataStoreManager,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
 
     private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
 
-    private val filters = dataStore.savedFilters
+    private val filters = cacheRepository.savedFilters
         .map { it ?: FiltersState() }
         .stateIn(
             scope = viewModelScope,
@@ -208,7 +208,13 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCostChanged -> updateFilters { it.copy(isFree = event.isFree) }
             is ScreenUiEvent.OnDistanceChanged -> updateFilters { it.copy(distance = event.distance) }
             is ScreenUiEvent.OnCitySearch -> { searchForCity(event.city) }
-            ScreenUiEvent.OnResetFilters -> { viewModelScope.launch { dataStore.saveFiltersState(FiltersState()) } }
+            ScreenUiEvent.OnResetFilters -> {
+                viewModelScope.launch {
+                    cacheRepository.saveFiltersState(
+                        FiltersState()
+                    )
+                }
+            }
             is ScreenUiEvent.OnEventSelected -> { viewModelScope.launch { onEventSelected(event.id) } }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> { onPermissionsGranted() }
@@ -271,7 +277,7 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             val current = filters.value
             val newFilters = transform(current)
-            dataStore.saveFiltersState(newFilters)
+            cacheRepository.saveFiltersState(newFilters)
         }
     }
 
@@ -289,7 +295,7 @@ class MapViewModel @Inject constructor(
                         endDate = null
                     )
                 )
-                dataStore.saveFiltersState(newFilters)
+                cacheRepository.saveFiltersState(newFilters)
                 return@launch
             }
 
@@ -328,7 +334,7 @@ class MapViewModel @Inject constructor(
                 }
             }
             val newFilters = currentFilters.copy(dateRange = newDateRange)
-            dataStore.saveFiltersState(newFilters)
+            cacheRepository.saveFiltersState(newFilters)
         }
     }
 
@@ -395,7 +401,7 @@ class MapViewModel @Inject constructor(
             } else {
                 currentCategories.add(category)
             }
-            dataStore.saveFiltersState(filters.value.copy(categories = currentCategories))
+            cacheRepository.saveFiltersState(filters.value.copy(categories = currentCategories))
         }
     }
 

@@ -1,7 +1,7 @@
 package com.gorman.data.repository.mapevents
 
 import androidx.room.withTransaction
-import com.gorman.cache.data.DataStoreManager
+import com.gorman.data.cache.IPreferencesDataSource
 import com.gorman.database.data.datasource.LocalEventsDatabase
 import com.gorman.database.data.datasource.dao.MapEventsDao
 import com.gorman.database.mappers.toDomain
@@ -24,7 +24,7 @@ internal class MapEventsRepository @Inject constructor(
     private val mapEventsDao: MapEventsDao,
     private val mapEventRemoteDataSource: MapEventRemoteDataSource,
     private val database: LocalEventsDatabase,
-    private val dataStoreManager: DataStoreManager
+    private val cacheRepository: IPreferencesDataSource
 ) : IMapEventsRepository {
 
     override fun getAllEvents(): Flow<List<MapEvent>> {
@@ -69,7 +69,7 @@ internal class MapEventsRepository @Inject constructor(
                     mapEventsDao.clearAll()
                 }
             }
-            dataStoreManager.saveSyncTimestamp(System.currentTimeMillis())
+            cacheRepository.saveSyncTimestamp(System.currentTimeMillis())
             Result.success(Unit)
         } else {
             Result.failure(IOException("Error network connection"))
@@ -78,7 +78,7 @@ internal class MapEventsRepository @Inject constructor(
 
     @OptIn(ExperimentalTime::class)
     override fun isOutdated(): Flow<Boolean> =
-        dataStoreManager.lastSyncTimestamp.map { lastSyncTime ->
+        cacheRepository.lastSyncTimestamp.map { lastSyncTime ->
             val currentZone = ZoneId.systemDefault()
             val currentTime = ZonedDateTime.now(currentZone).toEpochSecond()
             lastSyncTime?.let { (currentTime - it) > TTL_MS } == true
