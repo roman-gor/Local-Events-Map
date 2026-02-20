@@ -17,7 +17,6 @@ dependencies {
     implementation(project(":feature:details-event:api"))
     implementation(project(":feature:bookmarks:api"))
     implementation(libs.kotlinx.serialization.json)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

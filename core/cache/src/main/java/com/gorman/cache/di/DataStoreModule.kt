@@ -1,9 +1,12 @@
-package com.gorman.cache.data
+package com.gorman.cache.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.gorman.cache.data.PreferencesDataSource
+import com.gorman.data.cache.IPreferencesDataSource
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,4 +27,11 @@ object DataStoreModule {
     fun provideLocalEventsMapDataStore(
         @ApplicationContext context: Context
     ): DataStore<Preferences> = context.localEventsMapDataStore
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+internal interface CacheModule {
+    @Binds
+    fun bindPreferencesDataSource(impl: PreferencesDataSource): IPreferencesDataSource
 }
