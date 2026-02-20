@@ -1,10 +1,10 @@
 package com.gorman.auth.data.googleAuth
 
 import android.content.Context
-import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -13,7 +13,7 @@ class GoogleAuthClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val credentialManager: CredentialManager,
     private val credentialRequest: GetCredentialRequest
-): IGoogleAuthClient {
+) : IGoogleAuthClient {
     override suspend fun getIdToken(): Result<String> {
         return try {
             val result = credentialManager.getCredential(
