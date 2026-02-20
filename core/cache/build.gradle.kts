@@ -16,7 +16,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.datastore)
     implementation(libs.yandex.android)
-
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
 }

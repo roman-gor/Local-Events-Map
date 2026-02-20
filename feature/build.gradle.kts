@@ -10,21 +10,15 @@ android {
 }
 
 dependencies {
-
     api(project(":core:common"))
     api(project(":core:domain-model"))
     api(project(":core:data"))
     api(project(":core:ui"))
     api(project(":core:navigation"))
-
     api(libs.bundles.hilt)
     api(libs.androidx.core.ktx)
     api(libs.androidx.lifecycle.runtime.ktx)
     api(libs.accompanist.permissions)
     api(libs.androidx.compose.ui.tooling.preview)
     api(libs.kotlinx.coroutines.immutable)
-
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
 }
