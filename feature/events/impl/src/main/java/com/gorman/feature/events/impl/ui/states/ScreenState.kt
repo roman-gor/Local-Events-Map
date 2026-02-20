@@ -1,6 +1,8 @@
 package com.gorman.feature.events.impl.ui.states
 
 import com.gorman.common.constants.CityCoordinates
+import com.gorman.common.models.DateFilterState
+import com.gorman.common.models.FiltersState
 import com.gorman.ui.states.MapUiEvent
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -41,5 +43,6 @@ sealed interface ScreenUiEvent {
     data class OnNameChanged(val name: String) : ScreenUiEvent
     data class OnCostChanged(val isFree: Boolean) : ScreenUiEvent
     data class OnDistanceChanged(val distance: Int?) : ScreenUiEvent
+    data object OnResetFilters : ScreenUiEvent
     data class OnEventSelected(val id: String) : ScreenUiEvent
 }

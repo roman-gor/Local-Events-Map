@@ -4,17 +4,21 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -28,15 +32,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gorman.common.models.DateFilterState
+import com.gorman.common.models.FilterActions
+import com.gorman.common.models.FilterOptions
+import com.gorman.common.models.FiltersState
 import com.gorman.feature.events.impl.R
-import com.gorman.feature.events.impl.ui.states.DateFilterState
-import com.gorman.feature.events.impl.ui.states.FilterActions
-import com.gorman.feature.events.impl.ui.states.FilterOptions
-import com.gorman.feature.events.impl.ui.states.FiltersState
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
@@ -107,7 +113,7 @@ fun FiltersBottomSheet(
 ) {
     var categoryExpanded by remember { mutableStateOf(false) }
     val alpha = remember { mutableFloatStateOf(1f) }
-    var isDistanceFilterEnabled by remember { mutableStateOf(filters.distance != null) }
+    val isDistanceFilterEnabled = filters.distance != null
     var isDistanceChange by remember { mutableStateOf(false) }
     ModalBottomSheet(
         onDismissRequest = { onDismiss() },
@@ -122,6 +128,7 @@ fun FiltersBottomSheet(
         if (!isDistanceChange) {
             Header(
                 text = stringResource(R.string.filters),
+                onResetFiltersClick = { actions.onResetFilters() },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
             )
         }
@@ -150,8 +157,9 @@ fun FiltersBottomSheet(
                         isDistanceChange = false
                     },
                     onDistanceFilterEnabled = {
-                        isDistanceFilterEnabled = !isDistanceFilterEnabled
-                        if (!isDistanceFilterEnabled) { actions.onDistanceChange(null) } else {
+                        if (isDistanceFilterEnabled) {
+                            actions.onDistanceChange(null)
+                        } else {
                             actions.onDistanceChange(1)
                         }
                     },
@@ -237,16 +245,34 @@ fun FiltersBottomSheetContent(
 @Composable
 fun Header(
     text: String,
+    onResetFiltersClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleLarge,
-        fontSize = 28.sp,
-        color = MaterialTheme.colorScheme.primary,
-        textAlign = TextAlign.Start,
-        modifier = modifier
-    )
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleLarge,
+            fontSize = 28.sp,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Start
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        IconButton(
+            onClick = { onResetFiltersClick() },
+            modifier = Modifier
+                .background(Color.Transparent)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_clean_filter),
+                contentDescription = "Reset Filters Icon",
+                tint = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.size(36.dp)
+            )
+        }
+    }
 }
 
 @Immutable

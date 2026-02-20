@@ -16,8 +16,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gorman.common.models.DateFilterState
+import com.gorman.common.models.DateFilterType
 import com.gorman.feature.events.impl.R
-import com.gorman.feature.events.impl.ui.states.DateFilterState
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 @SuppressLint("ComposeModifierMissing")

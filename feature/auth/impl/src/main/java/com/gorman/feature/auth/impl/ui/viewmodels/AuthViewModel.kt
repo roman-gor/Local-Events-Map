@@ -50,7 +50,7 @@ class AuthViewModel @AssistedInject constructor(
         when (uiEvent) {
             is AuthScreenUiEvent.OnSignInClick -> signIn(uiEvent.email, uiEvent.password)
             is AuthScreenUiEvent.OnSignUpClick -> signUp(uiEvent.user, uiEvent.password)
-            AuthScreenUiEvent.OnSignInWithGoogleClick -> signInWithGoogle()
+            AuthScreenUiEvent.OnSignInWithGoogleClick -> { signInWithGoogle() }
             AuthScreenUiEvent.OnGuestSignIn -> guestSignIn()
             AuthScreenUiEvent.OnNavigateToSignInClicked -> navigator.onSignIn()
             AuthScreenUiEvent.OnNavigateToSignUpClicked -> navigator.onSignUp()

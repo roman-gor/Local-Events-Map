@@ -15,4 +15,7 @@
     <string name="cinema">Кино</string>
     <string name="categoryPlaceholder">Афиша</string>
     <string name="errorDataLoading">Ошибка при загрузке данных</string>
+    <string name="today">Сегодня</string>
+    <string name="week">Неделя</string>
+    <string name="range">Диапазон</string>
 </resources>

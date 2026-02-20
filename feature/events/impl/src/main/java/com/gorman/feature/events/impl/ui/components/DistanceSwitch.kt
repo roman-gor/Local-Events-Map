@@ -1,6 +1,7 @@
 package com.gorman.feature.events.impl.ui.components
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,9 +26,10 @@ fun DistanceSwitch(
     onCheckedChange: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(
-            horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge
-        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = { onCheckedChange() })
+            .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {

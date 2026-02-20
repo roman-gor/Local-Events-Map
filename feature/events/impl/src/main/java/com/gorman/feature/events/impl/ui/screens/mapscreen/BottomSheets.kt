@@ -9,13 +9,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.gorman.common.constants.Category
 import com.gorman.common.constants.CostTier
-import com.gorman.feature.events.impl.ui.components.DateFilterType
+import com.gorman.common.models.DateFilterType
+import com.gorman.common.models.FilterActions
+import com.gorman.common.models.FilterOptions
+import com.gorman.common.models.FiltersState
 import com.gorman.feature.events.impl.ui.components.DateRangePickerDialog
 import com.gorman.feature.events.impl.ui.components.FiltersBottomSheet
 import com.gorman.feature.events.impl.ui.components.MapEventsBottomSheet
-import com.gorman.feature.events.impl.ui.states.FilterActions
-import com.gorman.feature.events.impl.ui.states.FilterOptions
-import com.gorman.feature.events.impl.ui.states.FiltersState
 import com.gorman.feature.events.impl.ui.states.MapScreenActions
 import com.gorman.ui.states.MapUiEvent
 import kotlinx.collections.immutable.ImmutableList
@@ -66,9 +66,8 @@ fun FilterBottomSheetContent(
                 },
                 onDistanceChange = { mapScreenActions.filterActions.onDistanceChange(it) },
                 onCostChange = { mapScreenActions.filterActions.onCostChange(it) },
-                onNameChange = { name ->
-                    mapScreenActions.filterActions.onNameChange(name)
-                }
+                onNameChange = { name -> mapScreenActions.filterActions.onNameChange(name) },
+                onResetFilters = { mapScreenActions.filterActions.onResetFilters() }
             )
         )
     }

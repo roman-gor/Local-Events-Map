@@ -7,9 +7,8 @@ import javax.inject.Inject
 class SignInWithGoogleUseCase @Inject constructor(
     private val authRepository: IAuthRepository,
     private val userRepository: IUserRepository
-){
+) {
     suspend operator fun invoke(): Result<Unit> {
-
         return authRepository.signInWithGoogle().mapCatching { user ->
             userRepository.clearUserData()
             val existingUser = userRepository.refreshUserData(user.uid)

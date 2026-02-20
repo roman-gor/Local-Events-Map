@@ -32,13 +32,13 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.gorman.common.constants.CityCoordinates
+import com.gorman.common.models.FilterActions
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.navigation.EventsNavDelegate
 import com.gorman.feature.events.impl.ui.components.CitiesDropdownMenu
 import com.gorman.feature.events.impl.ui.components.StatusBanner
 import com.gorman.feature.events.impl.ui.mappers.toDomain
 import com.gorman.feature.events.impl.ui.screens.PermissionRequestScreen
-import com.gorman.feature.events.impl.ui.states.FilterActions
 import com.gorman.feature.events.impl.ui.states.MapScreenActions
 import com.gorman.feature.events.impl.ui.states.PointUiState
 import com.gorman.feature.events.impl.ui.states.ScreenState
@@ -171,7 +171,8 @@ fun MapContent(
                 onDateRangeChange = { onUiEvent(ScreenUiEvent.OnDateChanged(it)) },
                 onDistanceChange = { onUiEvent(ScreenUiEvent.OnDistanceChanged(it)) },
                 onCostChange = { onUiEvent(ScreenUiEvent.OnCostChanged(it)) },
-                onNameChange = { onUiEvent(ScreenUiEvent.OnNameChanged(it)) }
+                onNameChange = { onUiEvent(ScreenUiEvent.OnNameChanged(it)) },
+                onResetFilters = { onUiEvent(ScreenUiEvent.OnResetFilters) }
             ),
             onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
             onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
