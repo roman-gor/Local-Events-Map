@@ -33,7 +33,7 @@ class AuthViewModel @Inject constructor(
     private val _uiState =
         MutableStateFlow<AuthScreenState>(AuthScreenState.Idle(user = UserUiState(), password = ""))
     val uiState = _uiState.asStateFlow()
-    private val _sideEffect = Channel<AuthSideEffects>(Channel.Factory.BUFFERED)
+    private val _sideEffect = Channel<AuthSideEffects>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
 
     private var lastToastTime = 0L

@@ -33,9 +33,9 @@ class LocalEventsMapViewModel @Inject constructor(
     val state: StateFlow<SetupScreenState> = retryTrigger
         .flatMapLatest {
             userRepository
-                .getUserData().map { it.uid }
+                .getUserData().map { it?.uid }
                 .map { id ->
-                    if (id.isNotEmpty()) {
+                    if (!id.isNullOrEmpty()) {
                         navigator.setRoot(HomeScreenNavKey)
                     } else {
                         navigator.setRoot(SignInScreenNavKey)

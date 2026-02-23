@@ -13,7 +13,7 @@ android {
 dependencies {
     implementation(project(":feature"))
     implementation(project(":feature:events:api"))
-    implementation(project(":feature:auth:api"))
+    api(project(":feature:auth:api"))
     implementation(project(":core:navigation"))
 
     implementation(platform(libs.firebase.bom))

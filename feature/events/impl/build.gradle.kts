@@ -17,7 +17,6 @@ dependencies {
     implementation(project(":core:navigation"))
     api(project(":feature:events:api"))
     implementation(project(":core:map"))
-    implementation(project(":core:navigation"))
 
     implementation(libs.yandex.android)
     implementation(libs.kotlinx.serialization.json)

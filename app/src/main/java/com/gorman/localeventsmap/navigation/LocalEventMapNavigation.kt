@@ -1,6 +1,8 @@
 package com.gorman.localeventsmap.navigation
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -18,14 +20,18 @@ fun LocalEventsMapNavigation(
     entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>,
     modifier: Modifier = Modifier
 ) {
-    NavDisplay(
-        backStack = navigator.backStack,
-        entryDecorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator()
-        ),
-        modifier = modifier,
-        onBack = { navigator.goBack() },
-        entryProvider = entryProvider { entryBuilders.forEach { builder -> this.builder() } }
-    )
+    Box(
+        modifier = modifier
+    ) {
+        NavDisplay(
+            backStack = navigator.backStack,
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator()
+            ),
+            modifier = Modifier.fillMaxSize(),
+            onBack = { navigator.goBack() },
+            entryProvider = entryProvider { entryBuilders.forEach { builder -> this.builder() } }
+        )
+    }
 }

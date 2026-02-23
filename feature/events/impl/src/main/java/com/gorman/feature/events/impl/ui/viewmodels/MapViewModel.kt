@@ -54,8 +54,8 @@ import kotlin.ranges.contains
 @Suppress("TooManyFunctions")
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val navigator: Navigator,
     private val mapManager: IMapManager,
+    private val navigator: Navigator,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
