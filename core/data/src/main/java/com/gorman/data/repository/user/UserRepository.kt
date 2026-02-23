@@ -33,7 +33,7 @@ internal class UserRepository @Inject constructor(
         userDataDao.clearAll()
     }
 
-    override suspend fun getUserData(): Flow<UserData?> =
+    override fun getUserData(): Flow<UserData?> =
         userDataDao.getUser().map { it?.toDomain() }
 
     override suspend fun saveUser(userData: UserData): Result<Unit> {
