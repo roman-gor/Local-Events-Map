@@ -3,15 +3,12 @@ package com.gorman.feature.events.impl.ui.screens.mapscreen
 import android.Manifest
 import android.annotation.SuppressLint
 import android.os.Build
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,9 +17,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -50,7 +51,6 @@ import com.gorman.map.ui.rememberMapControl
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingStub
-import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
@@ -194,7 +194,6 @@ fun MapContent(
     }
 
     val mapConfig = MapConfig(
-        isDarkMode = state.isDarkMode,
         userLocation = uiState.cityData.cityCoordinates?.toDomain(),
         userLocationIconRes = R.drawable.ic_location_marker,
         initialPosition = initialPoint?.toDomain(),
@@ -228,6 +227,7 @@ fun MapContent(
     )
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
@@ -240,8 +240,16 @@ fun MapScreen(
     modifier: Modifier = Modifier
 ) {
     val selectedEvent = uiState.eventsList.firstOrNull { it.id == uiState.selectedMapEventId }
-
-    Box(modifier = modifier) {
+    val layoutDirection = LocalLayoutDirection.current
+    val systemInsets = WindowInsets.systemGestures
+    Box(
+        modifier = modifier
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    consumeGesturesForSystemInsets(systemInsets, layoutDirection)
+                }
+            }
+    ) {
         LocalEventsMap(
             modifier = Modifier.fillMaxSize(),
             markers = mapMarkers,
@@ -275,24 +283,27 @@ fun MapScreen(
                 onMapEventSelectedItemClick = { mapScreenActions.onNavigateToDetailsScreen(it) }
             )
         )
-        MapEdgeGestureInterceptor(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .fillMaxHeight()
-                .width(LocalEventsMapTheme.dimens.paddingExtraLarge)
-        )
-        MapEdgeGestureInterceptor(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .fillMaxHeight()
-                .width(LocalEventsMapTheme.dimens.paddingExtraLarge)
-        )
-        MapEdgeGestureInterceptor(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(LocalEventsMapTheme.dimens.paddingExtraLarge)
-        )
+    }
+}
+
+private suspend fun AwaitPointerEventScope.consumeGesturesForSystemInsets(
+    systemInsets: WindowInsets,
+    layoutDirection: LayoutDirection
+) {
+    while (true) {
+        val event = awaitPointerEvent(PointerEventPass.Initial)
+        val change = event.changes.first()
+        val pos = change.position
+
+        val leftZone = systemInsets.getLeft(this, layoutDirection).toFloat()
+        val rightZone = size.width - systemInsets.getRight(this, layoutDirection).toFloat()
+        val bottomZone = size.height - systemInsets.getBottom(this).toFloat()
+
+        val isInEdge = pos.x <= leftZone || pos.x >= rightZone || pos.y >= bottomZone
+
+        if (isInEdge) {
+            change.consume()
+        }
     }
 }
 
@@ -351,19 +362,6 @@ private fun MapTopOverlays(
         }
         uiState.dataStatus?.let { StatusBanner(it) }
     }
-}
-
-@Composable
-private fun MapEdgeGestureInterceptor(modifier: Modifier = Modifier) {
-    Spacer(
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { },
-                    onPress = { }
-                )
-            }
-    )
 }
 
 @OptIn(ExperimentalPermissionsApi::class)

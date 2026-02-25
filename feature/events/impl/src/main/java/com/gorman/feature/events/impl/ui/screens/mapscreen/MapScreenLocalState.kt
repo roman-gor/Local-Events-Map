@@ -3,7 +3,6 @@ package com.gorman.feature.events.impl.ui.screens.mapscreen
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -33,7 +32,6 @@ fun rememberMapScreenLocalState(): MapScreenLocalState {
     val citiesMenuExpanded = remember { mutableStateOf(false) }
     val isEventSelected = remember { mutableStateOf(false) }
 
-    val isDarkMode = isSystemInDarkTheme()
     val scope = rememberCoroutineScope()
 
     val mapEventsListSheetState = rememberModalBottomSheetState()
@@ -53,9 +51,8 @@ fun rememberMapScreenLocalState(): MapScreenLocalState {
         label = "listOffset"
     )
 
-    return remember(isDarkMode, scope, mapEventsListSheetState, filtersSheetState) {
+    return remember(scope, mapEventsListSheetState, filtersSheetState) {
         MapScreenLocalState(
-            isDarkMode = isDarkMode,
             scope = scope,
             mapEventsListSheetState = mapEventsListSheetState,
             filtersSheetState = filtersSheetState,
@@ -72,7 +69,6 @@ fun rememberMapScreenLocalState(): MapScreenLocalState {
 @Immutable
 @OptIn(ExperimentalMaterial3Api::class)
 data class MapScreenLocalState(
-    val isDarkMode: Boolean,
     val scope: CoroutineScope,
     val mapEventsListSheetState: SheetState,
     val filtersSheetState: SheetState,
