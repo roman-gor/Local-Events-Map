@@ -41,5 +41,3 @@ sealed interface ScreenUiEvent {
     data class OnEventSelected(val id: String) : ScreenUiEvent
     data class OnNavigateToDetailsScreen(val event: MapUiEvent) : ScreenUiEvent
 }
-
-enum class BottomSheetContent { FILTERS, EVENTS, NONE }
