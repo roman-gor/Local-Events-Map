@@ -21,9 +21,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.lifecycle.flowWithLifecycle
@@ -31,9 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
-import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
 import com.gorman.feature.details.api.DetailsScreenNavKey
-import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.feature.setup.api.SetupScreenNavKey
 import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
 import com.gorman.localeventsmap.states.MainUiState
@@ -47,7 +43,6 @@ import com.gorman.navigation.state.toEntries
 import com.gorman.ui.theme.LocalEventsMapTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
