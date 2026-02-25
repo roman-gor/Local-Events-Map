@@ -82,19 +82,21 @@ fun MapScreenEntry(
 
     val mapControl = rememberMapControl()
 
-    val effects by mapViewModel.sideEffect.collectAsStateWithLifecycle(null)
-    when(val mapEffect = effects) {
-        is ScreenSideEffect.MoveCamera -> {
-            val zoom = mapEffect.zoom
-            mapControl.moveCamera(
-                point = mapEffect.point.toDomain(),
-                zoom = zoom
-            )
+    LaunchedEffect(mapViewModel.sideEffect) {
+        mapViewModel.sideEffect.collect { effect ->
+            when(effect) {
+                is ScreenSideEffect.MoveCamera -> {
+                    val zoom = effect.zoom
+                    mapControl.moveCamera(
+                        point = effect.point.toDomain(),
+                        zoom = zoom
+                    )
+                }
+                is ScreenSideEffect.ShowToast -> {
+                    Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
-        is ScreenSideEffect.ShowToast -> {
-            Toast.makeText(context, mapEffect.text, Toast.LENGTH_SHORT).show()
-        }
-        null -> Unit
     }
 
     BindPermissionLogic(
