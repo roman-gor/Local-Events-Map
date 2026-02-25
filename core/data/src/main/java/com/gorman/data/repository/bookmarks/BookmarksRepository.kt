@@ -1,6 +1,7 @@
 package com.gorman.data.repository.bookmarks
 
 import android.util.Log
+import com.gorman.data.di.BookmarksRepositoryScope
 import com.gorman.database.data.datasource.dao.BookmarkDao
 import com.gorman.database.data.datasource.dao.BookmarkMapEventDao
 import com.gorman.database.mappers.toDomain
@@ -25,7 +26,7 @@ class BookmarksRepository @Inject constructor(
     private val bookmarksEventsDataSource: IBookmarksRemoteDataSource,
     private val bookmarksDao: BookmarkDao,
     private val bookmarkMapEventDao: BookmarkMapEventDao,
-    private val externalScope: CoroutineScope
+    @param:BookmarksRepositoryScope private val externalScope: CoroutineScope
 ) : IBookmarksRepository {
     override suspend fun updateBookmark(uid: String, bookmark: BookmarkData): Result<Unit> {
         val isBookmarked = bookmarksDao.isBookmarked(bookmark.favoriteEventId)
