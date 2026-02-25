@@ -20,7 +20,6 @@ internal class UserRepository @Inject constructor(
     private val userDataDao: UserDataDao
 ) : IUserRepository {
 
-    @Suppress("TooGenericExceptionThrown")
     override suspend fun refreshUserData(uid: String): Result<Unit> = runCatching {
         val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()
         remoteUser?.let {
@@ -42,12 +41,10 @@ internal class UserRepository @Inject constructor(
             .onFailure { Log.e("UserRepository", "Remote save failed", it) }
     }
 
-    @Suppress("TooGenericExceptionCaught")
     override suspend fun saveTokenToUser(uid: String): Result<Unit> = runCatching {
         userRemoteDataSource.saveTokenToUser(uid, notificationTokenDataSource.getNotificationToken())
     }
 
-    @Suppress("TooGenericExceptionCaught")
     override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> = runCatching {
         userRemoteDataSource.saveTokenToUser(uid, token)
     }

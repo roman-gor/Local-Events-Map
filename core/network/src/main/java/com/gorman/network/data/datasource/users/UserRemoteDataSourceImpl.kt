@@ -1,6 +1,5 @@
 package com.gorman.network.data.datasource.users
 
-import android.util.Log
 import com.google.firebase.FirebaseException
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -52,18 +51,11 @@ class UserRemoteDataSourceImpl @Inject constructor(
             }
     }
 
-    @Suppress("TooGenericExceptionCaught")
-    override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> {
-        return try {
-            database
-                .child(uid)
-                .child("fcmToken")
-                .setValue(token)
-                .await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e("UserRemoteDS", "Failed to save FCM token", e)
-            Result.failure(e)
-        }
+    override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> = runCatching {
+        database
+            .child(uid)
+            .child(FirebaseConstants.FCM_PATH.value)
+            .setValue(token)
+            .await()
     }
 }
