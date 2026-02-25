@@ -21,23 +21,21 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
-import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
 import com.gorman.feature.details.api.DetailsScreenNavKey
-import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.feature.setup.api.SetupScreenNavKey
 import com.gorman.localeventsmap.navigation.LocalEventsMapNavigation
-import com.gorman.localeventsmap.states.MainUiSideEffects
+import com.gorman.localeventsmap.states.MainUiState
 import com.gorman.localeventsmap.ui.bottombar.BottomNavigationBar
+import com.gorman.localeventsmap.ui.bottombar.shouldShowBottomBar
 import com.gorman.localeventsmap.viewmodels.MainViewModel
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.navigation.navigator.Navigator
@@ -46,7 +44,8 @@ import com.gorman.navigation.state.toEntries
 import com.gorman.ui.theme.LocalEventsMapTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -54,33 +53,31 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>
-
-    val mainViewModel: MainViewModel by viewModels()
+    private lateinit var navigator: Navigator
+    private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mainViewModel.onDeepLinkReceived(intent.data.toString())
+
+        mainViewModel.onDeepLinkReceived(intent.dataString)
+
+        mainViewModel.mainUiState
+            .flowWithLifecycle(lifecycle)
+            .onEach(::handleEffects)
+            .launchIn(lifecycleScope)
+
         enableEdgeToEdge()
         setContent {
             LocalEventsMapTheme {
                 val navState = rememberNavigationState(startRoute = SetupScreenNavKey)
-                val navigator = Navigator(navState)
-                val context = LocalContext.current
-                val resources = LocalResources.current
-
-                SideEffectsListener(
-                    sideEffect = mainViewModel.sideEffect,
-                    intent = intent,
-                    onNavigateToEvent = { navigator.navigateTo(DetailsScreenNavKey(it)) },
-                    showErrorToast = { Toast.makeText(context, resources.getString(it), Toast.LENGTH_SHORT).show() }
-                )
+                val navigator = remember(navState) { Navigator(navState) }
 
                 CompositionLocalProvider(LocalNavigator provides navigator) {
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
                         bottomBar = {
                             AnimatedVisibility(
-                                visible = showBottomBar(navState.currentVisibleKey),
+                                visible = shouldShowBottomBar(navState.currentVisibleKey),
                                 enter = slideInVertically { it },
                                 exit = slideOutVertically { it }
                             ) {
@@ -122,29 +119,17 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        mainViewModel.onDeepLinkReceived(intent.data.toString())
+        mainViewModel.onDeepLinkReceived(intent.dataString)
     }
 
-    private fun showBottomBar(currentKey: NavKey?): Boolean {
-        return currentKey is HomeScreenNavKey || currentKey is BookmarksScreenNavKey
-    }
-}
-
-@Composable
-private fun SideEffectsListener(
-    sideEffect: Flow<MainUiSideEffects>,
-    onNavigateToEvent: (String) -> Unit,
-    showErrorToast: (Int) -> Unit,
-    intent: Intent
-) {
-    LaunchedEffect(sideEffect) {
-        sideEffect.collect { effect ->
-            when (effect) {
-                is MainUiSideEffects.NavigateToEvent -> {
-                    onNavigateToEvent(effect.eventId)
-                    intent.data = null
-                }
-                is MainUiSideEffects.ShowToast -> { showErrorToast(effect.res) }
+    private fun handleEffects(state: MainUiState) {
+        when (state) {
+            is MainUiState.NavigateToEvent -> {
+                navigator.navigateTo(DetailsScreenNavKey(state.eventId))
+                intent.data = null
+            }
+            is MainUiState.ShowToast -> {
+                Toast.makeText(this, getString(state.res), Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -11,7 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.NavKey
+import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
+import com.gorman.feature.events.api.HomeScreenNavKey
 import com.gorman.localeventsmap.navigation.TopLevelNavEntries
+import kotlin.collections.contains
 
 @Composable
 fun BottomNavigationBar(
@@ -41,3 +44,11 @@ fun BottomNavigationBar(
         }
     }
 }
+
+internal fun shouldShowBottomBar(key: NavKey?): Boolean =
+    key in bottomBarScreensList
+
+private val bottomBarScreensList = listOf(
+    HomeScreenNavKey,
+    BookmarksScreenNavKey
+)

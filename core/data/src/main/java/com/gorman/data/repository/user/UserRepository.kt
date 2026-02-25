@@ -20,20 +20,19 @@ internal class UserRepository @Inject constructor(
     private val userDataDao: UserDataDao
 ) : IUserRepository {
 
-    @Suppress("TooGenericExceptionThrown")
     override suspend fun refreshUserData(uid: String): Result<Unit> = runCatching {
         val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()
         remoteUser?.let {
             userDataDao.saveUser(it.toDomain().toEntity())
             Log.d("UserRepository", "User synced from remote to local DB")
-        } ?: throw Exception("User not found on server")
+        } ?: error(Exception("User not found on server"))
     }
 
     override suspend fun clearUserData() {
         userDataDao.clearAll()
     }
 
-    override suspend fun getUserData(): Flow<UserData?> =
+    override fun getUserData(): Flow<UserData?> =
         userDataDao.getUser().map { it?.toDomain() }
 
     override suspend fun saveUser(userData: UserData): Result<Unit> {
@@ -42,12 +41,10 @@ internal class UserRepository @Inject constructor(
             .onFailure { Log.e("UserRepository", "Remote save failed", it) }
     }
 
-    @Suppress("TooGenericExceptionCaught")
     override suspend fun saveTokenToUser(uid: String): Result<Unit> = runCatching {
         userRemoteDataSource.saveTokenToUser(uid, notificationTokenDataSource.getNotificationToken())
     }
 
-    @Suppress("TooGenericExceptionCaught")
     override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> = runCatching {
         userRemoteDataSource.saveTokenToUser(uid, token)
     }

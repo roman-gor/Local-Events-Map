@@ -10,14 +10,14 @@ import androidx.core.net.toUri
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.gorman.data.repository.user.IUserRepository
-import com.gorman.database.data.datasource.dao.UserDataDao
 import com.gorman.localeventsmap.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -25,9 +25,6 @@ class NotificationService : FirebaseMessagingService() {
 
     @Inject
     lateinit var userRepository: IUserRepository
-
-    @Inject
-    lateinit var userDataDao: UserDataDao
 
     override fun onMessageReceived(message: RemoteMessage) {
         val data = message.data
@@ -76,21 +73,16 @@ class NotificationService : FirebaseMessagingService() {
         notificationManager.notify(eventId.hashCode(), notificationBuilder.build())
     }
 
-    @Suppress("TooGenericExceptionCaught")
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        CoroutineScope(Dispatchers.IO).launch {
-            val uid = userDataDao.getUser().map { it?.uid }.firstOrNull()
-
-            if (!uid.isNullOrBlank()) {
-                try {
-                    userRepository.saveTokenToUser(uid, token)
-                    Log.d("FCM_TOKEN", "Token updated on server for user $uid")
-                } catch (e: Exception) {
-                    Log.e("FCM_TOKEN", "Failed to update token on server", e)
-                }
+        userRepository.getUserData()
+            .filterNotNull()
+            .distinctUntilChanged()
+            .onEach { userData ->
+                userRepository.saveTokenToUser(userData.uid, token)
             }
-        }
+            .launchIn(CoroutineScope(Dispatchers.IO))
+
         Log.d("FCM_TOKEN", "New token: $token")
     }
 }
