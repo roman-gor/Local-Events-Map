@@ -18,6 +18,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -44,4 +46,7 @@ object SearchManagerModule {
     @Provides
     fun provideSearchManager(): SearchManager =
         SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
+
+    @Provides
+    fun provideExternalScope(): CoroutineScope = CoroutineScope(Dispatchers.IO)
 }

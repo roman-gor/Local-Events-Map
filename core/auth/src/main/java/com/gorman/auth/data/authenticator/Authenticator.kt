@@ -15,7 +15,6 @@ internal class Authenticator @Inject constructor(
         result.user?.toAuthModel() ?: error(Exception("Sign in failed: User is null"))
     }
 
-    @Suppress("TooGenericExceptionCaught")
     override suspend fun signInWithGoogle(idToken: String): Result<UserAuthModel> = runCatching {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         val result = provider.signInWithCredential(credential).await()
