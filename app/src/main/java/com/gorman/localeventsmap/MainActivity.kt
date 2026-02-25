@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.lifecycle.flowWithLifecycle
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>
-
+    private lateinit var navigator: Navigator
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,14 +70,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             LocalEventsMapTheme {
                 val navState = rememberNavigationState(startRoute = SetupScreenNavKey)
-                val navigator = Navigator(navState)
+                val navigator = remember(navState) { Navigator(navState) }
 
                 CompositionLocalProvider(LocalNavigator provides navigator) {
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
                         bottomBar = {
                             AnimatedVisibility(
-                                visible = shouldShowBottomBar(currentKey),
+                                visible = shouldShowBottomBar(navState.currentVisibleKey),
                                 enter = slideInVertically { it },
                                 exit = slideOutVertically { it }
                             ) {
@@ -124,7 +125,7 @@ class MainActivity : ComponentActivity() {
     private fun handleEffects(state: MainUiState) {
         when (state) {
             is MainUiState.NavigateToEvent -> {
-                navigator.goTo(DetailsScreenNavKey(state.eventId))
+                navigator.navigateTo(DetailsScreenNavKey(state.eventId))
                 intent.data = null
             }
             is MainUiState.ShowToast -> {
