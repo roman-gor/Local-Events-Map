@@ -7,7 +7,7 @@ import com.gorman.domainmodel.UserData
 import javax.inject.Inject
 
 internal class AuthRepository @Inject constructor(
-    private val authenticator: IAuthenticator
+    private val authenticator: IAuthenticator,
     private val googleAuthClient: IGoogleAuthClient
 ) : IAuthRepository {
 

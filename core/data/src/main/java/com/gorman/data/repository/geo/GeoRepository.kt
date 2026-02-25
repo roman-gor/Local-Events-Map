@@ -2,7 +2,6 @@ package com.gorman.data.repository.geo
 
 import android.Manifest
 import androidx.annotation.RequiresPermission
-import com.gorman.cache.data.DataStoreManager
 import com.gorman.common.data.LocationProvider
 import com.gorman.common.models.CityData
 import com.gorman.data.cache.IPreferencesDataSource
