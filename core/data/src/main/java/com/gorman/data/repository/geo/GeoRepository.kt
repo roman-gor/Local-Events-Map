@@ -1,5 +1,7 @@
 package com.gorman.data.repository.geo
 
+import android.Manifest
+import androidx.annotation.RequiresPermission
 import com.gorman.cache.data.DataStoreManager
 import com.gorman.common.data.LocationProvider
 import com.gorman.common.models.CityData
@@ -13,6 +15,13 @@ class GeoRepository @Inject constructor(
     private val mapSearchManager: IMapSearchManager,
     private val dataStoreManager: DataStoreManager
 ) : IGeoRepository {
+
+    @RequiresPermission(
+        allOf = [
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ]
+    )
     override suspend fun getUserLocation(): Result<PointDomain> =
         locationProvider.getLastKnownLocation()
 

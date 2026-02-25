@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -15,6 +16,7 @@ object NotificationHelper {
     private const val CHANNEL_ID = "sync_error_notification"
     private const val NOTIFICATION_ID = 1001
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     fun showSyncErrorNotification(context: Context, message: String) {
         createNotificationChannel(context)
 

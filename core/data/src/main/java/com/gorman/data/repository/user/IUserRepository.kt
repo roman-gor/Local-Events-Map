@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface IUserRepository {
     suspend fun refreshUserData(uid: String): Result<Unit>
-    suspend fun getUserData(): Flow<UserData?>
+    fun getUserData(): Flow<UserData?>
     suspend fun saveUser(userData: UserData): Result<Unit>
     suspend fun clearUserData()
     suspend fun saveTokenToUser(uid: String): Result<Unit>

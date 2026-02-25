@@ -65,6 +65,7 @@ dependencies {
     implementation(project(":core:map"))
     implementation(project(":core:cache"))
     implementation(project(":core:deeplinks"))
+    implementation(project(":core:domain-model"))
     implementation(project(":core:data"))
     implementation(project(":core:database"))
     implementation(project(":core:notifications"))
