@@ -3,17 +3,18 @@ package com.gorman.feature.events.impl.ui.screens.mapscreen
 import android.Manifest
 import android.annotation.SuppressLint
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.systemGestures
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import com.gorman.feature.events.impl.ui.screens.PermissionRequestScreen
 import com.gorman.feature.events.impl.ui.states.FilterActions
 import com.gorman.feature.events.impl.ui.states.MapScreenActions
 import com.gorman.feature.events.impl.ui.states.PointUiState
+import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
 import com.gorman.feature.events.impl.ui.states.ScreenState
 import com.gorman.feature.events.impl.ui.states.ScreenUiEvent
 import com.gorman.feature.events.impl.ui.viewmodels.MapViewModel
@@ -80,7 +82,20 @@ fun MapScreenEntry(
 
     val mapControl = rememberMapControl()
 
-    HandleSideEffects(context, mapViewModel, mapControl)
+    val effects by mapViewModel.sideEffect.collectAsStateWithLifecycle(null)
+    when(val mapEffect = effects) {
+        is ScreenSideEffect.MoveCamera -> {
+            val zoom = mapEffect.zoom
+            mapControl.moveCamera(
+                point = mapEffect.point.toDomain(),
+                zoom = zoom
+            )
+        }
+        is ScreenSideEffect.ShowToast -> {
+            Toast.makeText(context, mapEffect.text, Toast.LENGTH_SHORT).show()
+        }
+        null -> Unit
+    }
 
     BindPermissionLogic(
         permissionsState = permissionsState,
@@ -172,24 +187,6 @@ fun MapContent(
 
     val (initialPoint, initialZoom) = uiState.initialCameraPosition
 
-    val mapMarkers = remember(uiState.eventsList) {
-        uiState.eventsList.mapNotNull { event ->
-            val coordinates = event.coordinates?.split(",")
-            if (coordinates != null && coordinates.size >= 2) {
-                MapMarker(
-                    id = event.id,
-                    latitude = coordinates[0].trim().toDouble(),
-                    longitude = coordinates[1].trim().toDouble(),
-                    isSelected = event.isSelected,
-                    iconRes = R.drawable.ic_marker,
-                    selectedIconRes = R.drawable.ic_marker_selected
-                )
-            } else {
-                null
-            }
-        }.toImmutableList()
-    }
-
     val mapConfig = MapConfig(
         userLocation = uiState.cityData.cityCoordinates?.toDomain(),
         userLocationIconRes = R.drawable.ic_location_marker,
@@ -224,7 +221,7 @@ fun MapContent(
         uiState = uiState,
         mapControl = mapControl,
         mapConfig = mapConfig,
-        mapMarkers = mapMarkers,
+        mapMarkers = uiState.mapMarkers,
         state = state,
         modifier = modifier
     )

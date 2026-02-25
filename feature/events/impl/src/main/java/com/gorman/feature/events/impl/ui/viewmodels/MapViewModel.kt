@@ -11,6 +11,7 @@ import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.details.api.DetailsScreenNavKey
+import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
 import com.gorman.feature.events.impl.domain.GetPointByCityUseCase
 import com.gorman.feature.events.impl.ui.components.DateFilterType
@@ -24,6 +25,7 @@ import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
 import com.gorman.feature.events.impl.ui.states.ScreenState
 import com.gorman.feature.events.impl.ui.states.ScreenUiEvent
 import com.gorman.map.mapmanager.IMapManager
+import com.gorman.map.ui.MapMarker
 import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.mappers.toUiState
 import com.gorman.ui.states.MapUiEvent
@@ -115,6 +117,21 @@ class MapViewModel @Inject constructor(
             isOutdated -> DataStatus.OUTDATED
             else -> DataStatus.FRESH
         }
+
+        val mapMarkers = filteredEvents.mapNotNull { event ->
+            val coordinates = event.coordinates?.split(",")
+            if (coordinates != null && coordinates.size >= 2) {
+                MapMarker(
+                    id = event.id,
+                    latitude = coordinates[0].trim().toDouble(),
+                    longitude = coordinates[1].trim().toDouble(),
+                    isSelected = event.isSelected,
+                    iconRes = R.drawable.ic_marker,
+                    selectedIconRes = R.drawable.ic_marker_selected
+                )
+            } else null
+        }.toImmutableList()
+
         ScreenState.Success(
             eventsList = filteredEvents,
             filterState = filters,
@@ -122,6 +139,7 @@ class MapViewModel @Inject constructor(
             cityData = cityData.toUiState(),
             dataStatus = status,
             isSyncLoading = isSyncLoading,
+            mapMarkers = mapMarkers,
             initialCameraPosition = cameraState?.let { it.first.toUiState() to it.second } ?: (null to null)
         ) as ScreenState
     }.catch { e ->
