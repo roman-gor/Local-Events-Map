@@ -46,7 +46,7 @@ import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
 import com.gorman.feature.events.impl.ui.states.ScreenState
 import com.gorman.feature.events.impl.ui.states.ScreenUiEvent
 import com.gorman.feature.events.impl.ui.viewmodels.MapViewModel
-import com.gorman.map.ui.LocalEventsMap
+import com.gorman.map.ui.LocalEventsMapComponent
 import com.gorman.map.ui.MapConfig
 import com.gorman.map.ui.MapControl
 import com.gorman.map.ui.MapMarker
@@ -208,7 +208,7 @@ fun MapScreen(
                 }
             }
     ) {
-        LocalEventsMap(
+        LocalEventsMapComponent(
             modifier = Modifier.fillMaxSize(),
             markers = mapMarkers,
             mapControl = mapControl,
