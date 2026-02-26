@@ -120,7 +120,7 @@ fun FiltersBottomSheet(
             topStart = LocalEventsMapTheme.dimens.cornerRadius,
             topEnd = LocalEventsMapTheme.dimens.cornerRadius
         ),
-        modifier = Modifier.fillMaxSize().statusBarsPadding()
+        modifier = Modifier.fillMaxWidth().statusBarsPadding()
     ) {
         if (!isDistanceChange) {
             Header(
@@ -165,6 +165,7 @@ fun FiltersBottomSheet(
                 )
             )
         }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
