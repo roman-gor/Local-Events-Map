@@ -21,11 +21,14 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -43,8 +46,7 @@ import com.gorman.navigation.state.toEntries
 import com.gorman.ui.theme.LocalEventsMapTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -60,23 +62,29 @@ class MainActivity : ComponentActivity() {
 
         mainViewModel.onDeepLinkReceived(intent.dataString)
 
-        mainViewModel.mainUiState
-            .flowWithLifecycle(lifecycle)
-            .onEach(::handleEffects)
-            .launchIn(lifecycleScope)
-
         enableEdgeToEdge()
         setContent {
             LocalEventsMapTheme {
                 val navState = rememberNavigationState(startRoute = SetupScreenNavKey)
-                val navigator = Navigator(navState)
+                val navigator = remember(navState) { Navigator(navState) }
+
+                HandleEffects(
+                    stateFlow = mainViewModel.mainUiState,
+                    onNavigateToEvent = {
+                        navigator.navigateTo(DetailsScreenNavKey(it))
+                        intent.data = null
+                    },
+                    showErrorToast = {
+                        Toast.makeText(this@MainActivity, getString(it), Toast.LENGTH_SHORT).show()
+                    }
+                )
 
                 CompositionLocalProvider(LocalNavigator provides navigator) {
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),
                         bottomBar = {
                             AnimatedVisibility(
-                                visible = shouldShowBottomBar(currentKey),
+                                visible = shouldShowBottomBar(navState.currentVisibleKey),
                                 enter = slideInVertically { it },
                                 exit = slideOutVertically { it }
                             ) {
@@ -120,16 +128,25 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         mainViewModel.onDeepLinkReceived(intent.dataString)
     }
+}
 
-    private fun handleEffects(state: MainUiState) {
-        when (state) {
-            is MainUiState.NavigateToEvent -> {
-                navigator.goTo(DetailsScreenNavKey(state.eventId))
-                intent.data = null
+
+@Composable
+private fun HandleEffects(
+    stateFlow: Flow<MainUiState>,
+    onNavigateToEvent: (String) -> Unit,
+    showErrorToast: (Int) -> Unit
+) {
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    LaunchedEffect(stateFlow, lifecycleOwner) {
+        stateFlow.flowWithLifecycle(lifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .collect { state ->
+                when (state) {
+                    is MainUiState.NavigateToEvent -> { onNavigateToEvent(state.eventId) }
+                    is MainUiState.ShowToast -> { showErrorToast(state.res) }
+                }
             }
-            is MainUiState.ShowToast -> {
-                Toast.makeText(this, getString(state.res), Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 }
+
