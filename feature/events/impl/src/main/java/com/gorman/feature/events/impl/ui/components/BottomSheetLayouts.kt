@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -46,7 +45,7 @@ import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 
-@SuppressLint("ConfigurationScreenWidthHeight", "ComposeModifierMissing")
+@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapEventsBottomSheet(
@@ -63,7 +62,7 @@ fun MapEventsBottomSheet(
             topStart = LocalEventsMapTheme.dimens.cornerRadius,
             topEnd = LocalEventsMapTheme.dimens.cornerRadius
         ),
-        modifier = Modifier.fillMaxSize().statusBarsPadding()
+        modifier = Modifier.fillMaxWidth().statusBarsPadding()
     ) {
         Text(
             text = stringResource(R.string.events),
@@ -95,10 +94,11 @@ fun MapEventsBottomSheet(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
-@SuppressLint("ConfigurationScreenWidthHeight", "ComposeModifierMissing")
+@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FiltersBottomSheet(
