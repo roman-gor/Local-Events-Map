@@ -54,7 +54,6 @@ import com.gorman.map.ui.rememberMapControl
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingIndicator
-import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
@@ -79,7 +78,7 @@ fun MapScreenEntry(
 
     LaunchedEffect(mapViewModel.sideEffect) {
         mapViewModel.sideEffect.collect { effect ->
-            when(effect) {
+            when (effect) {
                 is ScreenSideEffect.MoveCamera -> {
                     val zoom = effect.zoom
                     mapControl.moveCamera(

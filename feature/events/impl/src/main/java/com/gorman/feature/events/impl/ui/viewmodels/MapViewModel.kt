@@ -150,7 +150,9 @@ class MapViewModel @Inject constructor(
                     iconRes = R.drawable.ic_marker,
                     selectedIconRes = R.drawable.ic_marker_selected
                 )
-            } else null
+            } else {
+                null
+            }
         }.toImmutableList()
 
         ScreenState.Success(
