@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.systemGestures
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -276,8 +275,6 @@ fun MapScreen(
                 name = uiState.filterState.name,
                 selectedEvent = selectedEvent,
                 isSyncLoading = uiState.isSyncLoading ?: false,
-                listEventsButtonVerticalOffset = state.listEventsButtonOffset.value,
-                filtersButtonVerticalOffset = state.filtersButtonOffset.value,
                 mapScreenActions = mapScreenActions,
                 onMapEventsListExpanded = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
                 onFiltersExpanded = { state.filtersExpanded = !state.filtersExpanded },
