@@ -3,6 +3,7 @@ package com.gorman.feature.events.impl.ui.states
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.models.DateFilterState
 import com.gorman.common.models.FiltersState
+import com.gorman.map.ui.MapMarker
 import com.gorman.ui.states.MapUiEvent
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -21,6 +22,7 @@ sealed interface ScreenState {
         val cityData: CityUiData = CityUiData(),
         val dataStatus: DataStatus? = null,
         val isSyncLoading: Boolean? = null,
+        val mapMarkers: ImmutableList<MapMarker>,
         val initialCameraPosition: Pair<PointUiState?, Float?>
     ) : ScreenState
 }

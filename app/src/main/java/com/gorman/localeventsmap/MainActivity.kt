@@ -54,6 +54,7 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>
+
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -129,6 +130,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
 @Composable
 private fun HandleEffects(
     stateFlow: Flow<MainUiState>,
@@ -147,3 +149,4 @@ private fun HandleEffects(
             }
     }
 }
+
