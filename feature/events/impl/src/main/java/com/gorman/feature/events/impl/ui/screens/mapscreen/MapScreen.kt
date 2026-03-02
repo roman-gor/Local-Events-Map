@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -302,7 +303,7 @@ private fun MapBottomSheets(
                 }
             },
             eventsList = uiState.eventsList,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().statusBarsPadding()
         )
 
         FilterBottomSheetContent(
@@ -313,7 +314,7 @@ private fun MapBottomSheets(
             ),
             filtersState = uiState.filterState,
             mapScreenActions = mapScreenActions,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().statusBarsPadding()
         )
     }
 }
