@@ -45,4 +45,9 @@ With the help of **offline-first approach** you can view previously downloaded e
 ```
 YANDEX_KEY=your_api_key
 ```
+- Get WebClientID in your Firebase Project (Google Auth Provider)
+- Put it in local.properties file
+```
+WEB_CLIENT_ID=your_client_id
+```
 - Sync gradle and setup the project
