@@ -1,6 +1,5 @@
 package com.gorman.feature.events.impl.ui.components
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -165,20 +164,21 @@ fun FiltersBottomSheet(
                 onCategoriesItemClick = { actions.onCategoryChange(it) },
                 onCategoriesListExpanded = { categoryExpanded = !categoryExpanded },
                 onNameChanged = { actions.onNameChange(it) }
-            )
+            ),
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun FiltersBottomSheetContent(
-    data: FilterBottomSheetData
+    data: FilterBottomSheetData,
+    modifier: Modifier = Modifier
 ) {
     val localNameState = remember(data.filters.name) { mutableStateOf(data.filters.name) }
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (!data.isDistanceChange) {

@@ -1,7 +1,6 @@
 package com.gorman.feature.events.impl.ui.screens.mapscreen
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -65,7 +64,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 
-@SuppressLint("ComposeViewModelForwarding")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreenEntry(
