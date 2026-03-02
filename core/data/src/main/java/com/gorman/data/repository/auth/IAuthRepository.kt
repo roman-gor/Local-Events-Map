@@ -9,5 +9,4 @@ interface IAuthRepository {
     suspend fun signInAnonymously(): Result<UserData>
     suspend fun signUp(email: String, password: String): Result<UserData>
     suspend fun signOut()
-    suspend fun getToken(): Result<String>
 }

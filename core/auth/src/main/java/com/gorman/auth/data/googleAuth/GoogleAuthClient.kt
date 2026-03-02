@@ -8,11 +8,11 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-class GoogleAuthClient @Inject constructor(
+internal class GoogleAuthClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val credentialManager: CredentialManager,
     private val credentialRequest: GetCredentialRequest
-) : IGoogleAuthClient {
+) : IAuthClient {
     override suspend fun getToken(): Result<String> = runCatching {
         val result = credentialManager.getCredential(
             request = credentialRequest,

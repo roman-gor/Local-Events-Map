@@ -9,7 +9,7 @@ import com.gorman.auth.BuildConfig
 import com.gorman.auth.data.authenticator.Authenticator
 import com.gorman.auth.data.authenticator.IAuthenticator
 import com.gorman.auth.data.googleAuth.GoogleAuthClient
-import com.gorman.auth.data.googleAuth.IGoogleAuthClient
+import com.gorman.auth.data.googleAuth.IAuthClient
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -49,5 +49,5 @@ internal interface AuthDataModule {
     fun bindAuthenticator(impl: Authenticator): IAuthenticator
 
     @Binds
-    fun bindGoogleAuthClient(impl: GoogleAuthClient): IGoogleAuthClient
+    fun bindGoogleAuthClient(impl: GoogleAuthClient): IAuthClient
 }

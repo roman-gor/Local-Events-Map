@@ -1,5 +1,5 @@
 package com.gorman.auth.data.googleAuth
 
-interface IGoogleAuthClient {
+interface IAuthClient {
     suspend fun getToken(): Result<String>
 }

@@ -2,14 +2,12 @@ package com.gorman.data.repository.auth
 
 import com.google.firebase.auth.AuthCredential
 import com.gorman.auth.data.authenticator.IAuthenticator
-import com.gorman.auth.data.googleAuth.IGoogleAuthClient
 import com.gorman.auth.mappers.toDomain
 import com.gorman.domainmodel.UserData
 import javax.inject.Inject
 
 internal class AuthRepository @Inject constructor(
-    private val authenticator: IAuthenticator,
-    private val googleAuthClient: IGoogleAuthClient
+    private val authenticator: IAuthenticator
 ) : IAuthRepository {
 
     override suspend fun signIn(email: String, password: String): Result<UserData> =
@@ -27,7 +25,4 @@ internal class AuthRepository @Inject constructor(
     override suspend fun signOut() {
         authenticator.signOut()
     }
-
-    override suspend fun getToken(): Result<String> =
-        googleAuthClient.getToken()
 }

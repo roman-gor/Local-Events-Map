@@ -15,7 +15,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 
-class MapEventRemoteDataSourceImpl @Inject constructor(
+internal class MapEventRemoteDataSourceImpl @Inject constructor(
     databaseReference: DatabaseReference
 ) : MapEventRemoteDataSource {
     private val database = databaseReference.child(FirebaseConstants.EVENTS_PATH.value)

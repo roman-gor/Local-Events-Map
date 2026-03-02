@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":feature"))
     implementation(project(":feature:events:api"))
     api(project(":feature:auth:api"))
+    implementation(project(":core:auth"))
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)

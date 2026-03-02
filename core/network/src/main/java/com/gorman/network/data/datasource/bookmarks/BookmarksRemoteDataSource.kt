@@ -7,7 +7,7 @@ import com.gorman.network.data.models.FirebaseConstants
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class BookmarksRemoteDataSource @Inject constructor(
+internal class BookmarksRemoteDataSource @Inject constructor(
     databaseReference: DatabaseReference
 ) : IBookmarksRemoteDataSource {
     private val database = databaseReference.child(FirebaseConstants.BOOKMARKS_PATH.value)

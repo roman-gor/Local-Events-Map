@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class UserRemoteDataSourceImpl @Inject constructor(
+internal class UserRemoteDataSourceImpl @Inject constructor(
     databaseReference: DatabaseReference
 ) : IUserRemoteDataSource {
     private val database = databaseReference.child(FirebaseConstants.USERS_PATH.value)

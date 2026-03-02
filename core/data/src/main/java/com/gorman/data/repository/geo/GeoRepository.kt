@@ -10,7 +10,7 @@ import com.gorman.map.search.IMapSearchManager
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GeoRepository @Inject constructor(
+internal class GeoRepository @Inject constructor(
     private val locationProvider: LocationProvider,
     private val mapSearchManager: IMapSearchManager,
     private val cacheRepository: IPreferencesDataSource

@@ -15,7 +15,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DataStoreManager @Inject constructor(
+internal class DataStoreManager @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) {
     companion object {

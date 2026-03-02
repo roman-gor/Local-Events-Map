@@ -22,7 +22,7 @@ import javax.inject.Inject
 import kotlin.collections.isNotEmpty
 import kotlin.collections.map
 
-class BookmarksRepository @Inject constructor(
+internal class BookmarksRepository @Inject constructor(
     private val bookmarksEventsDataSource: IBookmarksRemoteDataSource,
     private val bookmarksDao: BookmarkDao,
     private val bookmarkMapEventDao: BookmarkMapEventDao,
