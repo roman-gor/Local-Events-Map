@@ -1,7 +1,7 @@
 package com.gorman.auth.data.authenticator
 
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import com.gorman.auth.mappers.toAuthModel
 import com.gorman.auth.models.UserAuthModel
 import kotlinx.coroutines.tasks.await
@@ -15,8 +15,7 @@ internal class Authenticator @Inject constructor(
         result.user?.toAuthModel() ?: error(Exception("Sign in failed: User is null"))
     }
 
-    override suspend fun signInWithGoogle(idToken: String): Result<UserAuthModel> = runCatching {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
+    override suspend fun signIn(idToken: String, credential: AuthCredential): Result<UserAuthModel> = runCatching {
         val result = provider.signInWithCredential(credential).await()
         result.user?.toAuthModel() ?: error(Exception("Google Sign-In failed: User is null"))
     }

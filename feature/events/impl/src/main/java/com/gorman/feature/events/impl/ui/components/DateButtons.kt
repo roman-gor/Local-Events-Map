@@ -1,11 +1,9 @@
 package com.gorman.feature.events.impl.ui.components
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -23,17 +21,15 @@ import androidx.compose.ui.unit.sp
 import com.gorman.common.models.DateFilterType
 import com.gorman.ui.theme.LocalEventsMapTheme
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun DateButtons(
     onFilterSelect: (DateFilterType) -> Unit,
     selectedFilterType: DateFilterType?,
+    modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState()
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(scrollState),
+        modifier = modifier.horizontalScroll(scrollState),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Spacer(Modifier.width(LocalEventsMapTheme.dimens.paddingLarge))
@@ -42,22 +38,23 @@ fun DateButtons(
                 type = type,
                 isSelected = type == selectedFilterType,
                 onClick = { onFilterSelect(type) },
+                modifier = Modifier.padding(horizontal = LocalEventsMapTheme.dimens.paddingSmall)
             )
         }
         Spacer(Modifier.width(LocalEventsMapTheme.dimens.paddingLarge))
     }
 }
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun DateButtonItem(
     type: DateFilterType,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier.padding(horizontal = LocalEventsMapTheme.dimens.paddingSmall),
+        modifier = modifier,
         shape = LocalEventsMapTheme.shapes.extraLarge,
         colors = ButtonDefaults.buttonColors(
             containerColor = if (isSelected) {

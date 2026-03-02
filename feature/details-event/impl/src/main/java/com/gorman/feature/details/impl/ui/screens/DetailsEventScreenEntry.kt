@@ -1,6 +1,7 @@
 package com.gorman.feature.details.impl.ui.screens
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -54,17 +55,22 @@ fun DetailsEventScreenEntry(
     when (val state = uiState) {
         is DetailsScreenState.Error.NoNetwork -> ErrorDataScreen(
             text = stringResource(R.string.noNetwork),
-            onRetryClick = {}
+            onRetryClick = { detailsViewModel.onUiEvent(DetailsScreenUiEvent.OnRetryClick) },
+            modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)
         )
         is DetailsScreenState.Error.NotFound -> ErrorDataScreen(
             text = stringResource(R.string.eventNotFound),
-            onRetryClick = {}
+            onRetryClick = { detailsViewModel.onUiEvent(DetailsScreenUiEvent.OnRetryClick) },
+            modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)
         )
         is DetailsScreenState.Error.Unknown -> ErrorDataScreen(
             text = stringResource(R.string.errorDataLoading),
-            onRetryClick = {}
+            onRetryClick = { detailsViewModel.onUiEvent(DetailsScreenUiEvent.OnRetryClick) },
+            modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)
         )
-        DetailsScreenState.Loading -> LoadingIndicator()
+        DetailsScreenState.Loading -> LoadingIndicator(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+        )
         is DetailsScreenState.Success -> {
             Log.d("State", "${state.event}")
             DetailsEventScreen(

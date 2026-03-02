@@ -1,10 +1,12 @@
 package com.gorman.feature.auth.impl.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -80,7 +82,9 @@ fun SignUpScreenEntry(
     }
 
     when (val state = uiState) {
-        AuthScreenState.Loading -> LoadingIndicator()
+        AuthScreenState.Loading -> LoadingIndicator(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+        )
         is AuthScreenState.Idle -> {
             Box(
                 modifier = modifier,

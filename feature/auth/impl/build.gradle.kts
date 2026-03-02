@@ -8,6 +8,13 @@ plugins {
 
 android {
     namespace = "com.gorman.feature.auth.impl"
+    defaultConfig {
+        val webClientId: String by rootProject.extra
+        buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
+    }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {

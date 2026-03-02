@@ -1,18 +1,14 @@
 package com.gorman.feature.events.impl.ui.screens
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,23 +27,20 @@ import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.ui.components.CitySelectDropdownMenu
 import com.gorman.ui.theme.LocalEventsMapTheme
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun PermissionRequestScreen(
     showManualInput: Boolean,
     onCitySubmit: (CityCoordinates) -> Unit,
     shouldShowRationale: Boolean,
     requestPermissions: () -> Unit,
+    modifier: Modifier = Modifier,
     isPreRequest: Boolean = false,
     onDeclineClick: () -> Unit = {}
 ) {
     var city by rememberSaveable { mutableStateOf<CityCoordinates?>(null) }
     val menuExpanded = rememberSaveable { mutableStateOf(false) }
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(LocalEventsMapTheme.dimens.paddingExtraLarge),
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -82,7 +75,8 @@ fun PermissionRequestScreen(
                 CitySelectDropdownMenu(
                     expanded = menuExpanded.value,
                     onExpandedChange = { menuExpanded.value = !menuExpanded.value },
-                    onCityCheck = { city = it }
+                    onCityCheck = { city = it },
+                    modifier = Modifier.wrapContentHeight()
                 )
                 Button(
                     onClick = { city?.let { onCitySubmit(it) } },

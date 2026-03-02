@@ -1,12 +1,8 @@
 package com.gorman.feature.events.impl.ui.components
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -17,19 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gorman.feature.events.impl.R
-import com.gorman.ui.theme.LocalEventsMapTheme
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun DistanceSwitch(
     isDistanceFilterEnabled: Boolean,
-    onCheckedChange: () -> Unit
+    onCheckedChange: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = { onCheckedChange() })
-            .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge),
+        modifier = modifier,
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {

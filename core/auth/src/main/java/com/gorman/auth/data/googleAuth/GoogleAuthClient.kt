@@ -14,7 +14,7 @@ class GoogleAuthClient @Inject constructor(
     private val credentialManager: CredentialManager,
     private val credentialRequest: GetCredentialRequest
 ) : IGoogleAuthClient {
-    override suspend fun getIdToken(): Result<String> {
+    override suspend fun getToken(): Result<String> {
         return try {
             val result = credentialManager.getCredential(
                 request = credentialRequest,

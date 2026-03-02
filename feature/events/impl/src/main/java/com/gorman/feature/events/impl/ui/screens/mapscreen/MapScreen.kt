@@ -4,19 +4,26 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -54,6 +61,7 @@ import com.gorman.map.ui.rememberMapControl
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingIndicator
+import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
@@ -103,12 +111,17 @@ fun MapScreenEntry(
     when (val state = uiState) {
         is ScreenState.Error -> ErrorDataScreen(
             text = stringResource(com.gorman.ui.R.string.errorDataLoading),
-            onRetryClick = {}
+            onRetryClick = {},
+            modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)
         )
-        ScreenState.Loading -> LoadingIndicator()
+        ScreenState.Loading -> LoadingIndicator(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+        )
         is ScreenState.CitySelection -> {
             if (state.isLoading) {
-                LoadingIndicator()
+                LoadingIndicator(
+                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                )
                 return
             }
             PermissionRequestScreen(
@@ -117,7 +130,11 @@ fun MapScreenEntry(
                 requestPermissions = { locationPermissionsState.launchMultiplePermissionRequest() },
                 onDeclineClick = { mapViewModel.onUiEvent(ScreenUiEvent.PermissionDenied) },
                 onCitySubmit = { mapViewModel.onUiEvent(ScreenUiEvent.OnCitySearch(it)) },
-                isPreRequest = !state.requiresManualInput && !locationPermissionsState.shouldShowRationale
+                isPreRequest = !state.requiresManualInput && !locationPermissionsState.shouldShowRationale,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
             )
         }
         is ScreenState.Success -> {
@@ -225,7 +242,8 @@ fun MapScreen(
         MapBottomSheets(
             uiState = uiState,
             state = state,
-            mapScreenActions = mapScreenActions
+            mapScreenActions = mapScreenActions,
+            modifier = Modifier.fillMaxWidth().statusBarsPadding()
         )
         FunctionalBlock(
             mapScreenData = MapScreenData(
@@ -265,10 +283,11 @@ private suspend fun AwaitPointerEventScope.consumeGesturesForSystemInsets(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MapBottomSheets(
+private fun BoxScope.MapBottomSheets(
     uiState: ScreenState.Success,
     state: MapScreenLocalState,
-    mapScreenActions: MapScreenActions
+    mapScreenActions: MapScreenActions,
+    modifier: Modifier = Modifier
 ) {
     MapEventsBottomSheetContent(
         data = BottomSheetData(
@@ -283,7 +302,8 @@ private fun MapBottomSheets(
                 state.mapEventsListExpanded = false
             }
         },
-        eventsList = uiState.eventsList
+        eventsList = uiState.eventsList,
+        modifier = modifier
     )
 
     FilterBottomSheetContent(
@@ -293,7 +313,8 @@ private fun MapBottomSheets(
             sheetState = state.filtersSheetState
         ),
         filtersState = uiState.filterState,
-        mapScreenActions = mapScreenActions
+        mapScreenActions = mapScreenActions,
+        modifier = Modifier.fillMaxWidth().systemBarsPadding()
     )
 }
 
@@ -313,10 +334,19 @@ private fun MapTopOverlays(
                 onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
                 currentCity = stringResource(it.resource),
                 onCityClick = onCitySubmit,
-                citiesList = CityCoordinates.entries.toImmutableList()
+                citiesList = CityCoordinates.entries.toImmutableList(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .systemBarsPadding()
+                    .background(color = Color.Transparent)
             )
         }
-        uiState.dataStatus?.let { StatusBanner(it) }
+        uiState.dataStatus?.let { dataStatus ->
+            StatusBanner(
+                status = dataStatus,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 

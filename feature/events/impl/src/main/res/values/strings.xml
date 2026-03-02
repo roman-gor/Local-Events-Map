@@ -36,4 +36,5 @@
     <string name="filters">Фильтры</string>
     <string name="offlineBanner">Нет сети. Показаны сохраненные данные</string>
     <string name="outdatedBanner">Данные могли устареть. Обновите список</string>
+    <string name="km">км</string>
 </resources>

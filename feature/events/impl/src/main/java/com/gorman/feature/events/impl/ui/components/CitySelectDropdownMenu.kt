@@ -1,6 +1,5 @@
 package com.gorman.feature.events.impl.ui.components
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,17 +25,17 @@ import com.gorman.common.constants.CityCoordinates
 import com.gorman.feature.events.impl.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
-@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CitySelectDropdownMenu(
     expanded: Boolean,
     onExpandedChange: () -> Unit,
-    onCityCheck: (CityCoordinates) -> Unit
+    onCityCheck: (CityCoordinates) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val selectedCity = rememberSaveable { mutableStateOf("") }
     Box(
-        modifier = Modifier.wrapContentHeight(),
+        modifier = modifier,
         contentAlignment = Alignment.TopCenter
     ) {
         ExposedDropdownMenuBox(

@@ -1,6 +1,5 @@
 package com.gorman.feature.events.impl.ui.components
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +29,6 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
-@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoriesDropdownMenu(
@@ -38,11 +36,12 @@ fun CategoriesDropdownMenu(
     header: String,
     onExpandedChange: () -> Unit,
     onItemClick: (String) -> Unit,
-    categoriesOptions: CategoriesOptions
+    categoriesOptions: CategoriesOptions,
+    modifier: Modifier = Modifier
 ) {
     val visibleText = remember(header) { mutableStateOf(header) }
     Box(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         contentAlignment = Alignment.TopCenter
     ) {
         ExposedDropdownMenuBox(
@@ -78,7 +77,8 @@ fun CategoriesDropdownMenu(
                         onCheckedChange = { onItemClick(category.value) },
                         title = title,
                         category = category.value,
-                        onItemClick = { onItemClick(it) }
+                        onItemClick = { onItemClick(it) },
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -115,19 +115,19 @@ fun CategoriesTextField(
     )
 }
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun CategoryMenuItem(
     checked: Boolean,
     onCheckedChange: () -> Unit,
     title: String,
     category: String,
-    onItemClick: (String) -> Unit
+    onItemClick: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     DropdownMenuItem(
         text = {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = modifier,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(

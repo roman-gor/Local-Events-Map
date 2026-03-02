@@ -1,8 +1,5 @@
 package com.gorman.feature.events.impl.ui.components
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
@@ -14,19 +11,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gorman.common.models.DateFilterState
 import com.gorman.common.models.DateFilterType
 import com.gorman.feature.events.impl.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
-@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateRangePickerDialog(
     onDateRangeSelected: (DateFilterState) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val dateRangePickerState = rememberDateRangePickerState()
 
@@ -68,12 +64,7 @@ fun DateRangePickerDialog(
                 )
             },
             showModeToggle = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(500.dp)
-                .padding(
-                    vertical = LocalEventsMapTheme.dimens.paddingLarge
-                )
+            modifier = modifier
         )
     }
 }

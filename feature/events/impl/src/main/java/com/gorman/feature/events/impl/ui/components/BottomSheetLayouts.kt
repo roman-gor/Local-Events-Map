@@ -2,15 +2,17 @@ package com.gorman.feature.events.impl.ui.components
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,14 +47,14 @@ import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 
-@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapEventsBottomSheet(
     onDismiss: () -> Unit,
     onEventClick: (MapUiEvent) -> Unit,
     eventsList: ImmutableList<MapUiEvent>,
-    sheetState: SheetState
+    sheetState: SheetState,
+    modifier: Modifier = Modifier
 ) {
     ModalBottomSheet(
         onDismissRequest = { onDismiss() },
@@ -62,7 +64,7 @@ fun MapEventsBottomSheet(
             topStart = LocalEventsMapTheme.dimens.cornerRadius,
             topEnd = LocalEventsMapTheme.dimens.cornerRadius
         ),
-        modifier = Modifier.fillMaxWidth().statusBarsPadding()
+        modifier = modifier
     ) {
         Text(
             text = stringResource(R.string.events),
@@ -83,7 +85,8 @@ fun MapEventsBottomSheet(
             itemsIndexed(eventsList) { index, event ->
                 MapEventItem(
                     mapEvent = event,
-                    onEventClick = onEventClick
+                    onEventClick = onEventClick,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 if (index != eventsList.size - 1) {
                     Spacer(
@@ -98,7 +101,6 @@ fun MapEventsBottomSheet(
     }
 }
 
-@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FiltersBottomSheet(
@@ -106,7 +108,8 @@ fun FiltersBottomSheet(
     sheetState: SheetState,
     filters: FiltersState,
     options: FilterOptions,
-    actions: FilterActions
+    actions: FilterActions,
+    modifier: Modifier = Modifier
 ) {
     var categoryExpanded by remember { mutableStateOf(false) }
     val alpha = remember { mutableFloatStateOf(1f) }
@@ -120,7 +123,7 @@ fun FiltersBottomSheet(
             topStart = LocalEventsMapTheme.dimens.cornerRadius,
             topEnd = LocalEventsMapTheme.dimens.cornerRadius
         ),
-        modifier = Modifier.fillMaxWidth().statusBarsPadding()
+        modifier = modifier
     ) {
         if (!isDistanceChange) {
             Header(
@@ -169,9 +172,9 @@ fun FiltersBottomSheet(
     }
 }
 
-@SuppressLint("ComposeMultipleContentEmitters", "ComposeModifierMissing")
+@SuppressLint("ComposeModifierMissing")
 @Composable
-fun FiltersBottomSheetContent(
+fun ColumnScope.FiltersBottomSheetContent(
     data: FilterBottomSheetData
 ) {
     val localNameState = remember(data.filters.name) { mutableStateOf(data.filters.name) }
@@ -194,14 +197,16 @@ fun FiltersBottomSheetContent(
             categoriesOptions = CategoriesOptions(
                 items = data.options.categoryItems,
                 selectedItems = data.filters.categories
-            )
+            ),
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingSmall))
         DateButtons(
             onFilterSelect = {
                 data.onDateFilterSelect(DateFilterState(type = it))
             },
-            selectedFilterType = data.filters.dateRange.type
+            selectedFilterType = data.filters.dateRange.type,
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(LocalEventsMapTheme.dimens.paddingLarge))
     } else {
@@ -212,20 +217,24 @@ fun FiltersBottomSheetContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (!data.isDistanceChange) {
-            DistanceSwitch(data.isDistanceFilterEnabled) {
-                data.onDistanceFilterEnabled()
-            }
+            DistanceSwitch(
+                isDistanceFilterEnabled = data.isDistanceFilterEnabled,
+                onCheckedChange = { data.onDistanceFilterEnabled() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = { data.onDistanceFilterEnabled() })
+                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
+            )
         }
         data.filters.distance?.let {
             DistanceSlider(
                 distance = it,
-                onValueChange = { value ->
-                    data.onDistanceValueChanged(value)
-                },
-                onValueChangeFinished = {
-                    data.onDistanceValueChangeFinished()
-                },
-                enabled = data.isDistanceFilterEnabled
+                onValueChange = { value -> data.onDistanceValueChanged(value) },
+                onValueChangeFinished = { data.onDistanceValueChangeFinished() },
+                enabled = data.isDistanceFilterEnabled,
+                modifier = Modifier
+                    .padding(horizontal = LocalEventsMapTheme.dimens.paddingExtraLarge)
+                    .navigationBarsPadding()
             )
         }
     }
@@ -233,7 +242,8 @@ fun FiltersBottomSheetContent(
     if (!data.isDistanceChange) {
         IsFreeFilter(
             isFree = data.filters.isFree,
-            onCheckedChange = { data.actions.onCostChange(it) }
+            onCheckedChange = { data.actions.onCostChange(it) },
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
