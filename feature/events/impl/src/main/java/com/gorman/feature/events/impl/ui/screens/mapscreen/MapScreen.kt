@@ -6,13 +6,11 @@ import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -243,7 +241,7 @@ fun MapScreen(
             uiState = uiState,
             state = state,
             mapScreenActions = mapScreenActions,
-            modifier = Modifier.fillMaxWidth().statusBarsPadding()
+            modifier = Modifier.fillMaxWidth()
         )
         FunctionalBlock(
             mapScreenData = MapScreenData(
@@ -283,39 +281,41 @@ private suspend fun AwaitPointerEventScope.consumeGesturesForSystemInsets(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BoxScope.MapBottomSheets(
+private fun MapBottomSheets(
     uiState: ScreenState.Success,
     state: MapScreenLocalState,
     mapScreenActions: MapScreenActions,
     modifier: Modifier = Modifier
 ) {
-    MapEventsBottomSheetContent(
-        data = BottomSheetData(
-            expanded = state.mapEventsListExpanded,
-            onDismissSheet = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
-            sheetState = state.mapEventsListSheetState
-        ),
-        onEventClick = {
-            mapScreenActions.onEventClick(it)
-            state.scope.launch {
-                state.mapEventsListSheetState.hide()
-                state.mapEventsListExpanded = false
-            }
-        },
-        eventsList = uiState.eventsList,
-        modifier = modifier
-    )
+    Box(modifier = modifier) {
+        MapEventsBottomSheetContent(
+            data = BottomSheetData(
+                expanded = state.mapEventsListExpanded,
+                onDismissSheet = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
+                sheetState = state.mapEventsListSheetState
+            ),
+            onEventClick = {
+                mapScreenActions.onEventClick(it)
+                state.scope.launch {
+                    state.mapEventsListSheetState.hide()
+                    state.mapEventsListExpanded = false
+                }
+            },
+            eventsList = uiState.eventsList,
+            modifier = Modifier.fillMaxWidth()
+        )
 
-    FilterBottomSheetContent(
-        data = BottomSheetData(
-            expanded = state.filtersExpanded,
-            onDismissSheet = { state.filtersExpanded = !state.filtersExpanded },
-            sheetState = state.filtersSheetState
-        ),
-        filtersState = uiState.filterState,
-        mapScreenActions = mapScreenActions,
-        modifier = Modifier.fillMaxWidth().systemBarsPadding()
-    )
+        FilterBottomSheetContent(
+            data = BottomSheetData(
+                expanded = state.filtersExpanded,
+                onDismissSheet = { state.filtersExpanded = !state.filtersExpanded },
+                sheetState = state.filtersSheetState
+            ),
+            filtersState = uiState.filterState,
+            mapScreenActions = mapScreenActions,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 @Composable

@@ -33,15 +33,13 @@ internal class MapEventsRepository @Inject constructor(
         }
     }
 
-    override fun getEventById(id: String): Flow<MapEvent> {
-        return mapEventsDao.getEventById(id).map { it.toDomain() }
-    }
+    override fun getEventById(id: String): Flow<MapEvent> =
+        mapEventsDao.getEventById(id).map { it.toDomain() }
 
-    override fun getEventsByName(name: String): Flow<List<MapEvent>> {
-        return mapEventsDao.getEventsByName(name).map { list ->
+    override fun getEventsByName(name: String): Flow<List<MapEvent>> =
+        mapEventsDao.getEventsByName(name).map { list ->
             list.map { it.toDomain() }
         }
-    }
 
     override suspend fun syncEventById(id: String): Result<Unit> = runCatching {
         val remoteEventResult = mapEventRemoteDataSource.getSingleEvent(id)
@@ -50,15 +48,14 @@ internal class MapEventsRepository @Inject constructor(
         }
     }
 
-    private suspend fun getAllRemoteEvents(): List<MapEvent>? {
-        return mapEventRemoteDataSource.getAllEventsOnce()?.map { event ->
+    private suspend fun getAllRemoteEvents(): List<MapEvent>? =
+        mapEventRemoteDataSource.getAllEventsOnce()?.map { event ->
             event.toDomain()
         }
-    }
 
     override suspend fun syncWith(): Result<Unit> = runCatching {
         val remoteEvents = getAllRemoteEvents()
-        return if (remoteEvents != null) {
+        if (remoteEvents != null) {
             val entities = remoteEvents.map { it.toEntity() }
             val remoteIds = entities.map { it.id }
             database.withTransaction {
@@ -70,9 +67,8 @@ internal class MapEventsRepository @Inject constructor(
                 }
             }
             cacheRepository.saveSyncTimestamp(System.currentTimeMillis())
-            Result.success(Unit)
         } else {
-            Result.failure(IOException("Error network connection"))
+            error(IOException("Error network connection"))
         }
     }
 
