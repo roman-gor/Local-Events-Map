@@ -1,7 +1,9 @@
 package com.gorman.work.workers
 
+import android.Manifest
 import android.content.Context
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -20,6 +22,7 @@ class SyncWorker @AssistedInject constructor(
     @Assisted private val workerParams: WorkerParameters,
     private val mapEventRepository: IMapEventsRepository
 ) : CoroutineWorker(appContext, workerParams) {
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result = withContext(IO) {
         Log.d("SyncWorker", "Worker")
         val result = mapEventRepository.syncWith()
@@ -39,6 +42,7 @@ class SyncWorker @AssistedInject constructor(
         )
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun showErrorNotification(context: Context, text: String) {
         NotificationHelper.showSyncErrorNotification(context = context, message = text)
     }
