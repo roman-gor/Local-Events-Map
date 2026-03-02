@@ -12,6 +12,7 @@ class SignInAnonUserUseCase @Inject constructor(
         return authRepository.signInAnonymously().mapCatching {
             userRepository.clearUserData()
             userRepository.saveUser(it)
+            userRepository.saveTokenToUser(it.uid).getOrThrow()
         }
     }
 }

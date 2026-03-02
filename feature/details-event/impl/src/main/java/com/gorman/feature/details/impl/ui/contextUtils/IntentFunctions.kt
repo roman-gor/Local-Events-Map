@@ -20,7 +20,7 @@ fun openBrowser(context: Context, url: String?) {
 fun shareContent(context: Context, content: String?) {
     if (content.isNullOrBlank()) return
     val shareIntent = Intent(Intent.ACTION_SEND).apply {
-        putExtra(content, Intent.EXTRA_TEXT)
+        putExtra(Intent.EXTRA_TEXT, content)
         type = "text/plain"
     }
     val sendIntent = Intent.createChooser(shareIntent, null)

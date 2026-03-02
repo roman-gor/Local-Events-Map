@@ -7,14 +7,15 @@ import com.gorman.database.data.datasource.dao.MapEventsDao
 import com.gorman.database.mappers.toDomain
 import com.gorman.database.mappers.toEntity
 import com.gorman.domainmodel.MapEvent
-import com.gorman.firebase.data.datasource.mapevent.MapEventRemoteDataSource
-import com.gorman.firebase.mappers.toDomain
+import com.gorman.network.data.datasource.mapevent.MapEventRemoteDataSource
+import com.gorman.network.mappers.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.inject.Inject
+import kotlin.let
 import kotlin.time.ExperimentalTime
 
 private const val TTL_MS = 24 * 60 * 60 * 1000L
@@ -39,6 +40,13 @@ internal class MapEventsRepository @Inject constructor(
     override fun getEventsByName(name: String): Flow<List<MapEvent>> {
         return mapEventsDao.getEventsByName(name).map { list ->
             list.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun syncEventById(id: String): Result<Unit> = runCatching {
+        val remoteEventResult = mapEventRemoteDataSource.getSingleEvent(id)
+        remoteEventResult.mapCatching { remoteEvent ->
+            mapEventsDao.upsertEvent(listOf(remoteEvent.toDomain().toEntity()))
         }
     }
 

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -48,7 +49,6 @@ fun CitiesDropdownMenu(
     onCityClick: (CityCoordinates) -> Unit,
     citiesList: ImmutableList<CityCoordinates>
 ) {
-    val filterCitiesList = citiesList.filter { stringResource(it.resource) != currentCity }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -85,13 +85,18 @@ fun CitiesDropdownMenu(
                 shape = LocalEventsMapTheme.shapes.small,
                 modifier = Modifier.wrapContentWidth().exposedDropdownSize(),
             ) {
-                filterCitiesList.forEach { city ->
+                citiesList.forEach { city ->
                     DropdownMenuItem(
                         text = {
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
-                            ) { CityUiItem(city = city) }
+                            ) {
+                                CityUiItem(
+                                    city = city,
+                                    isSelected = stringResource(city.resource) == currentCity
+                                )
+                            }
                         },
                         onClick = {
                             onCityClick(city)
@@ -143,15 +148,28 @@ fun CityDropdownHeader(
 @SuppressLint("ComposeModifierMissing")
 @Composable
 fun CityUiItem(
-    city: CityCoordinates
+    city: CityCoordinates,
+    isSelected: Boolean
 ) {
-    Text(
-        text = stringResource(city.resource),
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Medium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth()
-    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Check Icon"
+            )
+        }
+        Text(
+            text = stringResource(city.resource),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }

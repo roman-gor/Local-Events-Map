@@ -34,6 +34,7 @@ import coil3.compose.SubcomposeAsyncImage
 import com.gorman.feature.bookmarks.impl.R
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
+import com.gorman.ui.utils.getBottomBarPadding
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable
@@ -46,7 +47,9 @@ fun BookmarkList(
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier,
-        contentPadding = PaddingValues(bottom = 100.dp)
+        contentPadding = PaddingValues(
+            bottom = getBottomBarPadding() + LocalEventsMapTheme.dimens.paddingMedium
+        )
     ) {
         items(
             items = events,

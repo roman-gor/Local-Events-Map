@@ -7,10 +7,12 @@ import com.gorman.database.mappers.toDomain
 import com.gorman.database.mappers.toEntity
 import com.gorman.domainmodel.BookmarkData
 import com.gorman.domainmodel.MapEvent
-import com.gorman.firebase.data.datasource.bookmarks.IBookmarksRemoteDataSource
-import com.gorman.firebase.mappers.toDomain
-import com.gorman.firebase.mappers.toRemote
+import com.gorman.network.data.datasource.bookmarks.IBookmarksRemoteDataSource
+import com.gorman.network.mappers.toDomain
+import com.gorman.network.mappers.toRemote
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
@@ -35,11 +37,12 @@ class BookmarksRepository @Inject constructor(
     }
 
     override fun getBookmarkedEvents(uid: String): Flow<List<MapEvent>> {
-        return bookmarkMapEventDao.loadBookmarksEvents().map { entities ->
-            entities.map { it.toDomain() }
-        }.onStart {
-            syncBookmarks(uid)
-        }
+        return bookmarkMapEventDao.loadBookmarksEvents()
+            .onStart { syncBookmarks(uid) }
+            .flowOn(Dispatchers.IO)
+            .map { entities ->
+                entities.map { it.toDomain() }
+            }
     }
 
     private suspend fun syncBookmarks(uid: String) = runCatching {

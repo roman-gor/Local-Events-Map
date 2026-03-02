@@ -63,6 +63,11 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:map"))
     implementation(project(":core:cache"))
+    implementation(project(":core:deeplinks"))
+    implementation(project(":core:domain-model"))
+    implementation(project(":core:data"))
+    implementation(project(":core:database"))
+    implementation(project(":core:notifications"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.hilt.ext.work)
@@ -71,7 +76,15 @@ dependencies {
     implementation(libs.bundles.hilt)
     ksp(libs.hilt.compiler)
 
+    ksp(libs.room.compiler)
+    implementation(libs.bundles.room)
+    implementation(libs.kotlinx.serialization.json)
+
     lintChecks(libs.compose.lint.checks)
 
     implementation(libs.yandex.android)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
+
 }

@@ -96,9 +96,7 @@ fun BookmarksScreen(
                 events = uiState.bookmarks,
                 onEventClick = { onUiEvent(BookmarksScreenUiEvent.OnEventClick(it)) },
                 onLikeButtonClick = { onUiEvent(BookmarksScreenUiEvent.ChangeLikeState(it)) },
-                modifier = Modifier.padding(
-                    horizontal = LocalEventsMapTheme.dimens.paddingLarge
-                )
+                modifier = Modifier.padding(horizontal = LocalEventsMapTheme.dimens.paddingLarge)
             )
         } else {
             EmptyListPlaceholder(

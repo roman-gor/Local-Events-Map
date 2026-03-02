@@ -13,7 +13,6 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
-import java.io.IOException
 
 @HiltWorker
 class SyncWorker @AssistedInject constructor(
@@ -22,47 +21,25 @@ class SyncWorker @AssistedInject constructor(
     private val mapEventRepository: IMapEventsRepository
 ) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result = withContext(IO) {
-        try {
-            Log.d("SyncWorker", "Worker")
-            val result = mapEventRepository.syncWith()
-
-            result.fold(
-                onSuccess = {
-                    showSuccessNotification(appContext, appContext.getString(R.string.successSync))
-                    Result.success()
-                },
-                onFailure = { error ->
-                    Log.e("SyncWorker", "Sync failed: ${error.message}")
-                    showErrorNotification(appContext, appContext.getString(R.string.errorSync))
-                    if (error is TimeoutCancellationException) {
-                        Result.retry()
-                    } else {
-                        Result.failure()
-                    }
+        Log.d("SyncWorker", "Worker")
+        val result = mapEventRepository.syncWith()
+        result.fold(
+            onSuccess = {
+                Result.success()
+            },
+            onFailure = { error ->
+                Log.e("SyncWorker", "Sync failed: ${error.message}")
+                showErrorNotification(appContext, appContext.getString(R.string.errorSync))
+                if (runAttemptCount < 3 && error is TimeoutCancellationException) {
+                    Result.retry()
+                } else {
+                    Result.failure()
                 }
-            )
-        } catch (e: IOException) {
-            Log.e("SyncWorker", "Error was happened ${e.message}")
-            if (runAttemptCount < 3) {
-                Result.retry()
-            } else {
-                Result.failure()
             }
-        } catch (e: TimeoutCancellationException) {
-            Log.e("SyncWorker", "Error was happened ${e.message}")
-            if (runAttemptCount < 3) {
-                Result.retry()
-            } else {
-                Result.failure()
-            }
-        }
+        )
     }
 
     private fun showErrorNotification(context: Context, text: String) {
         NotificationHelper.showSyncErrorNotification(context = context, message = text)
-    }
-
-    private fun showSuccessNotification(context: Context, text: String) {
-        NotificationHelper.showSuccessNotification(context, text)
     }
 }

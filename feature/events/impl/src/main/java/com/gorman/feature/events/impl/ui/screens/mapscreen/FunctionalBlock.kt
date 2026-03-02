@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -19,15 +18,14 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.ui.components.FunctionalButton
 import com.gorman.feature.events.impl.ui.components.MapEventSelectedButton
 import com.gorman.feature.events.impl.ui.states.MapScreenActions
-import com.gorman.feature.events.impl.utils.getBottomBarPadding
 import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
+import com.gorman.ui.utils.getBottomBarPadding
 
 @SuppressLint("ComposeModifierMissing")
 @Composable
@@ -38,6 +36,7 @@ fun BoxScope.FunctionalBlock(
         onClick = { mapScreenData.mapScreenActions.onSyncClick() },
         iconSize = 32.dp,
         imageVector = Icons.Outlined.Refresh,
+        isLoading = mapScreenData.isSyncLoading,
         modifier = Modifier
             .padding(
                 end = LocalEventsMapTheme.dimens.paddingExtraLarge,
@@ -67,17 +66,13 @@ fun BoxScope.FunctionalBlock(
                 onClick = { mapScreenData.onMapEventsListExpanded() },
                 iconSize = 32.dp,
                 imageVector = Icons.Outlined.Menu,
-                modifier = Modifier
-                    .size(48.dp)
-                    .offset(y = mapScreenData.listEventsButtonVerticalOffset)
+                modifier = Modifier.size(48.dp)
             )
             FunctionalButton(
                 onClick = { mapScreenData.onFiltersExpanded() },
                 iconSize = 32.dp,
                 painter = painterResource(R.drawable.filter_alt),
-                modifier = Modifier
-                    .size(48.dp)
-                    .offset(y = mapScreenData.filtersButtonVerticalOffset)
+                modifier = Modifier.size(48.dp)
             )
         }
         if (mapScreenData.isEventSelected) {
@@ -85,7 +80,8 @@ fun BoxScope.FunctionalBlock(
                 MapEventSelectedButton(
                     onMapEventButtonClick = { mapScreenData.onMapEventSelectedItemClick(event) },
                     mapEvent = event,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(
                             top = LocalEventsMapTheme.dimens.paddingLarge,
                             bottom = LocalEventsMapTheme.dimens.paddingMedium
@@ -101,10 +97,9 @@ fun BoxScope.FunctionalBlock(
 data class MapScreenData(
     val name: String,
     val selectedEvent: MapUiEvent? = null,
-    val listEventsButtonVerticalOffset: Dp,
-    val filtersButtonVerticalOffset: Dp,
     val mapScreenActions: MapScreenActions,
     val isEventSelected: Boolean,
+    val isSyncLoading: Boolean,
     val onMapEventsListExpanded: () -> Unit,
     val onFiltersExpanded: () -> Unit,
     val onMapEventSelectedItemClick: (MapUiEvent) -> Unit

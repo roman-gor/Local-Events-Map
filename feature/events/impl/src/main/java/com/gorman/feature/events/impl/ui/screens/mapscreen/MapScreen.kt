@@ -3,20 +3,27 @@ package com.gorman.feature.events.impl.ui.screens.mapscreen
 import android.Manifest
 import android.annotation.SuppressLint
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,7 +31,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.gorman.common.constants.CityCoordinates
-import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.ui.components.CitiesDropdownMenu
 import com.gorman.feature.events.impl.ui.components.StatusBanner
@@ -33,10 +39,11 @@ import com.gorman.feature.events.impl.ui.screens.PermissionRequestScreen
 import com.gorman.feature.events.impl.ui.states.FilterActions
 import com.gorman.feature.events.impl.ui.states.MapScreenActions
 import com.gorman.feature.events.impl.ui.states.PointUiState
+import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
 import com.gorman.feature.events.impl.ui.states.ScreenState
 import com.gorman.feature.events.impl.ui.states.ScreenUiEvent
 import com.gorman.feature.events.impl.ui.viewmodels.MapViewModel
-import com.gorman.map.ui.LocalEventsMap
+import com.gorman.map.ui.LocalEventsMapComponent
 import com.gorman.map.ui.MapConfig
 import com.gorman.map.ui.MapControl
 import com.gorman.map.ui.MapMarker
@@ -74,7 +81,22 @@ fun MapScreenEntry(
 
     val mapControl = rememberMapControl()
 
-    HandleSideEffects(context, mapViewModel, mapControl)
+    LaunchedEffect(mapViewModel.sideEffect) {
+        mapViewModel.sideEffect.collect { effect ->
+            when(effect) {
+                is ScreenSideEffect.MoveCamera -> {
+                    val zoom = effect.zoom
+                    mapControl.moveCamera(
+                        point = effect.point.toDomain(),
+                        zoom = zoom
+                    )
+                }
+                is ScreenSideEffect.ShowToast -> {
+                    Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     BindPermissionLogic(
         permissionsState = permissionsState,
@@ -164,35 +186,20 @@ fun MapContent(
 
     val state = rememberMapScreenLocalState()
 
-    val mapMarkers = remember(uiState.eventsList) {
-        uiState.eventsList.mapNotNull { event ->
-            val coordinates = event.coordinates?.split(",")
-            if (coordinates != null && coordinates.size >= 2) {
-                MapMarker(
-                    id = event.id,
-                    latitude = coordinates[0].trim().toDouble(),
-                    longitude = coordinates[1].trim().toDouble(),
-                    isSelected = event.isSelected,
-                    iconRes = R.drawable.ic_marker,
-                    selectedIconRes = R.drawable.ic_marker_selected
-                )
-            } else {
-                null
-            }
-        }.toImmutableList()
-    }
+    val (initialPoint, initialZoom) = uiState.initialCameraPosition
 
     val mapConfig = MapConfig(
-        isDarkMode = state.isDarkMode,
         userLocation = uiState.cityData.cityCoordinates?.toDomain(),
-        userLocationIconRes = R.drawable.ic_location_marker
+        userLocationIconRes = R.drawable.ic_location_marker,
+        initialPosition = initialPoint?.toDomain(),
+        initialZoom = initialZoom
     )
 
     MapScreen(
         mapScreenActions = MapScreenActions(
-            onCameraIdle = { location ->
+            onCameraIdle = { location, zoom ->
                 location?.let {
-                    onUiEvent(ScreenUiEvent.OnCameraIdle(location))
+                    onUiEvent(ScreenUiEvent.OnCameraIdle(location, zoom))
                 }
             },
             filterActions = FilterActions(
@@ -207,6 +214,7 @@ fun MapContent(
                 onUiEvent(ScreenUiEvent.OnEventSelected(event.id))
             },
             onCitySubmit = { city -> onUiEvent(ScreenUiEvent.OnCitySearch(city)) },
+            onMapClick = { onUiEvent(ScreenUiEvent.OnMapClick) },
             onNavigateToDetailsScreen = { event ->
                 onUiEvent(ScreenUiEvent.OnNavigateToDetailsScreen(event))
             }
@@ -214,12 +222,13 @@ fun MapContent(
         uiState = uiState,
         mapControl = mapControl,
         mapConfig = mapConfig,
-        mapMarkers = mapMarkers,
+        mapMarkers = uiState.mapMarkers,
         state = state,
         modifier = modifier
     )
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
@@ -232,70 +241,40 @@ fun MapScreen(
     modifier: Modifier = Modifier
 ) {
     val selectedEvent = uiState.eventsList.firstOrNull { it.id == uiState.selectedMapEventId }
-
-    LaunchedEffect(selectedEvent) {
-        if (selectedEvent != null) {
-            val coordinates = selectedEvent.coordinates?.split(",")
-            if (coordinates != null && coordinates.size >= 2) {
-                mapControl.moveCamera(
-                    point = PointDomain(coordinates[0].trim().toDouble(), coordinates[1].trim().toDouble()),
-                    zoom = 15f
-                )
+    val layoutDirection = LocalLayoutDirection.current
+    val systemInsets = WindowInsets.systemGestures
+    Box(
+        modifier = modifier
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    consumeGesturesForSystemInsets(systemInsets, layoutDirection)
+                }
             }
-        }
-    }
-
-    Box(modifier = modifier) {
-        LocalEventsMap(
+    ) {
+        LocalEventsMapComponent(
             modifier = Modifier.fillMaxSize(),
             markers = mapMarkers,
             mapControl = mapControl,
             config = mapConfig,
-            onCameraIdle = { lat, lon -> mapScreenActions.onCameraIdle(PointUiState(lat, lon)) },
+            onCameraIdle = { lat, lon, zoom -> mapScreenActions.onCameraIdle(PointUiState(lat, lon), zoom) },
+            onMapClick = { mapScreenActions.onMapClick() },
             onMarkerClick = { id -> uiState.eventsList.find { it.id == id }?.let { mapScreenActions.onEventClick(it) } }
         )
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            uiState.cityData.city?.let {
-                CitiesDropdownMenu(
-                    expanded = state.citiesMenuExpanded,
-                    onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
-                    currentCity = stringResource(it.resource),
-                    onCityClick = { city -> mapScreenActions.onCitySubmit(city) },
-                    citiesList = CityCoordinates.entries.toImmutableList()
-                )
-            }
-            uiState.dataStatus?.let { StatusBanner(it) }
-        }
-        MapEventsBottomSheetContent(
-            data = BottomSheetData(
-                expanded = state.mapEventsListExpanded,
-                onDismissSheet = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
-                sheetState = state.mapEventsListSheetState
-            ),
-            onEventClick = {
-                mapScreenActions.onEventClick(it)
-                state.scope.launch {
-                    state.mapEventsListSheetState.hide()
-                    state.mapEventsListExpanded = false
-                }
-            },
-            eventsList = uiState.eventsList
+        MapTopOverlays(
+            uiState = uiState,
+            state = state,
+            onCitySubmit = { mapScreenActions.onCitySubmit(it) }
         )
-        FilterBottomSheetContent(
-            data = BottomSheetData(
-                expanded = state.filtersExpanded,
-                onDismissSheet = { state.filtersExpanded = !state.filtersExpanded },
-                sheetState = state.filtersSheetState
-            ),
-            filtersState = uiState.filterState,
+        MapBottomSheets(
+            uiState = uiState,
+            state = state,
             mapScreenActions = mapScreenActions
         )
         FunctionalBlock(
             mapScreenData = MapScreenData(
                 name = uiState.filterState.name,
                 selectedEvent = selectedEvent,
-                listEventsButtonVerticalOffset = state.listEventsButtonOffset.value,
-                filtersButtonVerticalOffset = state.filtersButtonOffset.value,
+                isSyncLoading = uiState.isSyncLoading ?: false,
                 mapScreenActions = mapScreenActions,
                 onMapEventsListExpanded = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
                 onFiltersExpanded = { state.filtersExpanded = !state.filtersExpanded },
@@ -303,6 +282,84 @@ fun MapScreen(
                 onMapEventSelectedItemClick = { mapScreenActions.onNavigateToDetailsScreen(it) }
             )
         )
+    }
+}
+
+private suspend fun AwaitPointerEventScope.consumeGesturesForSystemInsets(
+    systemInsets: WindowInsets,
+    layoutDirection: LayoutDirection
+) {
+    while (true) {
+        val event = awaitPointerEvent(PointerEventPass.Initial)
+        val change = event.changes.first()
+        val pos = change.position
+
+        val leftZone = systemInsets.getLeft(this, layoutDirection).toFloat()
+        val rightZone = size.width - systemInsets.getRight(this, layoutDirection).toFloat()
+        val bottomZone = size.height - systemInsets.getBottom(this).toFloat()
+
+        val isInEdge = pos.x <= leftZone || pos.x >= rightZone || pos.y >= bottomZone
+
+        if (isInEdge) {
+            change.consume()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MapBottomSheets(
+    uiState: ScreenState.Success,
+    state: MapScreenLocalState,
+    mapScreenActions: MapScreenActions
+) {
+    MapEventsBottomSheetContent(
+        data = BottomSheetData(
+            expanded = state.mapEventsListExpanded,
+            onDismissSheet = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
+            sheetState = state.mapEventsListSheetState
+        ),
+        onEventClick = {
+            mapScreenActions.onEventClick(it)
+            state.scope.launch {
+                state.mapEventsListSheetState.hide()
+                state.mapEventsListExpanded = false
+            }
+        },
+        eventsList = uiState.eventsList
+    )
+
+    FilterBottomSheetContent(
+        data = BottomSheetData(
+            expanded = state.filtersExpanded,
+            onDismissSheet = { state.filtersExpanded = !state.filtersExpanded },
+            sheetState = state.filtersSheetState
+        ),
+        filtersState = uiState.filterState,
+        mapScreenActions = mapScreenActions
+    )
+}
+
+@Composable
+private fun MapTopOverlays(
+    uiState: ScreenState.Success,
+    state: MapScreenLocalState,
+    onCitySubmit: (CityCoordinates) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        uiState.cityData.city?.let {
+            CitiesDropdownMenu(
+                expanded = state.citiesMenuExpanded,
+                onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
+                currentCity = stringResource(it.resource),
+                onCityClick = onCitySubmit,
+                citiesList = CityCoordinates.entries.toImmutableList()
+            )
+        }
+        uiState.dataStatus?.let { StatusBanner(it) }
     }
 }
 

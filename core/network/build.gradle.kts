@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.gorman.firebase"
+    namespace = "com.gorman.network"
 }
 
 dependencies {

@@ -14,6 +14,7 @@ class SignUpUserUseCase @Inject constructor(
         return authRepository.signUp(email, password).mapCatching { authResult ->
             userRepository.clearUserData()
             userRepository.saveUser(userData.copy(uid = authResult.uid))
+            userRepository.saveTokenToUser(authResult.uid).getOrThrow()
         }
     }
 }

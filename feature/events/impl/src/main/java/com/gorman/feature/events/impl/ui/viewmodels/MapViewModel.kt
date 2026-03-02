@@ -3,7 +3,6 @@ package com.gorman.feature.events.impl.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.common.api.ApiException
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
@@ -12,6 +11,7 @@ import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.details.api.DetailsScreenNavKey
+import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
 import com.gorman.feature.events.impl.domain.GetPointByCityUseCase
 import com.gorman.feature.events.impl.ui.components.DateFilterType
@@ -25,6 +25,7 @@ import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
 import com.gorman.feature.events.impl.ui.states.ScreenState
 import com.gorman.feature.events.impl.ui.states.ScreenUiEvent
 import com.gorman.map.mapmanager.IMapManager
+import com.gorman.map.ui.MapMarker
 import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.mappers.toUiState
 import com.gorman.ui.states.MapUiEvent
@@ -69,15 +70,17 @@ class MapViewModel @Inject constructor(
     private val filters = MutableStateFlow(FiltersState())
     private val selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
-
     private var cameraMoveJob: Job? = null
-
     private val cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
+    private val isSyncLoading = MutableStateFlow<Boolean?>(null)
+    private var isInitialized = false
+    private val cameraState = MutableStateFlow<Pair<PointDomain, Float>?>(null)
 
     private data class UserInputState(
         val filters: FiltersState,
         val cityData: CityData,
-        val selectedEventId: String?
+        val selectedEventId: String?,
+        val isSyncLoading: Boolean?
     )
 
     private val isNetworkAvailable = networkObserver.observe()
@@ -90,9 +93,10 @@ class MapViewModel @Inject constructor(
     private val userInputs = combine(
         filters,
         cityData,
-        selectedEventId
-    ) { filters, cityData, selectedEventId ->
-        UserInputState(filters, cityData, selectedEventId)
+        selectedEventId,
+        isSyncLoading
+    ) { filters, cityData, selectedEventId, isSyncLoading ->
+        UserInputState(filters, cityData, selectedEventId, isSyncLoading)
     }
 
     private val isOutdated = mapEventsRepository.isOutdated()
@@ -101,23 +105,42 @@ class MapViewModel @Inject constructor(
         mapEventsRepository.getAllEvents(),
         userInputs,
         isNetworkAvailable,
-        isOutdated
-    ) { events, inputs, hasInternet, isOut ->
-        val (filters, cityData, selectedEventId) = inputs
+        isOutdated,
+        cameraState
+    ) { events, inputs, hasInternet, isOutdated, cameraState ->
+        val (filters, cityData, selectedEventId, isSyncLoading) = inputs
 
         val filteredEvents = filterEvents(events, filters, cityData, selectedEventId).toImmutableList()
 
         val status = when {
             !hasInternet -> DataStatus.OFFLINE
-            isOut -> DataStatus.OUTDATED
+            isOutdated -> DataStatus.OUTDATED
             else -> DataStatus.FRESH
         }
+
+        val mapMarkers = filteredEvents.mapNotNull { event ->
+            val coordinates = event.coordinates?.split(",")
+            if (coordinates != null && coordinates.size >= 2) {
+                MapMarker(
+                    id = event.id,
+                    latitude = coordinates[0].trim().toDouble(),
+                    longitude = coordinates[1].trim().toDouble(),
+                    isSelected = event.isSelected,
+                    iconRes = R.drawable.ic_marker,
+                    selectedIconRes = R.drawable.ic_marker_selected
+                )
+            } else null
+        }.toImmutableList()
+
         ScreenState.Success(
             eventsList = filteredEvents,
             filterState = filters,
             selectedMapEventId = selectedEventId,
             cityData = cityData.toUiState(),
-            dataStatus = status
+            dataStatus = status,
+            isSyncLoading = isSyncLoading,
+            mapMarkers = mapMarkers,
+            initialCameraPosition = cameraState?.let { it.first.toUiState() to it.second } ?: (null to null)
         ) as ScreenState
     }.catch { e ->
         emit(ScreenState.Error(e))
@@ -175,7 +198,7 @@ class MapViewModel @Inject constructor(
         when (event) {
             ScreenUiEvent.OnStart -> mapManager.onStart()
             ScreenUiEvent.OnStop -> mapManager.onStop()
-            is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point)
+            is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point, event.zoom)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
             is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
             is ScreenUiEvent.OnNameChanged -> filters.value = filters.value.copy(name = event.name)
@@ -187,24 +210,45 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnEventSelected -> {
                 viewModelScope.launch {
                     val currentId = selectedEventId.value
-                    selectedEventId.value = if (currentId == event.id) null else event.id
+                    if (currentId != event.id) {
+                        selectedEventId.value = event.id
+                        val events = (uiState.value as ScreenState.Success).eventsList
+                        val eventObj = events.find { it.id == event.id }
+                        val coords = eventObj?.coordinates?.split(",")
+                        if (coords != null && coords.size >= 2) {
+                            val point = PointDomain(coords[0].trim().toDouble(), coords[1].trim().toDouble())
+                            cameraState.value = point to 15f
+                            _sideEffect.send(ScreenSideEffect.MoveCamera(point.toUiState(), 15f))
+                        }
+                    } else {
+                        selectedEventId.value = null
+                    }
                 }
             }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> {
-                viewModelScope.launch {
-                    fetchInitialLocation()
-                    syncEvents()
+                if (!isInitialized) {
+                    viewModelScope.launch {
+                        fetchInitialLocation()
+                        syncEvents()
+                        isInitialized = true
+                    }
+                } else {
+                    viewModelScope.launch {
+                        fetchInitialLocation()
+                    }
                 }
             }
             is ScreenUiEvent.OnNavigateToDetailsScreen -> {
                 navigator.goTo(DetailsScreenNavKey(event.event.id))
             }
+            ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
         }
     }
 
     private suspend fun fetchInitialLocation() {
-        if (isInitialLocationFetched) return
+        if (isInitialLocationFetched || cameraState.value != null) return
+
         isInitialLocationFetched = true
         geoRepository.getUserLocation().onSuccess { location ->
             val userCityData = getCityByPointUseCase(location)
@@ -292,7 +336,9 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    fun onCameraIdle(cameraPosition: PointUiState) {
+    private fun onCameraIdle(cameraPosition: PointUiState, zoom: Float) {
+        cameraState.value = cameraPosition.toDomain() to zoom
+
         cameraMoveJob?.cancel()
         cameraMoveJob = viewModelScope.launch {
             delay(100L)
@@ -303,7 +349,7 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    fun searchForCity(city: CityCoordinates) {
+    private fun searchForCity(city: CityCoordinates) {
         viewModelScope.launch {
             val resultCityData = getPointByCityUseCase(city)
             resultCityData?.let {
@@ -311,25 +357,19 @@ class MapViewModel @Inject constructor(
                 it.toUiState().cityCoordinates?.let { point ->
                     _sideEffect.send(ScreenSideEffect.MoveCamera(point))
                 }
-                Log.d(
-                    "Coordinates City Choose",
-                    "${it.toUiState().cityCoordinates?.latitude}" +
-                        " / ${it.toUiState().cityCoordinates?.longitude}"
-                )
-                Log.d("Real Name City Choose", "${it.city?.cityName}")
-                Log.d("Name City Choose", "${it.cityName}")
             }
         }
     }
 
     private suspend fun syncEvents() {
-        try {
-            mapEventsRepository.syncWith().getOrElse { exception ->
-                _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
-                Log.d("SyncError", "${exception.message}")
-            }
-        } catch (e: ApiException) {
-            Log.e("ViewModel", "Error when sync events ${e.message}")
+        isSyncLoading.value = true
+        mapEventsRepository.syncWith().onSuccess {
+            Log.d("Sync", "Success")
+            isSyncLoading.value = false
+        }.onFailure { exception ->
+            isSyncLoading.value = false
+            _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
+            Log.d("SyncError", "${exception.message}")
         }
     }
 

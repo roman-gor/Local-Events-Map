@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
@@ -18,7 +20,8 @@ fun FunctionalButton(
     onClick: () -> Unit,
     iconSize: Dp,
     imageVector: ImageVector,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = false
 ) {
     Button(
         onClick = { onClick() },
@@ -29,11 +32,19 @@ fun FunctionalButton(
         ),
         contentPadding = PaddingValues(0.dp)
     ) {
-        Icon(
-            imageVector = imageVector,
-            contentDescription = "list_button",
-            modifier = Modifier.size(iconSize)
-        )
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+                strokeWidth = 3.dp
+            )
+        } else {
+            Icon(
+                imageVector = imageVector,
+                contentDescription = "list_button",
+                modifier = Modifier.size(iconSize)
+            )
+        }
     }
 }
 
