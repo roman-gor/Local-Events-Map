@@ -8,9 +8,10 @@ import com.gorman.common.models.CityData
 import com.gorman.common.models.DateFilterState
 import com.gorman.common.models.DateFilterType
 import com.gorman.common.models.FiltersState
-import com.gorman.data.cache.IPreferencesDataSource
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
+import com.gorman.data.repository.settings.ISettingsRepository
+import com.gorman.data.repository.user.IUserRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.events.impl.R
@@ -31,6 +32,7 @@ import com.gorman.ui.utils.getEndOfWeek
 import com.gorman.ui.utils.getStartOfDay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -40,6 +42,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -55,7 +60,8 @@ class MapViewModel @Inject constructor(
     private val mapManager: IMapManager,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
-    private val cacheRepository: IPreferencesDataSource,
+    private val userRepository: IUserRepository,
+    private val settingsRepository: ISettingsRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
@@ -63,13 +69,23 @@ class MapViewModel @Inject constructor(
     private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
 
-    private val filters = cacheRepository.savedFilters
-        .map { it ?: FiltersState() }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val filters = userRepository.getUserData()
+        .map { it?.uid }
+        .flatMapLatest { uid ->
+            if (uid == null) {
+                flowOf(FiltersState())
+            } else {
+                settingsRepository.getFiltersByUserId(uid)
+                    .map { it ?: FiltersState() }
+            }
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
             initialValue = FiltersState()
         )
+
     private val selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
     private var cameraMoveJob: Job? = null
@@ -230,9 +246,8 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCitySearch -> { searchForCity(event.city) }
             ScreenUiEvent.OnResetFilters -> {
                 viewModelScope.launch {
-                    cacheRepository.saveFiltersState(
-                        FiltersState()
-                    )
+                    val uid = userRepository.getUserData().firstOrNull()?.uid
+                    uid?.let { settingsRepository.updateFilters(uid, FiltersState()) }
                 }
             }
             is ScreenUiEvent.OnEventSelected -> { viewModelScope.launch { onEventSelected(event.id) } }
@@ -297,7 +312,8 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             val current = filters.value
             val newFilters = transform(current)
-            cacheRepository.saveFiltersState(newFilters)
+            val uid = userRepository.getUserData().firstOrNull()?.uid
+            uid?.let { settingsRepository.updateFilters(uid, newFilters) }
         }
     }
 
@@ -315,7 +331,8 @@ class MapViewModel @Inject constructor(
                         endDate = null
                     )
                 )
-                cacheRepository.saveFiltersState(newFilters)
+                val uid = userRepository.getUserData().firstOrNull()?.uid
+                uid?.let { settingsRepository.updateFilters(uid, newFilters) }
                 return@launch
             }
 
@@ -354,7 +371,8 @@ class MapViewModel @Inject constructor(
                 }
             }
             val newFilters = currentFilters.copy(dateRange = newDateRange)
-            cacheRepository.saveFiltersState(newFilters)
+            val uid = userRepository.getUserData().firstOrNull()?.uid
+            uid?.let { settingsRepository.updateFilters(uid, newFilters) }
         }
     }
 
@@ -421,7 +439,10 @@ class MapViewModel @Inject constructor(
             } else {
                 currentCategories.add(category)
             }
-            cacheRepository.saveFiltersState(filters.value.copy(categories = currentCategories))
+            val uid = userRepository.getUserData().firstOrNull()?.uid
+            uid?.let {
+                settingsRepository.updateFilters(uid, filters.value.copy(categories = currentCategories))
+            }
         }
     }
 

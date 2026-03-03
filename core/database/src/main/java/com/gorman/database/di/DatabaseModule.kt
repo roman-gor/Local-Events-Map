@@ -6,6 +6,7 @@ import com.gorman.database.data.datasource.LocalEventsDatabase
 import com.gorman.database.data.datasource.dao.BookmarkDao
 import com.gorman.database.data.datasource.dao.BookmarkMapEventDao
 import com.gorman.database.data.datasource.dao.MapEventsDao
+import com.gorman.database.data.datasource.dao.SettingsDao
 import com.gorman.database.data.datasource.dao.UserDataDao
 import dagger.Module
 import dagger.Provides
@@ -43,4 +44,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideBookmarkMapEventDao(db: LocalEventsDatabase): BookmarkMapEventDao = db.bookmarkMapEventDao()
+
+    @Provides
+    @Singleton
+    fun provideSettingsDao(db: LocalEventsDatabase): SettingsDao = db.settingsDao()
 }

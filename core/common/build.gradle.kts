@@ -13,7 +13,6 @@ android {
 dependencies {
 
     implementation(project(":core:network"))
-    implementation(project(":core:database"))
     implementation(project(":core:domain-model"))
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.play.services.location)
