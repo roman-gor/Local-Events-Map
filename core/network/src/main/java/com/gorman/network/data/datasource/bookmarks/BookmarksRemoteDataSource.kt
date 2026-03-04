@@ -28,11 +28,9 @@ internal class BookmarksRemoteDataSource @Inject constructor(
         if (snapshot.exists()) {
             favRef.removeValue().await()
             Log.d("UserRemoteDS", "Event successfully removed from favourites")
-            Result.success(Unit)
         } else {
             favRef.setValue(true)
             Log.d("UserRemoteDS", "Event successfully added to favourites")
-            Result.success(Unit)
         }
     }
 }

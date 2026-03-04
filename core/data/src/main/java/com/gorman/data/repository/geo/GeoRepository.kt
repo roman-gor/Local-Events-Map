@@ -38,13 +38,10 @@ internal class GeoRepository @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getSavedCity(): Flow<CityData?> =
         userRepository.getUserData()
-            .map { it?.uid }
-            .flatMapLatest { uid ->
-                if (uid == null) {
-                    flowOf(null)
-                } else {
+            .flatMapLatest { userData ->
+                userData?.uid?.let { uid ->
                     settingsRepository.getCityDataByUserId(uid)
-                }
+                } ?: flowOf(null)
             }
 
     override suspend fun saveCity(cityData: CityData) {

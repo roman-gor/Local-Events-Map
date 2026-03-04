@@ -38,7 +38,7 @@ class AuthViewModel @AssistedInject constructor(
     }
 
     private val _uiState =
-        MutableStateFlow<AuthScreenState>(AuthScreenState.Idle(user = UserUiState(), password = ""))
+        MutableStateFlow<AuthScreenState>(AuthScreenState.Idle())
     val uiState = _uiState.asStateFlow()
     private val _sideEffect = Channel<AuthSideEffects>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
@@ -50,7 +50,7 @@ class AuthViewModel @AssistedInject constructor(
         when (uiEvent) {
             is AuthScreenUiEvent.OnSignInClick -> signIn(uiEvent.email, uiEvent.password)
             is AuthScreenUiEvent.OnSignUpClick -> signUp(uiEvent.user, uiEvent.password)
-            AuthScreenUiEvent.OnSignInWithGoogleClick -> { signInWithGoogle() }
+            AuthScreenUiEvent.OnSignInWithGoogleClick -> signInWithGoogle()
             AuthScreenUiEvent.OnGuestSignIn -> guestSignIn()
             AuthScreenUiEvent.OnNavigateToSignInClicked -> navigator.onSignIn()
             AuthScreenUiEvent.OnNavigateToSignUpClicked -> navigator.onSignUp()
@@ -87,7 +87,7 @@ class AuthViewModel @AssistedInject constructor(
             signInUserUseCase(email, password)
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
+                    _uiState.value = AuthScreenState.Idle()
                 }.onFailure { e ->
                     _uiState.value = AuthScreenState.Idle(UserUiState(email = email), password)
                     _sideEffect.send(AuthSideEffects.ShowError(e))
@@ -102,9 +102,9 @@ class AuthViewModel @AssistedInject constructor(
             signInWithGoogleUseCase()
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
+                    _uiState.value = AuthScreenState.Idle()
                 }.onFailure { e ->
-                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
+                    _uiState.value = AuthScreenState.Idle()
                     _sideEffect.send(AuthSideEffects.ShowError(e))
                     Log.d("Auth VM", "Sign In Failed: ${e.message}")
                 }
@@ -117,7 +117,7 @@ class AuthViewModel @AssistedInject constructor(
             signInAnonUserUseCase()
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
+                    _uiState.value = AuthScreenState.Idle()
                     Log.d("Auth VM", "Successfully Sign In")
                 }.onFailure { e ->
                     _uiState.value = AuthScreenState.Idle(UserUiState(), "")
@@ -133,7 +133,7 @@ class AuthViewModel @AssistedInject constructor(
             signUpUserUseCase(user.toDomain(), password)
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
+                    _uiState.value = AuthScreenState.Idle()
                 }
                 .onFailure { e ->
                     _uiState.value = AuthScreenState.Idle(user, password)

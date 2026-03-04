@@ -24,7 +24,7 @@ internal class MapEventsRepository @Inject constructor(
     private val mapEventsDao: MapEventsDao,
     private val mapEventRemoteDataSource: MapEventRemoteDataSource,
     private val database: LocalEventsDatabase,
-    private val cacheRepository: IPreferencesDataSource
+    private val preferencesDataSource: IPreferencesDataSource
 ) : IMapEventsRepository {
 
     override fun getAllEvents(): Flow<List<MapEvent>> {
@@ -66,7 +66,7 @@ internal class MapEventsRepository @Inject constructor(
                     mapEventsDao.clearAll()
                 }
             }
-            cacheRepository.saveSyncTimestamp(System.currentTimeMillis())
+            preferencesDataSource.saveSyncTimestamp(System.currentTimeMillis())
         } else {
             error(IOException("Error network connection"))
         }
@@ -74,7 +74,7 @@ internal class MapEventsRepository @Inject constructor(
 
     @OptIn(ExperimentalTime::class)
     override fun isOutdated(): Flow<Boolean> =
-        cacheRepository.lastSyncTimestamp.map { lastSyncTime ->
+        preferencesDataSource.lastSyncTimestamp.map { lastSyncTime ->
             val currentZone = ZoneId.systemDefault()
             val currentTime = ZonedDateTime.now(currentZone).toEpochSecond()
             lastSyncTime?.let { (currentTime - it) > TTL_MS } == true
