@@ -1,6 +1,7 @@
 package com.gorman.data.repository.user
 
 import android.util.Log
+import com.gorman.common.models.DomainException
 import com.gorman.database.data.datasource.dao.UserDataDao
 import com.gorman.database.mappers.toDomain
 import com.gorman.database.mappers.toEntity
@@ -25,7 +26,7 @@ internal class UserRepository @Inject constructor(
         remoteUser?.let {
             userDataDao.saveUser(it.toDomain().toEntity())
             Log.d("UserRepository", "User synced from remote to local DB")
-        } ?: error(Exception("User not found on server"))
+        } ?: error(DomainException.Auth.UserNotFoundOnServer())
     }
 
     override suspend fun clearUserData() {

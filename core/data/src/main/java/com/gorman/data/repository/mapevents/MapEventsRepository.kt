@@ -52,20 +52,16 @@ internal class MapEventsRepository @Inject constructor(
         }
 
     override suspend fun syncWith(): Result<Unit> = runCatching {
-        val remoteEvents = getAllRemoteEvents()
-        if (remoteEvents != null) {
-            val entities = remoteEvents.map { it.toEntity(getCurrentZoneTime()) }
-            val remoteIds = entities.map { it.id }
-            database.withTransaction {
-                if (remoteIds.isNotEmpty()) {
-                    mapEventsDao.deleteEventsNotIn(remoteIds)
-                    mapEventsDao.upsertEvent(entities)
-                } else {
-                    mapEventsDao.clearAll()
-                }
+        val remoteEvents = getAllRemoteEvents() ?: error(IOException("Error network connection"))
+        val entities = remoteEvents.map { it.toEntity(getCurrentZoneTime()) }
+        val remoteIds = entities.map { it.id }
+        database.withTransaction {
+            if (remoteIds.isNotEmpty()) {
+                mapEventsDao.deleteEventsNotIn(remoteIds)
+                mapEventsDao.upsertEvent(entities)
+            } else {
+                mapEventsDao.clearAll()
             }
-        } else {
-            error(IOException("Error network connection"))
         }
     }
 

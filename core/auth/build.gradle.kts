@@ -19,6 +19,7 @@ android {
 
 dependencies {
     implementation(project(":core:domain-model"))
+    implementation(project(":core:common"))
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
     implementation(libs.bundles.credentials)
