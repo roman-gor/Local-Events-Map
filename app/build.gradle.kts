@@ -62,7 +62,6 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:ui"))
     implementation(project(":core:map"))
-    implementation(project(":core:cache"))
     implementation(project(":core:deeplinks"))
     implementation(project(":core:domain-model"))
     implementation(project(":core:data"))

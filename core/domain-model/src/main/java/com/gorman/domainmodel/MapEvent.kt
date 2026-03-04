@@ -12,5 +12,6 @@ data class MapEvent(
     val photo: String? = null,
     val category: String? = null,
     val price: Int? = null,
+    val lastSyncTimestamp: Long? = null,
     val isFavourite: Boolean? = null
 )

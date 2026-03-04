@@ -8,8 +8,8 @@ import com.gorman.data.repository.geo.GeoRepository
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.repository.mapevents.MapEventsRepository
-import com.gorman.data.repository.settings.ISettingsRepository
-import com.gorman.data.repository.settings.SettingsRepository
+import com.gorman.data.repository.settings.IUserSettingsRepository
+import com.gorman.data.repository.settings.UserSettingsRepository
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.data.repository.user.UserRepository
 import com.yandex.mapkit.search.SearchFactory
@@ -44,7 +44,7 @@ internal interface ModuleRepository {
     fun bindBookmarkRepository(impl: BookmarksRepository): IBookmarksRepository
 
     @Binds
-    fun bindSettingsRepository(impl: SettingsRepository): ISettingsRepository
+    fun bindSettingsRepository(impl: UserSettingsRepository): IUserSettingsRepository
 }
 
 @Module

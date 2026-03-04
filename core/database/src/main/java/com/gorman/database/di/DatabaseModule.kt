@@ -6,8 +6,9 @@ import com.gorman.database.data.datasource.LocalEventsDatabase
 import com.gorman.database.data.datasource.dao.BookmarkDao
 import com.gorman.database.data.datasource.dao.BookmarkMapEventDao
 import com.gorman.database.data.datasource.dao.MapEventsDao
-import com.gorman.database.data.datasource.dao.SettingsDao
+import com.gorman.database.data.datasource.dao.UserCitySettingsDao
 import com.gorman.database.data.datasource.dao.UserDataDao
+import com.gorman.database.data.datasource.dao.UserFiltersDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -47,5 +48,9 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideSettingsDao(db: LocalEventsDatabase): SettingsDao = db.settingsDao()
+    fun provideUserFiltersDao(db: LocalEventsDatabase): UserFiltersDao = db.userFiltersDao()
+
+    @Provides
+    @Singleton
+    fun provideUserCitySettingsDao(db: LocalEventsDatabase): UserCitySettingsDao = db.userCitySettingsDao()
 }

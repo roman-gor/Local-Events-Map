@@ -15,10 +15,11 @@ fun MapEventEntity.toDomain(): MapEvent =
         link = link,
         photo = photo,
         category = category,
-        price = price
+        price = price,
+        lastSyncTimestamp = lastSyncTimestamp
     )
 
-fun MapEvent.toEntity(): MapEventEntity =
+fun MapEvent.toEntity(timestamp: Long): MapEventEntity =
     MapEventEntity(
         id = id,
         name = name,
@@ -30,5 +31,6 @@ fun MapEvent.toEntity(): MapEventEntity =
         link = link,
         photo = photo,
         category = category,
-        price = price
+        price = price,
+        lastSyncTimestamp = timestamp
     )

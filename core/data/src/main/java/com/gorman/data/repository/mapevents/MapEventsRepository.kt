@@ -1,7 +1,6 @@
 package com.gorman.data.repository.mapevents
 
 import androidx.room.withTransaction
-import com.gorman.data.cache.IPreferencesDataSource
 import com.gorman.database.data.datasource.LocalEventsDatabase
 import com.gorman.database.data.datasource.dao.MapEventsDao
 import com.gorman.database.mappers.toDomain
@@ -23,8 +22,7 @@ private const val TTL_MS = 24 * 60 * 60 * 1000L
 internal class MapEventsRepository @Inject constructor(
     private val mapEventsDao: MapEventsDao,
     private val mapEventRemoteDataSource: MapEventRemoteDataSource,
-    private val database: LocalEventsDatabase,
-    private val preferencesDataSource: IPreferencesDataSource
+    private val database: LocalEventsDatabase
 ) : IMapEventsRepository {
 
     override fun getAllEvents(): Flow<List<MapEvent>> {
@@ -44,7 +42,7 @@ internal class MapEventsRepository @Inject constructor(
     override suspend fun syncEventById(id: String): Result<Unit> = runCatching {
         val remoteEventResult = mapEventRemoteDataSource.getSingleEvent(id)
         remoteEventResult.mapCatching { remoteEvent ->
-            mapEventsDao.upsertEvent(listOf(remoteEvent.toDomain().toEntity()))
+            mapEventsDao.upsertEvent(listOf(remoteEvent.toDomain().toEntity(getCurrentZoneTime())))
         }
     }
 
@@ -56,7 +54,7 @@ internal class MapEventsRepository @Inject constructor(
     override suspend fun syncWith(): Result<Unit> = runCatching {
         val remoteEvents = getAllRemoteEvents()
         if (remoteEvents != null) {
-            val entities = remoteEvents.map { it.toEntity() }
+            val entities = remoteEvents.map { it.toEntity(getCurrentZoneTime()) }
             val remoteIds = entities.map { it.id }
             database.withTransaction {
                 if (remoteIds.isNotEmpty()) {
@@ -66,7 +64,6 @@ internal class MapEventsRepository @Inject constructor(
                     mapEventsDao.clearAll()
                 }
             }
-            preferencesDataSource.saveSyncTimestamp(System.currentTimeMillis())
         } else {
             error(IOException("Error network connection"))
         }
@@ -74,9 +71,9 @@ internal class MapEventsRepository @Inject constructor(
 
     @OptIn(ExperimentalTime::class)
     override fun isOutdated(): Flow<Boolean> =
-        preferencesDataSource.lastSyncTimestamp.map { lastSyncTime ->
-            val currentZone = ZoneId.systemDefault()
-            val currentTime = ZonedDateTime.now(currentZone).toEpochSecond()
-            lastSyncTime?.let { (currentTime - it) > TTL_MS } == true
+        mapEventsDao.getOldestSyncTimestamp().map { lastSyncTime ->
+            lastSyncTime?.let { (getCurrentZoneTime() - it) > TTL_MS } == true
         }
+
+    private fun getCurrentZoneTime() = ZonedDateTime.now(ZoneId.systemDefault()).toEpochSecond()
 }

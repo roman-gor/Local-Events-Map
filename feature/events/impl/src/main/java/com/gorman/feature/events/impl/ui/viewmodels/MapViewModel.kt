@@ -10,7 +10,7 @@ import com.gorman.common.models.DateFilterType
 import com.gorman.common.models.FiltersState
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
-import com.gorman.data.repository.settings.ISettingsRepository
+import com.gorman.data.repository.settings.IUserSettingsRepository
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
@@ -61,7 +61,7 @@ class MapViewModel @Inject constructor(
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val userRepository: IUserRepository,
-    private val settingsRepository: ISettingsRepository,
+    private val settingsRepository: IUserSettingsRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {

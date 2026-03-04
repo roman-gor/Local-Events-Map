@@ -23,6 +23,9 @@ interface MapEventsDao {
     @Query("DELETE FROM events WHERE id NOT IN (:remoteIds)")
     suspend fun deleteEventsNotIn(remoteIds: List<String>)
 
+    @Query("SELECT MIN(lastSyncTimestamp) FROM events")
+    fun getOldestSyncTimestamp(): Flow<Long?>
+
     @Query("DELETE FROM events")
     suspend fun clearAll()
 }
