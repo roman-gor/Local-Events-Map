@@ -32,6 +32,7 @@ private fun initYandexMapKit(context: Context) {
         MapKitFactory.setApiKey(BuildConfig.YANDEX_KEY)
         MapKitFactory.setLocale("en_US")
         MapKitFactory.initialize(context)
+        MapKitFactory.getInstance().onStart()
     } catch (e: ApiException) {
         error("${e.message}")
     }

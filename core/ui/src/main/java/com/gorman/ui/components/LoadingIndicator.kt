@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 
 @SuppressLint("ComposeModifierMissing")
 @Composable
-fun LoadingStub() {
+fun LoadingIndicator() {
     Box(
         modifier = Modifier
             .fillMaxSize()

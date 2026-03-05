@@ -25,7 +25,7 @@ internal class UserRepository @Inject constructor(
         remoteUser?.let {
             userDataDao.saveUser(it.toDomain().toEntity())
             Log.d("UserRepository", "User synced from remote to local DB")
-        } ?: throw Exception("User not found on server")
+        } ?: error(Exception("User not found on server"))
     }
 
     override suspend fun clearUserData() {

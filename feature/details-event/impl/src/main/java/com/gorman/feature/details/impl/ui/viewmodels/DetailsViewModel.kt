@@ -11,7 +11,6 @@ import com.gorman.domainmodel.UserData
 import com.gorman.feature.details.api.DetailsScreenNavKey
 import com.gorman.feature.details.impl.ui.states.DetailsScreenState
 import com.gorman.feature.details.impl.ui.states.DetailsScreenUiEvent
-import com.gorman.navigation.navigator.Navigator
 import com.gorman.ui.mappers.toDateUiModel
 import com.gorman.ui.mappers.toUiState
 import dagger.assisted.Assisted
@@ -36,7 +35,6 @@ class DetailsViewModel @AssistedInject constructor(
     private val mapEventsRepository: IMapEventsRepository,
     private val bookmarksRepository: IBookmarksRepository,
     private val userRepository: IUserRepository,
-    private val navigator: Navigator,
     @Assisted val navKey: DetailsScreenNavKey
 ) : ViewModel() {
 
@@ -97,7 +95,6 @@ class DetailsViewModel @AssistedInject constructor(
     fun onUiEvent(uiEvent: DetailsScreenUiEvent) {
         when (uiEvent) {
             is DetailsScreenUiEvent.OnFavouriteClick -> onFavouriteChange(uiEvent.id)
-            DetailsScreenUiEvent.OnNavigateToBack -> navigator.goBack()
             DetailsScreenUiEvent.OnRetryClick -> retryTrigger.tryEmit(Unit)
         }
     }

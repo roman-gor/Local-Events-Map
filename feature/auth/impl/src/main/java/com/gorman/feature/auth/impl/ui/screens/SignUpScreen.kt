@@ -38,7 +38,7 @@ import com.gorman.feature.auth.impl.ui.states.AuthSideEffects
 import com.gorman.feature.auth.impl.ui.utils.isEmailValid
 import com.gorman.feature.auth.impl.ui.utils.isPasswordValid
 import com.gorman.feature.auth.impl.ui.viewmodels.AuthViewModel
-import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.components.LoadingIndicator
 import com.gorman.ui.states.UserUiState
 import com.gorman.ui.theme.LocalEventsMapTheme
 
@@ -80,7 +80,7 @@ fun SignUpScreenEntry(
     }
 
     when (val state = uiState) {
-        AuthScreenState.Loading -> LoadingStub()
+        AuthScreenState.Loading -> LoadingIndicator()
         is AuthScreenState.Idle -> {
             Box(
                 modifier = modifier,
@@ -93,7 +93,6 @@ fun SignUpScreenEntry(
                 )
             }
         }
-        else -> {}
     }
 }
 
@@ -103,10 +102,10 @@ fun SignUpScreen(
     modifier: Modifier = Modifier,
     onUiEvent: (AuthScreenUiEvent) -> Unit
 ) {
-    val email = uiState.user.email ?: ""
+    val email = uiState.user.email.orEmpty()
     val password = uiState.password
     var repeatPassword by remember { mutableStateOf("") }
-    val username = uiState.user.username ?: ""
+    val username = uiState.user.username.orEmpty()
     val incorrectEmailText = stringResource(R.string.incorrectEmail)
     val incorrectPasswordText = stringResource(R.string.incorrectPassword)
     Column(

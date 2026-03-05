@@ -70,7 +70,7 @@ fun MapEventItem(
         }
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = date ?: "",
+            text = date.orEmpty(),
             style = MaterialTheme.typography.bodyLarge,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,

@@ -12,6 +12,9 @@
     <string name="declinedPermissions">Вы запретили доступ к геолокации. Введите город вручную, чтобы увидеть события.</string>
     <string name="requestPermissions">Для отображения событий на карте и вашего местоположения необходим доступ к геолокации. Пожалуйста, предоставьте разрешение.</string>
     <string name="defaultPermissionsText">Для работы приложения требуется доступ к вашему местоположению.</string>
+    <string name="preRequestPermissionExplanation">Для отображения событий на карте и вашего местоположения необходим доступ к геолокации. При отказе от разрешений вам будет предложено выбрать город вручную</string>
+    <string name="approve">Предоставить</string>
+    <string name="decline">Отклонить</string>
     <string name="labelCityText">Например, Минск</string>
     <string name="findCityEventsText">Найти события</string>
     <string name="providePermissions">Предоставить разрешение</string>

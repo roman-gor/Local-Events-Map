@@ -10,7 +10,7 @@ import com.gorman.feature.setup.impl.states.SetupScreenState
 import com.gorman.feature.setup.impl.states.SetupScreenUiEvent
 import com.gorman.feature.setup.impl.viewmodel.LocalEventsMapViewModel
 import com.gorman.ui.components.ErrorDataScreen
-import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.components.LoadingIndicator
 
 @Composable
 fun LocalEventsMapScreen(
@@ -22,6 +22,6 @@ fun LocalEventsMapScreen(
             text = stringResource(R.string.errorDataLoading),
             onRetryClick = { viewModel.onUiEvent(SetupScreenUiEvent.TryAgain) }
         )
-        SetupScreenState.Loading -> LoadingStub()
+        SetupScreenState.Loading -> LoadingIndicator()
     }
 }

@@ -1,43 +1,69 @@
 package com.gorman.navigation.navigator
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import android.annotation.SuppressLint
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.navigation3.runtime.NavKey
-import dagger.hilt.android.scopes.ActivityRetainedScoped
+import com.gorman.feature.auth.api.SignInScreenNavKey
+import com.gorman.feature.events.api.HomeScreenNavKey
+import com.gorman.navigation.state.NavigationState
 
-/**
- * Handles navigation events (forward and back) by updating the navigation state.
- */
-@ActivityRetainedScoped
-class Navigator(private val startDestination: NavKey) {
-    val backStack: SnapshotStateList<NavKey> = mutableStateListOf(startDestination)
-
-    fun goTo(destination: NavKey) {
-        backStack.add(destination)
+class Navigator(val state: NavigationState) {
+    fun navigateTo(key: NavKey) {
+        if (key in state.backStacks) {
+            state.currentTab = key
+        } else {
+            state.currentBackStack.add(key)
+        }
     }
 
-    fun setRoot(destination: NavKey) {
-        backStack.clear()
-        backStack.add(destination)
+    fun goBack(): Boolean {
+        val stack = state.currentBackStack
+
+        if (state.currentVisibleKey == SignInScreenNavKey) return false
+
+        return if (stack.size > 1) {
+            stack.removeAt(stack.lastIndex)
+            true
+        } else if (state.currentTab != HomeScreenNavKey) {
+            state.currentTab = HomeScreenNavKey
+            true
+        } else {
+            false
+        }
     }
 
-    fun goBack() {
-        backStack.removeLastOrNull()
+    fun setRoot(key: NavKey) {
+        if (key in state.backStacks) {
+            state.currentTab = key
+            popToRoot()
+            return
+        }
+
+        val stack = state.currentBackStack
+        while (stack.isNotEmpty()) {
+            stack.removeAt(stack.lastIndex)
+        }
+        stack.add(key)
     }
 
     fun popToRoot() {
-        if (backStack.size > 1) {
-            backStack.removeRange(1, backStack.size)
+        if (state.currentBackStack.size > 1) {
+            while (state.currentBackStack.size > 1) {
+                state.currentBackStack.removeAt(state.currentBackStack.lastIndex)
+            }
         }
     }
 
-    fun switchTab(tab: NavKey) {
-        if (backStack.lastOrNull() == tab) return
-
-        popToRoot()
-
-        if (tab != startDestination) {
-            goTo(tab)
+    fun switchTab(key: NavKey) {
+        if (key == state.currentTab) {
+            popToRoot()
+        } else {
+            navigateTo(key)
         }
     }
+}
+
+@SuppressLint("ComposeCompositionLocalUsage")
+val LocalNavigator = staticCompositionLocalOf<Navigator> {
+    error("LocalNavigator not provided! Wrap your content in CompositionLocalProvider.")
 }

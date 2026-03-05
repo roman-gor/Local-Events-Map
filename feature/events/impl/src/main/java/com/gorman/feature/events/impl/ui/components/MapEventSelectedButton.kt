@@ -71,7 +71,7 @@ fun MapEventSelectedButton(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = date ?: "",
+                text = date.orEmpty(),
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,
                 textAlign = TextAlign.End
