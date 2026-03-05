@@ -12,5 +12,5 @@ data class UserDataEntity(
     @PrimaryKey val uid: String = "",
     val email: String? = null,
     val username: String? = null,
-    val isActive: Boolean? = null
+    val isActive: Boolean = false
 )

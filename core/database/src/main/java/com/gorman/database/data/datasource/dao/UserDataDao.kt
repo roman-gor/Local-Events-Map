@@ -16,8 +16,8 @@ interface UserDataDao {
     suspend fun saveUser(userDataEntity: UserDataEntity)
 
     @Transaction
-    suspend fun switchActiveUser(newUid: String) {
-        clearAllActiveStatus()
+    suspend fun setActiveUser(newUid: String) {
+        setAllUsersInactive()
         setUserIsActive(newUid)
     }
 
@@ -25,5 +25,5 @@ interface UserDataDao {
     suspend fun setUserIsActive(uid: String)
 
     @Query("UPDATE users SET isActive = 0")
-    suspend fun clearAllActiveStatus()
+    suspend fun setAllUsersInactive()
 }

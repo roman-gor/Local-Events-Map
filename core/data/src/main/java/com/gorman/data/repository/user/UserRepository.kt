@@ -25,19 +25,19 @@ internal class UserRepository @Inject constructor(
         val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()
         remoteUser?.let {
             userDataDao.saveUser(it.toDomain().toEntity())
-            userDataDao.switchActiveUser(it.uid)
+            userDataDao.setActiveUser(it.uid)
             Log.d("UserRepository", "User synced from remote to local DB")
         } ?: error(DomainException.Auth.UserNotFoundOnServer())
     }
 
     override fun getUserData(): Flow<UserData?> = userDataDao.getUser().map { it?.toDomain() }
 
-    override suspend fun clearAllActiveUsers() { userDataDao.clearAllActiveStatus() }
+    override suspend fun setAllUsersInactive() { userDataDao.setAllUsersInactive() }
 
     override suspend fun saveUser(userData: UserData): Result<Unit> {
         return userRemoteDataSource.saveUserToRemote(userData.toRemote())
             .map {
-                userDataDao.switchActiveUser(userData.uid)
+                userDataDao.setActiveUser(userData.uid)
                 userDataDao.saveUser(userData.toEntity())
             }
             .onFailure { Log.e("UserRepository", "Remote save failed", it) }
