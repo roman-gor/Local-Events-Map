@@ -41,7 +41,7 @@ internal class BookmarksRepository @Inject constructor(
     }
 
     override fun getBookmarkedEvents(uid: String): Flow<List<MapEvent>> {
-        return bookmarkMapEventDao.loadBookmarksEvents()
+        return bookmarkMapEventDao.loadBookmarksEvents(uid)
             .onStart { externalScope.launch { syncBookmarks(uid) } }
             .map { entities -> entities.map { it.toDomain() } }
             .flowOn(Dispatchers.IO)
@@ -49,7 +49,7 @@ internal class BookmarksRepository @Inject constructor(
 
     private suspend fun syncBookmarks(uid: String) = runCatching {
         val remoteEvents = bookmarksEventsDataSource.getBookmarksOnce(uid)
-        val entities = remoteEvents.map { it.toDomain().toEntity() }
+        val entities = remoteEvents.map { it.toDomain(uid).toEntity() }
         val remoteIds = entities.map { it.favoriteEventId }
         if (remoteIds.isNotEmpty()) {
             bookmarksDao.updateBookmarks(entities, remoteIds)

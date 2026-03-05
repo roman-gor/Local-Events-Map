@@ -10,6 +10,6 @@ class SignOutUserUseCase @Inject constructor(
 ) {
     suspend operator fun invoke() {
         authRepository.signOut()
-        userRepository.clearUserData()
+        userRepository.clearAllActiveUsers()
     }
 }

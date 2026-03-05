@@ -12,7 +12,6 @@ class SignUpUserUseCase @Inject constructor(
     suspend operator fun invoke(userData: UserData, password: String): Result<Unit> {
         val email = userData.email ?: error("Email is null")
         return authRepository.signUp(email, password).mapCatching { authResult ->
-            userRepository.clearUserData()
             userRepository.saveUser(userData.copy(uid = authResult.uid))
             userRepository.saveTokenToUser(authResult.uid).getOrThrow()
         }

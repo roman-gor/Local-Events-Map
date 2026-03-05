@@ -15,7 +15,6 @@ class SignInWithGoogleUseCase @Inject constructor(
         val idToken = authClient.getToken().getOrThrow()
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         authRepository.signIn(idToken, credential).mapCatching { user ->
-            userRepository.clearUserData()
             val existingUser = userRepository.refreshUserData(user.uid)
             if (existingUser.isFailure) {
                 userRepository.saveUser(user).getOrThrow()

@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.Flow
 interface BookmarkMapEventDao {
     @Query(
         """
-        SELECT events.* FROM events 
-        INNER JOIN bookmarks ON 
-        events.id = bookmarks.favoriteEventId
+        SELECT events.* FROM events
+        INNER JOIN bookmarks ON events.id = bookmarks.favoriteEventId
+        WHERE bookmarks.userId = :uid
     """
     )
-    fun loadBookmarksEvents(): Flow<List<MapEventEntity>>
+    fun loadBookmarksEvents(uid: String): Flow<List<MapEventEntity>>
 }
