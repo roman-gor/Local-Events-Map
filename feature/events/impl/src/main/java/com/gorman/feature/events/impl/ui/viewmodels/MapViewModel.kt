@@ -1,6 +1,5 @@
 package com.gorman.feature.events.impl.ui.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gorman.common.constants.CityCoordinates
@@ -12,7 +11,6 @@ import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
-import com.gorman.feature.events.impl.domain.GetPointByCityUseCase
 import com.gorman.feature.events.impl.ui.components.DateFilterType
 import com.gorman.feature.events.impl.ui.mappers.toDomain
 import com.gorman.feature.events.impl.ui.mappers.toUiState
@@ -57,7 +55,6 @@ class MapViewModel @Inject constructor(
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
-    private val getPointByCityUseCase: GetPointByCityUseCase,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
 
@@ -77,7 +74,19 @@ class MapViewModel @Inject constructor(
         val filters: FiltersState,
         val cityData: CityData,
         val selectedEventId: String?,
-        val isSyncLoading: Boolean?
+        val isSyncLoading: Boolean?,
+        val permissionState: PermissionState
+    )
+
+    private data class PermissionState(
+        val isPermissionDeclined: Boolean,
+        val isLoading: Boolean
+    )
+    private val permissionState = MutableStateFlow(
+        PermissionState(
+            isPermissionDeclined = false,
+            isLoading = false
+        )
     )
 
     private val isNetworkAvailable = networkObserver.observe()
@@ -91,9 +100,10 @@ class MapViewModel @Inject constructor(
         filters,
         cityData,
         selectedEventId,
-        isSyncLoading
-    ) { filters, cityData, selectedEventId, isSyncLoading ->
-        UserInputState(filters, cityData, selectedEventId, isSyncLoading)
+        isSyncLoading,
+        permissionState
+    ) { filters, cityData, selectedEventId, isSyncLoading, permissionState ->
+        UserInputState(filters, cityData, selectedEventId, isSyncLoading, permissionState)
     }
 
     private val isOutdated = mapEventsRepository.isOutdated()
@@ -105,7 +115,13 @@ class MapViewModel @Inject constructor(
         isOutdated,
         cameraState
     ) { events, inputs, hasInternet, isOutdated, cameraState ->
-        val (filters, cityData, selectedEventId, isSyncLoading) = inputs
+        val (filters, cityData, selectedEventId, isSyncLoading, isPermissionDeclined) = inputs
+        if (cityData.cityName == null || cityData.city == null) {
+            return@combine ScreenState.CitySelection(
+                requiresManualInput = permissionState.value.isPermissionDeclined,
+                isLoading = permissionState.value.isLoading
+            )
+        }
 
         val filteredEvents = filterEvents(events, filters, cityData, selectedEventId).toImmutableList()
 
@@ -201,23 +217,31 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnNameChanged -> filters.value = filters.value.copy(name = event.name)
             is ScreenUiEvent.OnCostChanged -> filters.value = filters.value.copy(isFree = event.isFree)
             is ScreenUiEvent.OnDistanceChanged -> filters.value = filters.value.copy(distance = event.distance)
-            is ScreenUiEvent.OnCitySearch -> {
-                searchForCity(event.city)
-            }
+            is ScreenUiEvent.OnCitySearch -> { searchForCity(event.city) }
             is ScreenUiEvent.OnEventSelected -> { viewModelScope.launch { onEventSelected(event.id) } }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
-            ScreenUiEvent.PermissionsGranted -> {
-                viewModelScope.launch {
-                    if (!isInitialized) {
-                        fetchInitialLocation()
-                        syncEvents()
-                        isInitialized = true
-                    } else {
-                        fetchInitialLocation()
-                    }
-                }
+            ScreenUiEvent.PermissionsGranted -> { onPermissionsGranted() }
+            ScreenUiEvent.PermissionDenied -> {
+                permissionState.value = permissionState.value.copy(isPermissionDeclined = true, isLoading = false)
             }
             ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
+        }
+    }
+
+    private fun onPermissionsGranted() {
+        viewModelScope.launch {
+            permissionState.value = permissionState.value.copy(
+                isPermissionDeclined = false,
+                isLoading = true
+            )
+            if (!isInitialized) {
+                isInitialized = true
+                fetchInitialLocation()
+                syncEvents()
+            } else {
+                fetchInitialLocation()
+            }
+            permissionState.value = permissionState.value.copy(isLoading = false)
         }
     }
 
@@ -244,6 +268,7 @@ class MapViewModel @Inject constructor(
         isInitialLocationFetched = true
         geoRepository.getUserLocation().onSuccess { location ->
             val userCityData = getCityByPointUseCase(location)
+
             userCityData?.let { geoRepository.saveCity(it) }
             _sideEffect.send(ScreenSideEffect.MoveCamera(location.toUiState()))
         }.onFailure {
@@ -279,7 +304,6 @@ class MapViewModel @Inject constructor(
                         endDate = dateState.endDate
                     )
                 )
-                Log.d("Date Check State", filters.value.dateRange.toString())
             }
             DateFilterType.TODAY -> {
                 filters.value = filters.value.copy(
@@ -289,7 +313,6 @@ class MapViewModel @Inject constructor(
                         endDate = getEndOfDay()
                     )
                 )
-                Log.d("Date Check State", filters.value.dateRange.toString())
             }
             DateFilterType.WEEK -> {
                 filters.value = filters.value.copy(
@@ -299,7 +322,6 @@ class MapViewModel @Inject constructor(
                         endDate = getEndOfWeek()
                     )
                 )
-                Log.d("Date Check State", filters.value.dateRange.toString())
             }
             else -> filters.value = filters.value.copy(
                 dateRange = DateFilterState(
@@ -343,13 +365,15 @@ class MapViewModel @Inject constructor(
 
     private fun searchForCity(city: CityCoordinates) {
         viewModelScope.launch {
-            val resultCityData = getPointByCityUseCase(city)
-            resultCityData?.let {
-                geoRepository.saveCity(it)
-                it.toUiState().cityCoordinates?.let { point ->
-                    cameraState.value = point.toDomain() to 11f
-                    _sideEffect.send(ScreenSideEffect.MoveCamera(point))
-                }
+            val resultCityData = CityData(
+                city = city,
+                latitude = city.cityCenter.latitude,
+                longitude = city.cityCenter.longitude
+            )
+            geoRepository.saveCity(resultCityData)
+            resultCityData.toUiState().cityCoordinates?.let { point ->
+                cameraState.value = point.toDomain() to 11f
+                _sideEffect.send(ScreenSideEffect.MoveCamera(point))
             }
         }
     }
@@ -357,12 +381,10 @@ class MapViewModel @Inject constructor(
     private suspend fun syncEvents() {
         isSyncLoading.value = true
         mapEventsRepository.syncWith().onSuccess {
-            Log.d("Sync", "Success")
             isSyncLoading.value = false
         }.onFailure { exception ->
             isSyncLoading.value = false
             _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
-            Log.d("SyncError", "${exception.message}")
         }
     }
 
@@ -373,7 +395,6 @@ class MapViewModel @Inject constructor(
         } else {
             currentCategories.add(category)
         }
-        Log.d("FilterList", filters.value.categories.toString())
         filters.value = filters.value.copy(categories = currentCategories)
     }
 

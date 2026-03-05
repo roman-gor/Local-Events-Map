@@ -1,12 +1,11 @@
 package com.gorman.map.search
 
+import android.util.Log
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.models.CityData
 import com.gorman.domainmodel.PointDomain
 import com.gorman.map.mapper.toYandex
-import com.yandex.mapkit.geometry.BoundingBox
 import com.yandex.mapkit.geometry.Geo
-import com.yandex.mapkit.geometry.Geometry
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.search.Address
 import com.yandex.mapkit.search.Response
@@ -46,7 +45,13 @@ class MapSearchManager @Inject constructor(
                         ?: geoObject?.address?.components
                             ?.firstOrNull { it.kinds.contains(Address.Component.Kind.AREA) }?.name
 
-                    val cityEnum = cityName?.let { CityCoordinates.fromCityName(it) }
+                    Log.d("CityName", cityName.orEmpty())
+
+                    var cityEnum = cityName?.let { CityCoordinates.fromCityName(it) }
+
+                    if (cityEnum == null) {
+                        cityEnum = findNearestCity(point)
+                    }
 
                     if (cityEnum != null) {
                         continuation.resume(
@@ -71,43 +76,10 @@ class MapSearchManager @Inject constructor(
         }
     }
 
-    override suspend fun getPointByCity(city: CityCoordinates) = suspendCancellableCoroutine { continuation ->
-        val searchOptions = SearchOptions().apply {
-            searchTypes = SearchType.GEO.value
-            resultPageSize = 1
-        }
-        val boundingBox = BoundingBox(
-            Point(49.0, 22.0),
-            Point(57.0, 33.0)
-        )
-        val searchSession = searchManager.submit(
-            city.cityName,
-            Geometry.fromBoundingBox(boundingBox),
-            searchOptions,
-            object : Session.SearchListener {
-                override fun onSearchResponse(response: Response) {
-                    val firstGeoObject = response.collection.children.firstOrNull()?.obj
-                    val point = firstGeoObject?.geometry?.first()?.point
-                    if (point != null) {
-                        continuation.resume(
-                            CityData(
-                                city = city,
-                                latitude = point.latitude,
-                                longitude = point.longitude
-                            )
-                        )
-                    } else {
-                        continuation.resume(null)
-                    }
-                }
-
-                override fun onSearchError(p0: Error) {
-                    continuation.resume(null)
-                }
-            }
-        )
-        continuation.invokeOnCancellation {
-            searchSession.cancel()
+    private fun findNearestCity(userPoint: PointDomain): CityCoordinates? {
+        return CityCoordinates.entries.minByOrNull { city ->
+            val cityLocation = Point(city.cityCenter.latitude, city.cityCenter.longitude)
+            Geo.distance(userPoint.toYandex(), cityLocation)
         }
     }
 }

@@ -12,6 +12,9 @@
     <string name="declinedPermissions">You have denied location access. Enter a city manually to view events.</string>
     <string name="requestPermissions">Location access is required to show events on the map and your current location. Please grant permission.</string>
     <string name="defaultPermissionsText">This app requires access to your location.</string>
+    <string name="preRequestPermissionExplanation">Location access is required to show events on the map and your current location. If you refuse permissions, you will be prompted to select a city manually.</string>
+    <string name="approve">Approve</string>
+    <string name="decline">Decline</string>
     <string name="labelCityText">E.g., Minsk</string>
     <string name="findCityEventsText">Find events</string>
     <string name="providePermissions">Grant permission</string>

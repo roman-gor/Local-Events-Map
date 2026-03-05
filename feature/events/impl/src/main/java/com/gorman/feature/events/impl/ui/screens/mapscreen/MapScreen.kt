@@ -29,7 +29,9 @@ import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.navigation.EventsNavDelegate
@@ -51,7 +53,8 @@ import com.gorman.map.ui.MapMarker
 import com.gorman.map.ui.rememberMapControl
 import com.gorman.navigation.navigator.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
-import com.gorman.ui.components.LoadingStub
+import com.gorman.ui.components.LoadingIndicator
+import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
@@ -65,20 +68,11 @@ fun MapScreenEntry(
 ) {
     val context = LocalContext.current
 
-    val permissionsState = rememberMultiplePermissionsState(
-        permissions =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            listOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.POST_NOTIFICATIONS
-            )
-        } else {
-            listOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        }
+    val locationPermissionsState = rememberMultiplePermissionsState(
+        permissions = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
     )
 
     val mapControl = rememberMapControl()
@@ -101,7 +95,7 @@ fun MapScreenEntry(
     }
 
     BindPermissionLogic(
-        permissionsState = permissionsState,
+        permissionsState = locationPermissionsState,
         onPermissionsGranted = { mapViewModel.onUiEvent(ScreenUiEvent.PermissionsGranted) }
     )
 
@@ -112,62 +106,29 @@ fun MapScreenEntry(
             text = stringResource(com.gorman.ui.R.string.errorDataLoading),
             onRetryClick = {}
         )
-        ScreenState.Loading -> LoadingStub()
-        is ScreenState.Success -> MapSuccessContent(
-            state = state,
-            permissionsState = permissionsState,
-            mapControl = mapControl,
-            onUiEvent = mapViewModel::onUiEvent,
-            modifier = modifier
-        )
-    }
-}
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-private fun MapSuccessContent(
-    state: ScreenState.Success,
-    permissionsState: MultiplePermissionsState,
-    mapControl: MapControl,
-    onUiEvent: (ScreenUiEvent) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val hasCoordinates = state.cityData.cityCoordinates != null
-
-    when {
-        permissionsState.allPermissionsGranted -> {
-            MapContent(
-                modifier = modifier,
-                uiState = state,
-                onUiEvent = onUiEvent,
-                mapControl = mapControl
-            )
-        }
-        permissionsState.shouldShowRationale -> {
+        ScreenState.Loading -> LoadingIndicator()
+        is ScreenState.CitySelection -> {
+            if (state.isLoading) {
+                LoadingIndicator()
+                return
+            }
             PermissionRequestScreen(
-                showManualInput = false,
-                onCitySubmit = { },
-                shouldShowRationale = true,
-                requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+                showManualInput = state.requiresManualInput,
+                shouldShowRationale = locationPermissionsState.shouldShowRationale,
+                requestPermissions = { locationPermissionsState.launchMultiplePermissionRequest() },
+                onDeclineClick = { mapViewModel.onUiEvent(ScreenUiEvent.PermissionDenied) },
+                onCitySubmit = { mapViewModel.onUiEvent(ScreenUiEvent.OnCitySearch(it)) },
+                isPreRequest = !state.requiresManualInput && !locationPermissionsState.shouldShowRationale
             )
         }
-        !hasCoordinates -> {
-            PermissionRequestScreen(
-                showManualInput = true,
-                onCitySubmit = { city ->
-                    onUiEvent(ScreenUiEvent.OnCitySearch(city))
-                },
-                shouldShowRationale = false,
-                requestPermissions = { permissionsState.launchMultiplePermissionRequest() }
-            )
-        }
-        else -> {
+        is ScreenState.Success -> {
             MapContent(
-                modifier = modifier,
                 uiState = state,
-                onUiEvent = onUiEvent,
-                mapControl = mapControl
+                mapControl = mapControl,
+                onUiEvent = mapViewModel::onUiEvent,
+                modifier = modifier
             )
+            RequestNotificationPermission()
         }
     }
 }
@@ -225,7 +186,6 @@ fun MapContent(
     )
 }
 
-@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
@@ -367,15 +327,23 @@ private fun BindPermissionLogic(
     onPermissionsGranted: () -> Unit
 ) {
     val onPermissionsGrantedState by rememberUpdatedState(onPermissionsGranted)
+
     LaunchedEffect(permissionsState.allPermissionsGranted) {
         if (permissionsState.allPermissionsGranted) {
             onPermissionsGrantedState()
         }
     }
+}
 
-    LaunchedEffect(Unit) {
-        if (!permissionsState.allPermissionsGranted && !permissionsState.shouldShowRationale) {
-            permissionsState.launchMultiplePermissionRequest()
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+private fun RequestNotificationPermission() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val notificationState = rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+        LaunchedEffect(Unit) {
+            if (!notificationState.status.isGranted) {
+                notificationState.launchPermissionRequest()
+            }
         }
     }
 }
