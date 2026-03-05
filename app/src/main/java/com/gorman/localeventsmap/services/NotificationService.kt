@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.gorman.cache.data.IPreferencesDataSource
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.localeventsmap.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +26,9 @@ class NotificationService : FirebaseMessagingService() {
 
     @Inject
     lateinit var userRepository: IUserRepository
+
+    @Inject
+    lateinit var preferencesDataSource: IPreferencesDataSource
 
     override fun onMessageReceived(message: RemoteMessage) {
         val data = message.data
@@ -75,11 +79,11 @@ class NotificationService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        userRepository.getUserData()
+        preferencesDataSource.currentUid
             .filterNotNull()
             .distinctUntilChanged()
-            .onEach { userData ->
-                userRepository.saveTokenToUser(userData.uid, token)
+            .onEach { uid ->
+                userRepository.saveTokenToUser(uid, token)
             }
             .launchIn(CoroutineScope(Dispatchers.IO))
 

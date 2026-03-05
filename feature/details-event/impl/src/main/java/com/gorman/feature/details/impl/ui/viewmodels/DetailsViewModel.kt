@@ -3,6 +3,7 @@ package com.gorman.feature.details.impl.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gorman.cache.data.IPreferencesDataSource
 import com.gorman.data.repository.bookmarks.IBookmarksRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.repository.user.IUserRepository
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -35,6 +37,7 @@ class DetailsViewModel @AssistedInject constructor(
     private val mapEventsRepository: IMapEventsRepository,
     private val bookmarksRepository: IBookmarksRepository,
     private val userRepository: IUserRepository,
+    private val preferencesDataSource: IPreferencesDataSource,
     @Assisted val navKey: DetailsScreenNavKey
 ) : ViewModel() {
 
@@ -51,7 +54,10 @@ class DetailsViewModel @AssistedInject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<DetailsScreenState> = retryTrigger
         .flatMapLatest {
-            userRepository.getUserData()
+            preferencesDataSource.currentUid
+                .flatMapLatest {
+                    userRepository.getUserData(it)
+                }
         }
         .flatMapLatest { user ->
             observeScreenState(user, _id)
@@ -101,8 +107,8 @@ class DetailsViewModel @AssistedInject constructor(
 
     private fun onFavouriteChange(id: String) {
         viewModelScope.launch {
-            userRepository.getUserData().collect {
-                it?.uid?.let { uid ->
+            preferencesDataSource.currentUid.collect {
+                it?.let { uid ->
                     bookmarksRepository.updateBookmark(uid, BookmarkData(id)).onFailure { e ->
                         Log.e("Details VM", "Error updating state of favourite: ${e.message}")
                     }

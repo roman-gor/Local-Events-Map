@@ -2,6 +2,7 @@ package com.gorman.feature.setup.impl.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gorman.cache.data.IPreferencesDataSource
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.feature.setup.impl.navigation.SetupNavDelegate
 import com.gorman.feature.setup.impl.states.SetupScreenState
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.stateIn
 @HiltViewModel(assistedFactory = LocalEventsMapViewModel.Factory::class)
 class LocalEventsMapViewModel @AssistedInject constructor(
     userRepository: IUserRepository,
+    preferencesDataSource: IPreferencesDataSource,
     @Assisted val navigator: SetupNavDelegate
 ) : ViewModel() {
 
@@ -37,10 +40,9 @@ class LocalEventsMapViewModel @AssistedInject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val state: StateFlow<SetupScreenState> = retryTrigger
         .flatMapLatest {
-            userRepository
-                .getUserData().map { it?.uid }
-                .map { id ->
-                    if (!id.isNullOrEmpty()) {
+            preferencesDataSource.currentUid
+                .map { currentUid ->
+                    if (!currentUid.isNullOrEmpty()) {
                         navigator.setHomeRoot()
                     } else {
                         navigator.setSignInRoot()

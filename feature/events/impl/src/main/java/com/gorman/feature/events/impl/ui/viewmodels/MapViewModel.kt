@@ -2,6 +2,7 @@ package com.gorman.feature.events.impl.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gorman.cache.data.IPreferencesDataSource
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
@@ -11,7 +12,6 @@ import com.gorman.common.models.FiltersState
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.repository.settings.IUserSettingsRepository
-import com.gorman.data.repository.user.IUserRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.events.impl.R
@@ -60,8 +60,8 @@ class MapViewModel @Inject constructor(
     private val mapManager: IMapManager,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
-    private val userRepository: IUserRepository,
     private val settingsRepository: IUserSettingsRepository,
+    private val preferencesDataSource: IPreferencesDataSource,
     private val getCityByPointUseCase: GetCityByPointUseCase,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
@@ -70,8 +70,7 @@ class MapViewModel @Inject constructor(
     val sideEffect = _sideEffect.receiveAsFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val filters = userRepository.getUserData()
-        .map { it?.uid }
+    private val filters = preferencesDataSource.currentUid
         .flatMapLatest { uid ->
             if (uid == null) {
                 flowOf(FiltersState())
@@ -246,7 +245,7 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCitySearch -> { searchForCity(event.city) }
             ScreenUiEvent.OnResetFilters -> {
                 viewModelScope.launch {
-                    val uid = userRepository.getUserData().firstOrNull()?.uid
+                    val uid = preferencesDataSource.currentUid.firstOrNull()
                     uid?.let { settingsRepository.updateFilters(uid, FiltersState()) }
                 }
             }
@@ -312,7 +311,7 @@ class MapViewModel @Inject constructor(
         viewModelScope.launch {
             val current = filters.value
             val newFilters = transform(current)
-            val uid = userRepository.getUserData().firstOrNull()?.uid
+            val uid = preferencesDataSource.currentUid.firstOrNull()
             uid?.let { settingsRepository.updateFilters(uid, newFilters) }
         }
     }
@@ -331,7 +330,7 @@ class MapViewModel @Inject constructor(
                         endDate = null
                     )
                 )
-                val uid = userRepository.getUserData().firstOrNull()?.uid
+                val uid = preferencesDataSource.currentUid.firstOrNull()
                 uid?.let { settingsRepository.updateFilters(uid, newFilters) }
                 return@launch
             }
@@ -371,7 +370,7 @@ class MapViewModel @Inject constructor(
                 }
             }
             val newFilters = currentFilters.copy(dateRange = newDateRange)
-            val uid = userRepository.getUserData().firstOrNull()?.uid
+            val uid = preferencesDataSource.currentUid.firstOrNull()
             uid?.let { settingsRepository.updateFilters(uid, newFilters) }
         }
     }
@@ -439,7 +438,7 @@ class MapViewModel @Inject constructor(
             } else {
                 currentCategories.add(category)
             }
-            val uid = userRepository.getUserData().firstOrNull()?.uid
+            val uid = preferencesDataSource.currentUid.firstOrNull()
             uid?.let {
                 settingsRepository.updateFilters(uid, filters.value.copy(categories = currentCategories))
             }

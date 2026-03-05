@@ -3,6 +3,7 @@ package com.gorman.feature.bookmarks.impl.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gorman.cache.data.IPreferencesDataSource
 import com.gorman.data.repository.bookmarks.IBookmarksRepository
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.domainmodel.BookmarkData
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
@@ -35,6 +37,7 @@ class BookmarksViewModel @AssistedInject constructor(
     private val userRepository: IUserRepository,
     private val bookmarksRepository: IBookmarksRepository,
     private val signOutUserUseCase: SignOutUserUseCase,
+    private val preferencesDataSource: IPreferencesDataSource,
     @Assisted val navigator: BookmarksNavDelegate
 ) : ViewModel() {
 
@@ -50,7 +53,10 @@ class BookmarksViewModel @AssistedInject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<BookmarksScreenState> = retryTrigger
         .flatMapLatest {
-            userRepository.getUserData()
+            preferencesDataSource.currentUid
+                .flatMapLatest {
+                    userRepository.getUserData(it)
+                }
         }
         .flatMapLatest { user ->
             if (user == null) {

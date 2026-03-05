@@ -2,10 +2,10 @@ package com.gorman.data.repository.geo
 
 import android.Manifest
 import androidx.annotation.RequiresPermission
+import com.gorman.cache.data.IPreferencesDataSource
 import com.gorman.common.data.LocationProvider
 import com.gorman.common.models.CityData
 import com.gorman.data.repository.settings.IUserSettingsRepository
-import com.gorman.data.repository.user.IUserRepository
 import com.gorman.domainmodel.PointDomain
 import com.gorman.map.search.IMapSearchManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,7 +18,7 @@ import javax.inject.Inject
 internal class GeoRepository @Inject constructor(
     private val locationProvider: LocationProvider,
     private val mapSearchManager: IMapSearchManager,
-    private val userRepository: IUserRepository,
+    private val preferencesDataSource: IPreferencesDataSource,
     private val settingsRepository: IUserSettingsRepository
 ) : IGeoRepository {
 
@@ -36,15 +36,15 @@ internal class GeoRepository @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getSavedCity(): Flow<CityData?> =
-        userRepository.getUserData()
-            .flatMapLatest { userData ->
-                userData?.uid?.let { uid ->
-                    settingsRepository.getCityDataByUserId(uid)
+        preferencesDataSource.currentUid
+            .flatMapLatest { uid ->
+                uid?.let {
+                    settingsRepository.getCityDataByUserId(it)
                 } ?: flowOf(null)
             }
 
     override suspend fun saveCity(cityData: CityData) {
-        val uid = userRepository.getUserData().firstOrNull()?.uid
+        val uid = preferencesDataSource.currentUid.firstOrNull()
         uid?.let { settingsRepository.updateCity(userId = uid, city = cityData) }
     }
 }

@@ -29,12 +29,8 @@ internal class UserRepository @Inject constructor(
         } ?: error(DomainException.Auth.UserNotFoundOnServer())
     }
 
-    override suspend fun clearUserData() {
-        userDataDao.clearAll()
-    }
-
-    override fun getUserData(): Flow<UserData?> =
-        userDataDao.getUser().map { it?.toDomain() }
+    override fun getUserData(uid: String?): Flow<UserData?> =
+        userDataDao.getUser(uid).map { it?.toDomain() }
 
     override suspend fun saveUser(userData: UserData): Result<Unit> {
         return userRemoteDataSource.saveUserToRemote(userData.toRemote())
