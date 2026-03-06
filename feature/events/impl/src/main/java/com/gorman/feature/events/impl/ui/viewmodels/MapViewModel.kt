@@ -271,7 +271,7 @@ class MapViewModel @Inject constructor(
                 fetchInitialLocation()
                 syncEvents()
             } else {
-                fetchInitialLocation(forceRefetch = true)
+                fetchInitialLocation()
             }
             permissionState.value = permissionState.value.copy(isLoading = false)
         }
@@ -294,8 +294,8 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchInitialLocation(forceRefetch: Boolean = false) {
-        if (!forceRefetch && (isInitialLocationFetched || cameraState.value != null)) return
+    private suspend fun fetchInitialLocation() {
+        if (isInitialLocationFetched || cameraState.value != null) return
 
         isInitialLocationFetched = true
         geoRepository.getUserLocation().onSuccess { location ->
