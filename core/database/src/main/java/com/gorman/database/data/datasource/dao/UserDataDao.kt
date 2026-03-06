@@ -13,16 +13,21 @@ interface UserDataDao {
     fun getUser(): Flow<UserDataEntity?>
 
     @Upsert
-    suspend fun saveUser(userDataEntity: UserDataEntity)
+    suspend fun updateUser(userDataEntity: UserDataEntity)
+
+    @Query(
+        """
+        UPDATE users 
+        SET isActive = (CASE WHEN uid = :newUid THEN 1 ELSE 0 END)
+    """
+    )
+    suspend fun setActiveUserAtomic(newUid: String)
 
     @Transaction
-    suspend fun setActiveUser(newUid: String) {
-        setAllUsersInactive()
-        setUserIsActive(newUid)
+    suspend fun saveUser(newUid: String, userDataEntity: UserDataEntity) {
+        updateUser(userDataEntity)
+        setActiveUserAtomic(newUid)
     }
-
-    @Query("UPDATE users SET isActive = 1 WHERE uid = :uid")
-    suspend fun setUserIsActive(uid: String)
 
     @Query("UPDATE users SET isActive = 0")
     suspend fun setAllUsersInactive()

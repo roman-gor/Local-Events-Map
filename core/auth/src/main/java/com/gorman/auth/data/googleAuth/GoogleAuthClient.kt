@@ -5,7 +5,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.gorman.common.models.DomainException
+import com.gorman.common.models.UnexpectedCredentialError
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -23,7 +23,7 @@ internal class GoogleAuthClient @Inject constructor(
         if (credential !is CustomCredential || credential.type !=
             GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
         ) {
-            error(DomainException.Auth.UnexpectedCredential())
+            error(UnexpectedCredentialError("Unexpected credentials"))
         }
         val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
         googleCredential.idToken

@@ -5,7 +5,7 @@ import android.util.Log
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.gorman.common.models.DomainException
+import com.gorman.common.models.LocationNotDefined
 import com.gorman.domainmodel.PointDomain
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
@@ -41,7 +41,7 @@ class LocationProvider @Inject constructor(
         return if (point != null) {
             Result.success(point)
         } else {
-            Result.failure(DomainException.Data.LocationNull())
+            Result.failure(LocationNotDefined("Location was not defined"))
         }
     }
 }

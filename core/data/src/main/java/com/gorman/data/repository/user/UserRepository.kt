@@ -1,9 +1,7 @@
 package com.gorman.data.repository.user
 
 import android.util.Log
-import androidx.room.withTransaction
-import com.gorman.common.models.DomainException
-import com.gorman.database.data.datasource.LocalEventsDatabase
+import com.gorman.common.models.UserNotFoundError
 import com.gorman.database.data.datasource.dao.UserDataDao
 import com.gorman.database.mappers.toDomain
 import com.gorman.database.mappers.toEntity
@@ -20,19 +18,15 @@ import javax.inject.Inject
 internal class UserRepository @Inject constructor(
     private val userRemoteDataSource: IUserRemoteDataSource,
     private val notificationTokenDataSource: INotificationTokenDataSource,
-    private val userDataDao: UserDataDao,
-    private val db: LocalEventsDatabase
+    private val userDataDao: UserDataDao
 ) : IUserRepository {
 
     override suspend fun refreshUserData(uid: String): Result<Unit> = runCatching {
         val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()
         remoteUser?.let {
-            db.withTransaction {
-                userDataDao.saveUser(it.toDomain().toEntity())
-                userDataDao.setActiveUser(it.uid)
-            }
+            userDataDao.saveUser(it.uid, it.toDomain().toEntity())
             Log.d("UserRepository", "User synced from remote to local DB")
-        } ?: error(DomainException.Auth.UserNotFoundOnServer())
+        } ?: error(UserNotFoundError("User was not found on server"))
     }
 
     override fun getUserData(): Flow<UserData?> = userDataDao.getUser().map { it?.toDomain() }
@@ -42,10 +36,7 @@ internal class UserRepository @Inject constructor(
     override suspend fun saveUser(userData: UserData): Result<Unit> {
         return userRemoteDataSource.saveUserToRemote(userData.toRemote())
             .map {
-                db.withTransaction {
-                    userDataDao.saveUser(userData.toEntity())
-                    userDataDao.setActiveUser(userData.uid)
-                }
+                userDataDao.saveUser(userData.uid, userData.toEntity())
             }
             .onFailure { Log.e("UserRepository", "Remote save failed", it) }
     }
