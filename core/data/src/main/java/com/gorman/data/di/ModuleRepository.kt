@@ -1,0 +1,64 @@
+package com.gorman.data.di
+
+import com.gorman.data.repository.auth.AuthRepository
+import com.gorman.data.repository.auth.IAuthRepository
+import com.gorman.data.repository.bookmarks.BookmarksRepository
+import com.gorman.data.repository.bookmarks.IBookmarksRepository
+import com.gorman.data.repository.geo.GeoRepository
+import com.gorman.data.repository.geo.IGeoRepository
+import com.gorman.data.repository.mapevents.IMapEventsRepository
+import com.gorman.data.repository.mapevents.MapEventsRepository
+import com.gorman.data.repository.settings.IUserSettingsRepository
+import com.gorman.data.repository.settings.UserSettingsRepository
+import com.gorman.data.repository.user.IUserRepository
+import com.gorman.data.repository.user.UserRepository
+import com.yandex.mapkit.search.SearchFactory
+import com.yandex.mapkit.search.SearchManager
+import com.yandex.mapkit.search.SearchManagerType
+import dagger.Binds
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import javax.inject.Qualifier
+
+@Module
+@InstallIn(SingletonComponent::class)
+internal interface ModuleRepository {
+    @Binds
+    fun bindMapEventRepository(impl: MapEventsRepository): IMapEventsRepository
+
+    @Binds
+    fun bindGeoRepository(impl: GeoRepository): IGeoRepository
+
+    @Binds
+    fun bindUserRepository(impl: UserRepository): IUserRepository
+
+    @Binds
+    fun bindAuthRepository(impl: AuthRepository): IAuthRepository
+
+    @Binds
+    fun bindBookmarkRepository(impl: BookmarksRepository): IBookmarksRepository
+
+    @Binds
+    fun bindSettingsRepository(impl: UserSettingsRepository): IUserSettingsRepository
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object SearchManagerModule {
+    @Provides
+    fun provideSearchManager(): SearchManager =
+        SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
+
+    @Provides
+    @BookmarksRepositoryScope
+    fun provideExternalScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+}
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+internal annotation class BookmarksRepositoryScope

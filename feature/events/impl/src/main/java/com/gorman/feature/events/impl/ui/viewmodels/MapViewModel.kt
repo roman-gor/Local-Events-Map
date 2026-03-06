@@ -1,0 +1,463 @@
+package com.gorman.feature.events.impl.ui.viewmodels
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gorman.common.constants.CityCoordinates
+import com.gorman.common.data.NetworkConnectivityObserver
+import com.gorman.common.models.CityData
+import com.gorman.common.models.DateFilterState
+import com.gorman.common.models.DateFilterType
+import com.gorman.common.models.FiltersState
+import com.gorman.data.repository.geo.IGeoRepository
+import com.gorman.data.repository.mapevents.IMapEventsRepository
+import com.gorman.data.repository.settings.IUserSettingsRepository
+import com.gorman.data.repository.user.IUserRepository
+import com.gorman.domainmodel.MapEvent
+import com.gorman.domainmodel.PointDomain
+import com.gorman.feature.events.impl.R
+import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
+import com.gorman.feature.events.impl.ui.mappers.toDomain
+import com.gorman.feature.events.impl.ui.mappers.toUiState
+import com.gorman.feature.events.impl.ui.states.DataStatus
+import com.gorman.feature.events.impl.ui.states.PointUiState
+import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
+import com.gorman.feature.events.impl.ui.states.ScreenState
+import com.gorman.feature.events.impl.ui.states.ScreenUiEvent
+import com.gorman.map.mapmanager.IMapManager
+import com.gorman.map.ui.MapMarker
+import com.gorman.ui.mappers.toUiState
+import com.gorman.ui.states.MapUiEvent
+import com.gorman.ui.utils.getEndOfDay
+import com.gorman.ui.utils.getEndOfWeek
+import com.gorman.ui.utils.getStartOfDay
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import kotlin.collections.filter
+import kotlin.collections.toMutableList
+import kotlin.ranges.contains
+
+@Suppress("TooManyFunctions")
+@HiltViewModel
+class MapViewModel @Inject constructor(
+    private val mapManager: IMapManager,
+    private val mapEventsRepository: IMapEventsRepository,
+    private val geoRepository: IGeoRepository,
+    private val userRepository: IUserRepository,
+    private val settingsRepository: IUserSettingsRepository,
+    private val getCityByPointUseCase: GetCityByPointUseCase,
+    networkObserver: NetworkConnectivityObserver
+) : ViewModel() {
+
+    private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
+    val sideEffect = _sideEffect.receiveAsFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val filters = userRepository.getUserData()
+        .map { it?.uid }
+        .flatMapLatest { uid ->
+            if (uid == null) {
+                flowOf(FiltersState())
+            } else {
+                settingsRepository.getFiltersByUserId(uid)
+                    .map { it ?: FiltersState() }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = FiltersState()
+        )
+
+    private val selectedEventId = MutableStateFlow<String?>(null)
+    private var isInitialLocationFetched = false
+    private var cameraMoveJob: Job? = null
+    private val cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
+    private val isSyncLoading = MutableStateFlow<Boolean?>(null)
+    private var isInitialized = false
+    private val cameraState = MutableStateFlow<Pair<PointDomain, Float>?>(null)
+
+    private data class UserInputState(
+        val filters: FiltersState,
+        val cityData: CityData,
+        val selectedEventId: String?,
+        val isSyncLoading: Boolean?,
+        val permissionState: PermissionState
+    )
+
+    private data class PermissionState(
+        val isPermissionDeclined: Boolean,
+        val isLoading: Boolean
+    )
+    private val permissionState = MutableStateFlow(
+        PermissionState(
+            isPermissionDeclined = false,
+            isLoading = false
+        )
+    )
+
+    private val isNetworkAvailable = networkObserver.observe()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    private val userInputs = combine(
+        filters,
+        cityData,
+        selectedEventId,
+        isSyncLoading,
+        permissionState
+    ) { filters, cityData, selectedEventId, isSyncLoading, permissionState ->
+        UserInputState(filters, cityData, selectedEventId, isSyncLoading, permissionState)
+    }
+
+    private val isOutdated = mapEventsRepository.isOutdated()
+
+    val uiState: StateFlow<ScreenState> = combine(
+        mapEventsRepository.getAllEvents(),
+        userInputs,
+        isNetworkAvailable,
+        isOutdated,
+        cameraState
+    ) { events, inputs, hasInternet, isOutdated, cameraState ->
+        val (filters, cityData, selectedEventId, isSyncLoading, isPermissionDeclined) = inputs
+        if (cityData.cityName == null || cityData.city == null) {
+            return@combine ScreenState.CitySelection(
+                requiresManualInput = permissionState.value.isPermissionDeclined,
+                isLoading = permissionState.value.isLoading
+            )
+        }
+
+        val filteredEvents = filterEvents(events, filters, cityData, selectedEventId).toImmutableList()
+
+        val status = when {
+            !hasInternet -> DataStatus.OFFLINE
+            isOutdated -> DataStatus.OUTDATED
+            else -> DataStatus.FRESH
+        }
+
+        val mapMarkers = filteredEvents.mapNotNull { event ->
+            val coordinates = event.coordinates?.split(",")
+            if (coordinates != null && coordinates.size >= 2) {
+                MapMarker(
+                    id = event.id,
+                    latitude = coordinates[0].trim().toDouble(),
+                    longitude = coordinates[1].trim().toDouble(),
+                    isSelected = event.isSelected,
+                    iconRes = R.drawable.ic_marker,
+                    selectedIconRes = R.drawable.ic_marker_selected
+                )
+            } else {
+                null
+            }
+        }.toImmutableList()
+
+        ScreenState.Success(
+            eventsList = filteredEvents,
+            filterState = filters,
+            selectedMapEventId = selectedEventId,
+            cityData = cityData.toUiState(),
+            dataStatus = status,
+            isSyncLoading = isSyncLoading,
+            mapMarkers = mapMarkers,
+            initialCameraPosition = cameraState?.let { it.first.toUiState() to it.second } ?: (null to null)
+        ) as ScreenState
+    }.catch { e ->
+        emit(ScreenState.Error(e))
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ScreenState.Loading
+    )
+
+    private fun filterEvents(
+        events: List<MapEvent>,
+        filters: FiltersState,
+        cityData: CityData,
+        selectedEventId: String?
+    ): List<MapUiEvent> {
+        return events.filter { event ->
+            event.filter(filters, cityData)
+        }.map { domainEvent ->
+            domainEvent.toUiState().copy(isSelected = domainEvent.id == selectedEventId)
+        }
+    }
+
+    private fun MapEvent.filter(
+        filters: FiltersState,
+        cityData: CityData
+    ): Boolean {
+        val matchesCity = cityData.cityName?.let {
+            it.isBlank() || this.city.equals(it, ignoreCase = true)
+        } ?: true
+
+        val matchesCategory = filters.categories.isEmpty() || this.category in filters.categories
+
+        val matchesDate = if (filters.dateRange.startDate != null && filters.dateRange.endDate != null) {
+            this.date in filters.dateRange.startDate!!..filters.dateRange.endDate!!
+        } else {
+            true
+        }
+
+        val matchesName = this.name?.lowercase()?.contains(filters.name.lowercase()) ?: true
+
+        val matchesDistance = if (filters.distance != null) {
+            val userPoint = cityData.toUiState().cityCoordinates
+            val dist = checkDistanceBetween(this.toUiState(), userPoint?.toDomain())
+            dist?.let { it <= filters.distance!! } ?: true
+        } else {
+            true
+        }
+
+        val matchesIsFree = if (filters.isFree) this.price == 0 else true
+
+        return matchesCity && matchesCategory && matchesDate && matchesName && matchesDistance && matchesIsFree
+    }
+
+    fun onUiEvent(event: ScreenUiEvent) {
+        when (event) {
+            ScreenUiEvent.OnStart -> mapManager.onStart()
+            ScreenUiEvent.OnStop -> mapManager.onStop()
+            is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point, event.zoom)
+            is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
+            is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
+            is ScreenUiEvent.OnNameChanged -> updateFilters { it.copy(name = event.name) }
+            is ScreenUiEvent.OnCostChanged -> updateFilters { it.copy(isFree = event.isFree) }
+            is ScreenUiEvent.OnDistanceChanged -> updateFilters { it.copy(distance = event.distance) }
+            is ScreenUiEvent.OnCitySearch -> { searchForCity(event.city) }
+            ScreenUiEvent.OnResetFilters -> {
+                viewModelScope.launch {
+                    val uid = userRepository.getUserData().firstOrNull()?.uid
+                    uid?.let { settingsRepository.updateFilters(uid, FiltersState()) }
+                }
+            }
+            is ScreenUiEvent.OnEventSelected -> { viewModelScope.launch { onEventSelected(event.id) } }
+            ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
+            ScreenUiEvent.PermissionsGranted -> { onPermissionsGranted() }
+            ScreenUiEvent.PermissionDenied -> {
+                permissionState.value = permissionState.value.copy(isPermissionDeclined = true, isLoading = false)
+            }
+            ScreenUiEvent.OnMapClick -> { selectedEventId.value = null }
+        }
+    }
+
+    private fun onPermissionsGranted() {
+        viewModelScope.launch {
+            permissionState.value = permissionState.value.copy(
+                isPermissionDeclined = false,
+                isLoading = true
+            )
+            if (!isInitialized) {
+                isInitialized = true
+                fetchInitialLocation()
+                syncEvents()
+            } else {
+                fetchInitialLocation(forceRefetch = true)
+            }
+            permissionState.value = permissionState.value.copy(isLoading = false)
+        }
+    }
+
+    private suspend fun onEventSelected(id: String) {
+        val currentId = selectedEventId.value
+        if (currentId != id) {
+            selectedEventId.value = id
+            val events = (uiState.value as ScreenState.Success).eventsList
+            val eventObj = events.find { it.id == id }
+            val coords = eventObj?.coordinates?.split(",")
+            if (coords != null && coords.size >= 2) {
+                val point = PointDomain(coords[0].trim().toDouble(), coords[1].trim().toDouble())
+                cameraState.value = point to 15f
+                _sideEffect.send(ScreenSideEffect.MoveCamera(point.toUiState(), 15f))
+            }
+        } else {
+            selectedEventId.value = null
+        }
+    }
+
+    private suspend fun fetchInitialLocation(forceRefetch: Boolean = false) {
+        if (!forceRefetch && (isInitialLocationFetched || cameraState.value != null)) return
+
+        isInitialLocationFetched = true
+        geoRepository.getUserLocation().onSuccess { location ->
+            val userCityData = getCityByPointUseCase(location)
+
+            userCityData?.let { geoRepository.saveCity(it) }
+            _sideEffect.send(ScreenSideEffect.MoveCamera(location.toUiState()))
+        }.onFailure {
+            searchForCity(CityCoordinates.MINSK)
+        }
+    }
+
+    private fun updateFilters(transform: (FiltersState) -> FiltersState) {
+        viewModelScope.launch {
+            val current = filters.value
+            val newFilters = transform(current)
+            val uid = userRepository.getUserData().firstOrNull()?.uid
+            uid?.let { settingsRepository.updateFilters(uid, newFilters) }
+        }
+    }
+
+    private fun filterDateChanged(dateState: DateFilterState) {
+        viewModelScope.launch {
+            val currentFilters = filters.value
+            val currentType = filters.value.dateRange.type
+            val newType = dateState.type
+
+            if (currentType == newType && newType != DateFilterType.RANGE) {
+                val newFilters = currentFilters.copy(
+                    dateRange = DateFilterState(
+                        type = null,
+                        startDate = null,
+                        endDate = null
+                    )
+                )
+                val uid = userRepository.getUserData().firstOrNull()?.uid
+                uid?.let { settingsRepository.updateFilters(uid, newFilters) }
+                return@launch
+            }
+
+            if (newType == DateFilterType.RANGE && dateState.startDate == null) {
+                return@launch
+            }
+
+            val newDateRange = when (dateState.type) {
+                DateFilterType.RANGE -> {
+                    DateFilterState(
+                        type = DateFilterType.RANGE,
+                        startDate = dateState.startDate,
+                        endDate = dateState.endDate
+                    )
+                }
+                DateFilterType.TODAY -> {
+                    DateFilterState(
+                        type = DateFilterType.TODAY,
+                        startDate = getStartOfDay(),
+                        endDate = getEndOfDay()
+                    )
+                }
+                DateFilterType.WEEK -> {
+                    DateFilterState(
+                        type = DateFilterType.WEEK,
+                        startDate = getStartOfDay(),
+                        endDate = getEndOfWeek()
+                    )
+                }
+                else -> {
+                    DateFilterState(
+                        type = null,
+                        startDate = null,
+                        endDate = null
+                    )
+                }
+            }
+            val newFilters = currentFilters.copy(dateRange = newDateRange)
+            val uid = userRepository.getUserData().firstOrNull()?.uid
+            uid?.let { settingsRepository.updateFilters(uid, newFilters) }
+        }
+    }
+
+    private fun checkDistanceBetween(event: MapUiEvent, userLocation: PointDomain?): Int? {
+        val eventLocation = event.coordinates?.let { coordinates ->
+            val coordinatesList = coordinates.split(",")
+            if (coordinatesList.size >= 2) {
+                PointDomain(coordinatesList[0].toDouble(), coordinatesList[1].toDouble())
+            } else {
+                null
+            }
+        }
+
+        return if (userLocation != null && eventLocation != null) {
+            geoRepository.getDistanceFromPoints(userLocation, eventLocation)
+        } else {
+            null
+        }
+    }
+
+    private fun onCameraIdle(cameraPosition: PointUiState, zoom: Float) {
+        cameraState.value = cameraPosition.toDomain() to zoom
+
+        cameraMoveJob?.cancel()
+        cameraMoveJob = viewModelScope.launch {
+            delay(100L)
+            val resultCityData = getCityByPointUseCase(cameraPosition.toDomain())
+            resultCityData?.let {
+                updateCityIfChanged(it)
+            }
+        }
+    }
+
+    private fun searchForCity(city: CityCoordinates) {
+        viewModelScope.launch {
+            val resultCityData = CityData(
+                city = city,
+                latitude = city.cityCenter.latitude,
+                longitude = city.cityCenter.longitude
+            )
+            geoRepository.saveCity(resultCityData)
+            resultCityData.toUiState().cityCoordinates?.let { point ->
+                cameraState.value = point.toDomain() to 11f
+                _sideEffect.send(ScreenSideEffect.MoveCamera(point))
+            }
+        }
+    }
+
+    private suspend fun syncEvents() {
+        isSyncLoading.value = true
+        mapEventsRepository.syncWith().onSuccess {
+            isSyncLoading.value = false
+        }.onFailure { exception ->
+            isSyncLoading.value = false
+            _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
+        }
+    }
+
+    private fun onCategoryChanged(category: String) {
+        viewModelScope.launch {
+            val currentCategories = filters.value.categories.toMutableList()
+            if (currentCategories.contains(category)) {
+                currentCategories.remove(category)
+            } else {
+                currentCategories.add(category)
+            }
+            val uid = userRepository.getUserData().firstOrNull()?.uid
+            uid?.let {
+                settingsRepository.updateFilters(uid, filters.value.copy(categories = currentCategories))
+            }
+        }
+    }
+
+    private fun updateCityIfChanged(newData: CityData) {
+        val currentState = uiState.value
+
+        if (currentState !is ScreenState.Success) return
+
+        val currentName = currentState.cityData.cityName
+        val newName = newData.cityName
+
+        if (currentName != newName && newName != null) {
+            viewModelScope.launch {
+                geoRepository.saveCity(newData)
+            }
+        }
+    }
+}

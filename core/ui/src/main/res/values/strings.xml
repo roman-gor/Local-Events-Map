@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="minsk">Минск</string>
+    <string name="grodno">Гродно</string>
+    <string name="vitebsk">Витебск</string>
+    <string name="gomel">Гомель</string>
+    <string name="brest">Брест</string>
+    <string name="mogilev">Могилев</string>
+    <string name="cityPlaceholder">Твой Город</string>
+    <string name="music">Музыка</string>
+    <string name="sport">Спорт</string>
+    <string name="education">Образование</string>
+    <string name="art">Искусство</string>
+    <string name="food">Еда</string>
+    <string name="cinema">Кино</string>
+    <string name="categoryPlaceholder">Афиша</string>
+    <string name="errorDataLoading">Ошибка при загрузке данных</string>
+    <string name="tryAgain">Повторить загрузку</string>
+</resources>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="appName">Local Events Map</string>
+    <string name="NetworkError">Couldn\'t update data: check your network connection</string>
+    <string name="DefaultError">Synchronization data error</string>
+    <string name="successSync">Data synchronized</string>
+    <string name="errorSync">Data synchronized failed</string>
+</resources>

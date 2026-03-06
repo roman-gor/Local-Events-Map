@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="errorDataLoading">We couldn\'t load your data. Please try restarting the app or contact support</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="linkOpenError">Couldn\'t open the link</string>
+    <string name="mapsAppError">Maps app wasn\'t found</string>
+    <string name="errorDataLoading">Error when data loading</string>
+    <string name="calendarOpenError">Couldn\'t create reminder</string>
+    <string name="eventNotFound">The event not found</string>
+    <string name="noNetwork">Network is unavailable</string>
+    <string name="event">Event</string>
+    <string name="free">FOR FREE</string>
+    <string name="aboutEventText">About this event:</string>
+    <string name="learnMore">Learn More</string>
+</resources>

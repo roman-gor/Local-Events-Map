@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "275529617174",
+    "firebase_url": "https://localeventsmap-394fb-default-rtdb.firebaseio.com",
     "project_id": "localeventsmap-394fb",
     "storage_bucket": "localeventsmap-394fb.firebasestorage.app"
   },
@@ -12,7 +13,28 @@
           "package_name": "com.gorman.localeventsmap"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "275529617174-5bv4emqb4ri339ha9uti91k8l8uhjl1o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gorman.localeventsmap",
+            "certificate_hash": "a2b4e09ae9971d12a5b25bbeb0ad999bc7a04590"
+          }
+        },
+        {
+          "client_id": "275529617174-fjhenhh2vr3j46kkft31e7poaapdvlh4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gorman.localeventsmap",
+            "certificate_hash": "b4db3e67d885e767b3ab3637405da7eb1f8eef69"
+          }
+        },
+        {
+          "client_id": "275529617174-j0bvdludnqh4chopvr9pm5s3ioipvc5i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDv9Ae_E27fPUyn3WgmRaAPi7lqmIYQnX8"
@@ -20,7 +42,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "275529617174-j0bvdludnqh4chopvr9pm5s3ioipvc5i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
