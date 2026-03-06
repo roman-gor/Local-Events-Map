@@ -2,6 +2,7 @@ package com.gorman.feature.events.impl.ui.states
 
 import androidx.compose.runtime.Immutable
 import com.gorman.common.constants.CityCoordinates
+import com.gorman.common.models.FilterActions
 import com.gorman.ui.states.MapUiEvent
 
 @Immutable

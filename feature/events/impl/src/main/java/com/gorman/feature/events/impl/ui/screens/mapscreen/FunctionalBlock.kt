@@ -1,6 +1,5 @@
 package com.gorman.feature.events.impl.ui.screens.mapscreen
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -27,17 +26,17 @@ import com.gorman.ui.states.MapUiEvent
 import com.gorman.ui.theme.LocalEventsMapTheme
 import com.gorman.ui.utils.getBottomBarPadding
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun BoxScope.FunctionalBlock(
-    mapScreenData: MapScreenData
+    mapScreenData: MapScreenData,
+    modifier: Modifier = Modifier
 ) {
     FunctionalButton(
         onClick = { mapScreenData.mapScreenActions.onSyncClick() },
         iconSize = 32.dp,
         imageVector = Icons.Outlined.Refresh,
         isLoading = mapScreenData.isSyncLoading,
-        modifier = Modifier
+        modifier = modifier
             .padding(
                 end = LocalEventsMapTheme.dimens.paddingExtraLarge,
                 bottom = getBottomBarPadding()
@@ -71,7 +70,7 @@ fun BoxScope.FunctionalBlock(
             FunctionalButton(
                 onClick = { mapScreenData.onFiltersExpanded() },
                 iconSize = 32.dp,
-                painter = painterResource(R.drawable.filter_alt),
+                painter = painterResource(R.drawable.ic_filter),
                 modifier = Modifier.size(48.dp)
             )
         }

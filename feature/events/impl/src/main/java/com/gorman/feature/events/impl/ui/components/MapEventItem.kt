@@ -1,13 +1,11 @@
 package com.gorman.feature.events.impl.ui.components
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -23,11 +21,11 @@ import com.gorman.ui.theme.LocalEventsMapTheme
 import com.gorman.ui.utils.DateFormatStyle
 import com.gorman.ui.utils.format
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun MapEventItem(
     mapEvent: MapUiEvent,
-    onEventClick: (MapUiEvent) -> Unit
+    onEventClick: (MapUiEvent) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val date = mapEvent.date?.format(DateFormatStyle.DATE_ONLY)
     val containerColor = if (mapEvent.isSelected) { MaterialTheme.colorScheme.primary } else {
@@ -37,9 +35,8 @@ fun MapEventItem(
         MaterialTheme.colorScheme.onSurface
     }
     Row(
-        modifier = Modifier.fillMaxWidth().background(
-            color = containerColor
-        )
+        modifier = modifier
+            .background(color = containerColor)
             .clickable(onClick = { onEventClick(mapEvent) }),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically

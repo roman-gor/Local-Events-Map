@@ -1,6 +1,5 @@
 package com.gorman.network.data.datasource.users
 
-import com.google.firebase.FirebaseException
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -14,7 +13,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class UserRemoteDataSourceImpl @Inject constructor(
+internal class UserRemoteDataSourceImpl @Inject constructor(
     databaseReference: DatabaseReference
 ) : IUserRemoteDataSource {
     private val database = databaseReference.child(FirebaseConstants.USERS_PATH.value)
@@ -32,24 +31,18 @@ class UserRemoteDataSourceImpl @Inject constructor(
         awaitClose { removeEventListener(eventListener) }
     }
 
-    override suspend fun saveUserToRemote(user: UserDataRemote): Result<Unit> {
-        return try {
-            val uuid = user.uid
-            database.child(uuid).setValue(user).await()
-            Result.success(Unit)
-        } catch (e: FirebaseException) {
-            Result.failure(e)
-        }
+    override suspend fun saveUserToRemote(user: UserDataRemote): Result<Unit> = runCatching {
+        val uuid = user.uid
+        database.child(uuid).setValue(user).await()
     }
 
-    override fun getUserFromRemote(uid: String): Flow<UserDataRemote?> {
-        return database
+    override fun getUserFromRemote(uid: String): Flow<UserDataRemote?> =
+        database
             .child(uid)
             .snapshotsFlow()
             .map { snapshot ->
                 snapshot.getValue(UserDataRemote::class.java)
             }
-    }
 
     override suspend fun saveTokenToUser(uid: String, token: String): Result<Unit> = runCatching {
         database

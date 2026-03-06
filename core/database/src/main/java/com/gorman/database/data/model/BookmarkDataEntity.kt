@@ -1,9 +1,23 @@
 package com.gorman.database.data.model
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.ForeignKey
+import androidx.room.Index
 
-@Entity("bookmarks")
+@Entity(
+    tableName = "bookmarks",
+    primaryKeys = ["favoriteEventId", "userId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = UserDataEntity::class,
+            parentColumns = ["uid"],
+            childColumns = ["userId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index(value = ["userId"])]
+)
 data class BookmarkDataEntity(
-    @PrimaryKey val favoriteEventId: String = ""
+    val favoriteEventId: String = "",
+    val userId: String = ""
 )

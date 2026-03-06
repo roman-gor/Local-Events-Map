@@ -81,7 +81,7 @@ class BookmarksViewModel @AssistedInject constructor(
                 viewModelScope.launch {
                     val uid = (uiState.value as BookmarksScreenState.Success).userUiState.uid
                     bookmarksRepository
-                        .updateBookmark(uid, BookmarkData(event.eventId))
+                        .updateBookmark(uid, BookmarkData(event.eventId, uid))
                         .onFailure { e ->
                             Log.e("Bookmark Toggle", "Error toggle in remote: ${e.message}")
                         }

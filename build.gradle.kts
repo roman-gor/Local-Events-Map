@@ -58,9 +58,24 @@ fun getYandexApiKey(): String {
     properties.load(localPropertiesFile.inputStream())
     val key = properties.getProperty("YANDEX_KEY")
     if (key.isNullOrEmpty()) {
-        error("YANDEX_KEY was not found in local.properties. Check \${layout.projectDirectory.file(\"README.md\")}")
+        error("YANDEX_KEY was not found in local.properties. Check ${layout.projectDirectory.file("README.md")}")
+    }
+    return key
+}
+
+fun getWebClientId(): String {
+    val properties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (!localPropertiesFile.exists()) {
+        error("Local.propeties file was not found. Create it and add the WEB_CLIEN_ID")
+    }
+    properties.load(localPropertiesFile.inputStream())
+    val key = properties.getProperty("WEB_CLIENT_ID")
+    if (key.isNullOrEmpty()) {
+        error("WEB_CLIENT_ID was not found in local.properties. Check ${layout.projectDirectory.file("README.md")}")
     }
     return key
 }
 
 extra["yandexApiKey"] = getYandexApiKey()
+extra["webClientId"] = getWebClientId()

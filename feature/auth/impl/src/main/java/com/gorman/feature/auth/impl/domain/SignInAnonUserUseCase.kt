@@ -10,7 +10,6 @@ class SignInAnonUserUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): Result<Unit> {
         return authRepository.signInAnonymously().mapCatching {
-            userRepository.clearUserData()
             userRepository.saveUser(it)
             userRepository.saveTokenToUser(it.uid).getOrThrow()
         }

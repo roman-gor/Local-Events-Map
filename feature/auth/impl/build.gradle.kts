@@ -8,16 +8,24 @@ plugins {
 
 android {
     namespace = "com.gorman.feature.auth.impl"
+    defaultConfig {
+        val webClientId: String by rootProject.extra
+        buildConfigField("String", "WEB_CLIENT_ID", "\"$webClientId\"")
+    }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
     implementation(project(":feature"))
     implementation(project(":feature:events:api"))
     api(project(":feature:auth:api"))
-    implementation(project(":core:navigation"))
+    implementation(project(":core:auth"))
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
+    implementation(libs.bundles.credentials)
     implementation(libs.bundles.coil)
     implementation(libs.kotlinx.serialization.json)
 

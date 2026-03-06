@@ -1,6 +1,7 @@
 package com.gorman.data.repository.user
 
 import android.util.Log
+import com.gorman.common.models.UserNotFoundError
 import com.gorman.database.data.datasource.dao.UserDataDao
 import com.gorman.database.mappers.toDomain
 import com.gorman.database.mappers.toEntity
@@ -23,21 +24,20 @@ internal class UserRepository @Inject constructor(
     override suspend fun refreshUserData(uid: String): Result<Unit> = runCatching {
         val remoteUser = userRemoteDataSource.getUserFromRemote(uid).firstOrNull()
         remoteUser?.let {
-            userDataDao.saveUser(it.toDomain().toEntity())
+            userDataDao.saveUser(it.uid, it.toDomain().toEntity())
             Log.d("UserRepository", "User synced from remote to local DB")
-        } ?: error(Exception("User not found on server"))
+        } ?: error(UserNotFoundError("User was not found on server"))
     }
 
-    override suspend fun clearUserData() {
-        userDataDao.clearAll()
-    }
+    override fun getUserData(): Flow<UserData?> = userDataDao.getUser().map { it?.toDomain() }
 
-    override fun getUserData(): Flow<UserData?> =
-        userDataDao.getUser().map { it?.toDomain() }
+    override suspend fun setAllUsersInactive() { userDataDao.setAllUsersInactive() }
 
     override suspend fun saveUser(userData: UserData): Result<Unit> {
         return userRemoteDataSource.saveUserToRemote(userData.toRemote())
-            .map { userDataDao.saveUser(userData.toEntity()) }
+            .map {
+                userDataDao.saveUser(userData.uid, userData.toEntity())
+            }
             .onFailure { Log.e("UserRepository", "Remote save failed", it) }
     }
 

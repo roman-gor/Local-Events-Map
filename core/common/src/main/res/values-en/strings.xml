@@ -15,4 +15,7 @@
     <string name="cinema">Cinema</string>
     <string name="categoryPlaceholder">Poster</string>
     <string name="errorDataLoading">Error loading data</string>
+    <string name="today">Today</string>
+    <string name="week">Week</string>
+    <string name="range">Range</string>
 </resources>

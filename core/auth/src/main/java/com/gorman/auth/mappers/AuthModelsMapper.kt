@@ -6,10 +6,12 @@ import com.gorman.domainmodel.UserData
 
 fun FirebaseUser.toAuthModel(): UserAuthModel = UserAuthModel(
     uid = uid,
-    email = email
+    email = email,
+    username = displayName
 )
 
 fun UserAuthModel.toDomain(): UserData = UserData(
     uid = uid,
-    email = email
+    email = email,
+    username = username
 )

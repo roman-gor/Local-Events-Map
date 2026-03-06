@@ -1,5 +1,6 @@
 package com.gorman.feature.bookmarks.impl.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,9 +39,12 @@ fun BookmarksScreenEntry(
     when (val state = uiState) {
         is BookmarksScreenState.Error -> ErrorDataScreen(
             text = stringResource(com.gorman.ui.R.string.errorDataLoading),
-            onRetryClick = { bookmarksViewModel.onUiEvent(BookmarksScreenUiEvent.OnRetryClick) }
+            onRetryClick = { bookmarksViewModel.onUiEvent(BookmarksScreenUiEvent.OnRetryClick) },
+            modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)
         )
-        BookmarksScreenState.Loading -> LoadingIndicator()
+        BookmarksScreenState.Loading -> LoadingIndicator(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+        )
         is BookmarksScreenState.Success -> BookmarksScreen(
             uiState = state,
             onUiEvent = bookmarksViewModel::onUiEvent,

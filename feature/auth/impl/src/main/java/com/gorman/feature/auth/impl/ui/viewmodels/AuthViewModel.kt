@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gorman.feature.auth.impl.domain.SignInAnonUserUseCase
 import com.gorman.feature.auth.impl.domain.SignInUserUseCase
+import com.gorman.feature.auth.impl.domain.SignInWithGoogleUseCase
 import com.gorman.feature.auth.impl.domain.SignUpUserUseCase
 import com.gorman.feature.auth.impl.navigation.AuthNavDelegate
 import com.gorman.feature.auth.impl.ui.states.AuthScreenState
@@ -25,6 +26,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel(assistedFactory = AuthViewModel.Factory::class)
 class AuthViewModel @AssistedInject constructor(
     private val signInUserUseCase: SignInUserUseCase,
+    private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
     private val signUpUserUseCase: SignUpUserUseCase,
     private val signInAnonUserUseCase: SignInAnonUserUseCase,
     @Assisted val navigator: AuthNavDelegate
@@ -36,7 +38,7 @@ class AuthViewModel @AssistedInject constructor(
     }
 
     private val _uiState =
-        MutableStateFlow<AuthScreenState>(AuthScreenState.Idle(user = UserUiState(), password = ""))
+        MutableStateFlow<AuthScreenState>(AuthScreenState.Idle())
     val uiState = _uiState.asStateFlow()
     private val _sideEffect = Channel<AuthSideEffects>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
@@ -48,6 +50,7 @@ class AuthViewModel @AssistedInject constructor(
         when (uiEvent) {
             is AuthScreenUiEvent.OnSignInClick -> signIn(uiEvent.email, uiEvent.password)
             is AuthScreenUiEvent.OnSignUpClick -> signUp(uiEvent.user, uiEvent.password)
+            AuthScreenUiEvent.OnSignInWithGoogleClick -> signInWithGoogle()
             AuthScreenUiEvent.OnGuestSignIn -> guestSignIn()
             AuthScreenUiEvent.OnNavigateToSignInClicked -> navigator.onSignIn()
             AuthScreenUiEvent.OnNavigateToSignUpClicked -> navigator.onSignUp()
@@ -84,9 +87,24 @@ class AuthViewModel @AssistedInject constructor(
             signInUserUseCase(email, password)
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
+                    _uiState.value = AuthScreenState.Idle()
                 }.onFailure { e ->
                     _uiState.value = AuthScreenState.Idle(UserUiState(email = email), password)
+                    _sideEffect.send(AuthSideEffects.ShowError(e))
+                    Log.d("Auth VM", "Sign In Failed: ${e.message}")
+                }
+        }
+    }
+
+    private fun signInWithGoogle() {
+        viewModelScope.launch {
+            _uiState.value = AuthScreenState.Loading
+            signInWithGoogleUseCase()
+                .onSuccess {
+                    navigator.setHomeRoot()
+                    _uiState.value = AuthScreenState.Idle()
+                }.onFailure { e ->
+                    _uiState.value = AuthScreenState.Idle()
                     _sideEffect.send(AuthSideEffects.ShowError(e))
                     Log.d("Auth VM", "Sign In Failed: ${e.message}")
                 }
@@ -99,7 +117,7 @@ class AuthViewModel @AssistedInject constructor(
             signInAnonUserUseCase()
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
+                    _uiState.value = AuthScreenState.Idle()
                     Log.d("Auth VM", "Successfully Sign In")
                 }.onFailure { e ->
                     _uiState.value = AuthScreenState.Idle(UserUiState(), "")
@@ -115,7 +133,7 @@ class AuthViewModel @AssistedInject constructor(
             signUpUserUseCase(user.toDomain(), password)
                 .onSuccess {
                     navigator.setHomeRoot()
-                    _uiState.value = AuthScreenState.Idle(user = UserUiState(), password = "")
+                    _uiState.value = AuthScreenState.Idle()
                 }
                 .onFailure { e ->
                     _uiState.value = AuthScreenState.Idle(user, password)

@@ -17,7 +17,6 @@ dependencies {
     implementation(project(":feature:details-event:api"))
     implementation(project(":feature:events:api"))
     implementation(project(":feature:auth:api"))
-    implementation(project(":core:navigation"))
 
     implementation(libs.bundles.coil)
     implementation(libs.kotlinx.serialization.json)

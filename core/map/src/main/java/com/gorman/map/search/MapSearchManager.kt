@@ -19,7 +19,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import kotlin.coroutines.resume
 
-class MapSearchManager @Inject constructor(
+internal class MapSearchManager @Inject constructor(
     private val searchManager: SearchManager
 ) : IMapSearchManager {
     override fun calculatingDistance(point1: PointDomain, point2: PointDomain): Int =

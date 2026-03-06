@@ -21,7 +21,7 @@ object YandexModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface MapModule {
+internal interface MapModule {
     @Binds
     fun bindMapManager(impl: MapManager): IMapManager
 

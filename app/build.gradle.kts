@@ -53,7 +53,6 @@ android {
 
 dependencies {
 
-    implementation(project(":feature:setup:api"))
     implementation(project(":feature:setup:impl"))
     implementation(project(":feature:events:impl"))
     implementation(project(":feature:bookmarks:impl"))
@@ -63,7 +62,6 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(project(":core:ui"))
     implementation(project(":core:map"))
-    implementation(project(":core:cache"))
     implementation(project(":core:deeplinks"))
     implementation(project(":core:domain-model"))
     implementation(project(":core:data"))

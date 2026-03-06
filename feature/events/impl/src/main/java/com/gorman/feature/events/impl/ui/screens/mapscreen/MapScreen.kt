@@ -1,22 +1,27 @@
 package com.gorman.feature.events.impl.ui.screens.mapscreen
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.systemGestures
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -33,13 +38,13 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.gorman.common.constants.CityCoordinates
+import com.gorman.common.models.FilterActions
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.navigation.EventsNavDelegate
 import com.gorman.feature.events.impl.ui.components.CitiesDropdownMenu
 import com.gorman.feature.events.impl.ui.components.StatusBanner
 import com.gorman.feature.events.impl.ui.mappers.toDomain
 import com.gorman.feature.events.impl.ui.screens.PermissionRequestScreen
-import com.gorman.feature.events.impl.ui.states.FilterActions
 import com.gorman.feature.events.impl.ui.states.MapScreenActions
 import com.gorman.feature.events.impl.ui.states.PointUiState
 import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
@@ -59,7 +64,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 
-@SuppressLint("ComposeViewModelForwarding")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreenEntry(
@@ -79,7 +83,7 @@ fun MapScreenEntry(
 
     LaunchedEffect(mapViewModel.sideEffect) {
         mapViewModel.sideEffect.collect { effect ->
-            when(effect) {
+            when (effect) {
                 is ScreenSideEffect.MoveCamera -> {
                     val zoom = effect.zoom
                     mapControl.moveCamera(
@@ -104,12 +108,17 @@ fun MapScreenEntry(
     when (val state = uiState) {
         is ScreenState.Error -> ErrorDataScreen(
             text = stringResource(com.gorman.ui.R.string.errorDataLoading),
-            onRetryClick = {}
+            onRetryClick = {},
+            modifier = Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)
         )
-        ScreenState.Loading -> LoadingIndicator()
+        ScreenState.Loading -> LoadingIndicator(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+        )
         is ScreenState.CitySelection -> {
             if (state.isLoading) {
-                LoadingIndicator()
+                LoadingIndicator(
+                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
+                )
                 return
             }
             PermissionRequestScreen(
@@ -118,7 +127,11 @@ fun MapScreenEntry(
                 requestPermissions = { locationPermissionsState.launchMultiplePermissionRequest() },
                 onDeclineClick = { mapViewModel.onUiEvent(ScreenUiEvent.PermissionDenied) },
                 onCitySubmit = { mapViewModel.onUiEvent(ScreenUiEvent.OnCitySearch(it)) },
-                isPreRequest = !state.requiresManualInput && !locationPermissionsState.shouldShowRationale
+                isPreRequest = !state.requiresManualInput && !locationPermissionsState.shouldShowRationale,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(LocalEventsMapTheme.dimens.paddingExtraLarge)
             )
         }
         is ScreenState.Success -> {
@@ -169,7 +182,8 @@ fun MapContent(
                 onDateRangeChange = { onUiEvent(ScreenUiEvent.OnDateChanged(it)) },
                 onDistanceChange = { onUiEvent(ScreenUiEvent.OnDistanceChanged(it)) },
                 onCostChange = { onUiEvent(ScreenUiEvent.OnCostChanged(it)) },
-                onNameChange = { onUiEvent(ScreenUiEvent.OnNameChanged(it)) }
+                onNameChange = { onUiEvent(ScreenUiEvent.OnNameChanged(it)) },
+                onResetFilters = { onUiEvent(ScreenUiEvent.OnResetFilters) }
             ),
             onSyncClick = { onUiEvent(ScreenUiEvent.OnSyncClicked) },
             onEventClick = { event -> onUiEvent(ScreenUiEvent.OnEventSelected(event.id)) },
@@ -225,7 +239,8 @@ fun MapScreen(
         MapBottomSheets(
             uiState = uiState,
             state = state,
-            mapScreenActions = mapScreenActions
+            mapScreenActions = mapScreenActions,
+            modifier = Modifier.fillMaxWidth()
         )
         FunctionalBlock(
             mapScreenData = MapScreenData(
@@ -268,33 +283,38 @@ private suspend fun AwaitPointerEventScope.consumeGesturesForSystemInsets(
 private fun MapBottomSheets(
     uiState: ScreenState.Success,
     state: MapScreenLocalState,
-    mapScreenActions: MapScreenActions
+    mapScreenActions: MapScreenActions,
+    modifier: Modifier = Modifier
 ) {
-    MapEventsBottomSheetContent(
-        data = BottomSheetData(
-            expanded = state.mapEventsListExpanded,
-            onDismissSheet = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
-            sheetState = state.mapEventsListSheetState
-        ),
-        onEventClick = {
-            mapScreenActions.onEventClick(it)
-            state.scope.launch {
-                state.mapEventsListSheetState.hide()
-                state.mapEventsListExpanded = false
-            }
-        },
-        eventsList = uiState.eventsList
-    )
+    Box(modifier = modifier) {
+        MapEventsBottomSheetContent(
+            data = BottomSheetData(
+                expanded = state.mapEventsListExpanded,
+                onDismissSheet = { state.mapEventsListExpanded = !state.mapEventsListExpanded },
+                sheetState = state.mapEventsListSheetState
+            ),
+            onEventClick = {
+                mapScreenActions.onEventClick(it)
+                state.scope.launch {
+                    state.mapEventsListSheetState.hide()
+                    state.mapEventsListExpanded = false
+                }
+            },
+            eventsList = uiState.eventsList,
+            modifier = Modifier.fillMaxWidth().statusBarsPadding()
+        )
 
-    FilterBottomSheetContent(
-        data = BottomSheetData(
-            expanded = state.filtersExpanded,
-            onDismissSheet = { state.filtersExpanded = !state.filtersExpanded },
-            sheetState = state.filtersSheetState
-        ),
-        filtersState = uiState.filterState,
-        mapScreenActions = mapScreenActions
-    )
+        FilterBottomSheetContent(
+            data = BottomSheetData(
+                expanded = state.filtersExpanded,
+                onDismissSheet = { state.filtersExpanded = !state.filtersExpanded },
+                sheetState = state.filtersSheetState
+            ),
+            filtersState = uiState.filterState,
+            mapScreenActions = mapScreenActions,
+            modifier = Modifier.fillMaxWidth().statusBarsPadding()
+        )
+    }
 }
 
 @Composable
@@ -313,10 +333,19 @@ private fun MapTopOverlays(
                 onExpandedChange = { state.citiesMenuExpanded = !state.citiesMenuExpanded },
                 currentCity = stringResource(it.resource),
                 onCityClick = onCitySubmit,
-                citiesList = CityCoordinates.entries.toImmutableList()
+                citiesList = CityCoordinates.entries.toImmutableList(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .systemBarsPadding()
+                    .background(color = Color.Transparent)
             )
         }
-        uiState.dataStatus?.let { StatusBanner(it) }
+        uiState.dataStatus?.let { dataStatus ->
+            StatusBanner(
+                status = dataStatus,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 

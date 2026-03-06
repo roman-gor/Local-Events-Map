@@ -1,7 +1,5 @@
 package com.gorman.ui.components
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,15 +18,14 @@ import androidx.compose.ui.unit.sp
 import com.gorman.ui.R
 import com.gorman.ui.theme.LocalEventsMapTheme
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun ErrorDataScreen(
     text: String,
-    onRetryClick: () -> Unit
+    onRetryClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier.fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.background),
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         Column(

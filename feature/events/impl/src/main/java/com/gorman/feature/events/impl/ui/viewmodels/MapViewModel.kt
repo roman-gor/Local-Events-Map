@@ -5,18 +5,20 @@ import androidx.lifecycle.viewModelScope
 import com.gorman.common.constants.CityCoordinates
 import com.gorman.common.data.NetworkConnectivityObserver
 import com.gorman.common.models.CityData
+import com.gorman.common.models.DateFilterState
+import com.gorman.common.models.DateFilterType
+import com.gorman.common.models.FiltersState
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
+import com.gorman.data.repository.settings.IUserSettingsRepository
+import com.gorman.data.repository.user.IUserRepository
 import com.gorman.domainmodel.MapEvent
 import com.gorman.domainmodel.PointDomain
 import com.gorman.feature.events.impl.R
 import com.gorman.feature.events.impl.domain.GetCityByPointUseCase
-import com.gorman.feature.events.impl.ui.components.DateFilterType
 import com.gorman.feature.events.impl.ui.mappers.toDomain
 import com.gorman.feature.events.impl.ui.mappers.toUiState
 import com.gorman.feature.events.impl.ui.states.DataStatus
-import com.gorman.feature.events.impl.ui.states.DateFilterState
-import com.gorman.feature.events.impl.ui.states.FiltersState
 import com.gorman.feature.events.impl.ui.states.PointUiState
 import com.gorman.feature.events.impl.ui.states.ScreenSideEffect
 import com.gorman.feature.events.impl.ui.states.ScreenState
@@ -30,6 +32,7 @@ import com.gorman.ui.utils.getEndOfWeek
 import com.gorman.ui.utils.getStartOfDay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -39,6 +42,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -54,6 +60,8 @@ class MapViewModel @Inject constructor(
     private val mapManager: IMapManager,
     private val mapEventsRepository: IMapEventsRepository,
     private val geoRepository: IGeoRepository,
+    private val userRepository: IUserRepository,
+    private val settingsRepository: IUserSettingsRepository,
     private val getCityByPointUseCase: GetCityByPointUseCase,
     networkObserver: NetworkConnectivityObserver
 ) : ViewModel() {
@@ -61,7 +69,23 @@ class MapViewModel @Inject constructor(
     private val _sideEffect = Channel<ScreenSideEffect>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
 
-    private val filters = MutableStateFlow(FiltersState())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val filters = userRepository.getUserData()
+        .map { it?.uid }
+        .flatMapLatest { uid ->
+            if (uid == null) {
+                flowOf(FiltersState())
+            } else {
+                settingsRepository.getFiltersByUserId(uid)
+                    .map { it ?: FiltersState() }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = FiltersState()
+        )
+
     private val selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
     private var cameraMoveJob: Job? = null
@@ -142,7 +166,9 @@ class MapViewModel @Inject constructor(
                     iconRes = R.drawable.ic_marker,
                     selectedIconRes = R.drawable.ic_marker_selected
                 )
-            } else null
+            } else {
+                null
+            }
         }.toImmutableList()
 
         ScreenState.Success(
@@ -187,7 +213,7 @@ class MapViewModel @Inject constructor(
         val matchesCategory = filters.categories.isEmpty() || this.category in filters.categories
 
         val matchesDate = if (filters.dateRange.startDate != null && filters.dateRange.endDate != null) {
-            this.date in filters.dateRange.startDate..filters.dateRange.endDate
+            this.date in filters.dateRange.startDate!!..filters.dateRange.endDate!!
         } else {
             true
         }
@@ -197,7 +223,7 @@ class MapViewModel @Inject constructor(
         val matchesDistance = if (filters.distance != null) {
             val userPoint = cityData.toUiState().cityCoordinates
             val dist = checkDistanceBetween(this.toUiState(), userPoint?.toDomain())
-            dist?.let { it <= filters.distance } ?: true
+            dist?.let { it <= filters.distance!! } ?: true
         } else {
             true
         }
@@ -214,10 +240,16 @@ class MapViewModel @Inject constructor(
             is ScreenUiEvent.OnCameraIdle -> onCameraIdle(event.point, event.zoom)
             is ScreenUiEvent.OnCategoryChanged -> onCategoryChanged(event.category)
             is ScreenUiEvent.OnDateChanged -> { filterDateChanged(event.dateState) }
-            is ScreenUiEvent.OnNameChanged -> filters.value = filters.value.copy(name = event.name)
-            is ScreenUiEvent.OnCostChanged -> filters.value = filters.value.copy(isFree = event.isFree)
-            is ScreenUiEvent.OnDistanceChanged -> filters.value = filters.value.copy(distance = event.distance)
+            is ScreenUiEvent.OnNameChanged -> updateFilters { it.copy(name = event.name) }
+            is ScreenUiEvent.OnCostChanged -> updateFilters { it.copy(isFree = event.isFree) }
+            is ScreenUiEvent.OnDistanceChanged -> updateFilters { it.copy(distance = event.distance) }
             is ScreenUiEvent.OnCitySearch -> { searchForCity(event.city) }
+            ScreenUiEvent.OnResetFilters -> {
+                viewModelScope.launch {
+                    val uid = userRepository.getUserData().firstOrNull()?.uid
+                    uid?.let { settingsRepository.updateFilters(uid, FiltersState()) }
+                }
+            }
             is ScreenUiEvent.OnEventSelected -> { viewModelScope.launch { onEventSelected(event.id) } }
             ScreenUiEvent.OnSyncClicked -> { viewModelScope.launch { syncEvents() } }
             ScreenUiEvent.PermissionsGranted -> { onPermissionsGranted() }
@@ -239,7 +271,7 @@ class MapViewModel @Inject constructor(
                 fetchInitialLocation()
                 syncEvents()
             } else {
-                fetchInitialLocation()
+                fetchInitialLocation(forceRefetch = true)
             }
             permissionState.value = permissionState.value.copy(isLoading = false)
         }
@@ -262,8 +294,8 @@ class MapViewModel @Inject constructor(
         }
     }
 
-    private suspend fun fetchInitialLocation() {
-        if (isInitialLocationFetched || cameraState.value != null) return
+    private suspend fun fetchInitialLocation(forceRefetch: Boolean = false) {
+        if (!forceRefetch && (isInitialLocationFetched || cameraState.value != null)) return
 
         isInitialLocationFetched = true
         geoRepository.getUserLocation().onSuccess { location ->
@@ -276,60 +308,71 @@ class MapViewModel @Inject constructor(
         }
     }
 
+    private fun updateFilters(transform: (FiltersState) -> FiltersState) {
+        viewModelScope.launch {
+            val current = filters.value
+            val newFilters = transform(current)
+            val uid = userRepository.getUserData().firstOrNull()?.uid
+            uid?.let { settingsRepository.updateFilters(uid, newFilters) }
+        }
+    }
+
     private fun filterDateChanged(dateState: DateFilterState) {
-        val currentType = filters.value.dateRange.type
-        val newType = dateState.type
+        viewModelScope.launch {
+            val currentFilters = filters.value
+            val currentType = filters.value.dateRange.type
+            val newType = dateState.type
 
-        if (currentType == newType && newType != DateFilterType.RANGE) {
-            filters.value = filters.value.copy(
-                dateRange = DateFilterState(
-                    type = null,
-                    startDate = null,
-                    endDate = null
-                )
-            )
-            return
-        }
-
-        if (newType == DateFilterType.RANGE && dateState.startDate == null) {
-            return
-        }
-
-        when (dateState.type) {
-            DateFilterType.RANGE -> {
-                filters.value = filters.value.copy(
+            if (currentType == newType && newType != DateFilterType.RANGE) {
+                val newFilters = currentFilters.copy(
                     dateRange = DateFilterState(
+                        type = null,
+                        startDate = null,
+                        endDate = null
+                    )
+                )
+                val uid = userRepository.getUserData().firstOrNull()?.uid
+                uid?.let { settingsRepository.updateFilters(uid, newFilters) }
+                return@launch
+            }
+
+            if (newType == DateFilterType.RANGE && dateState.startDate == null) {
+                return@launch
+            }
+
+            val newDateRange = when (dateState.type) {
+                DateFilterType.RANGE -> {
+                    DateFilterState(
                         type = DateFilterType.RANGE,
                         startDate = dateState.startDate,
                         endDate = dateState.endDate
                     )
-                )
-            }
-            DateFilterType.TODAY -> {
-                filters.value = filters.value.copy(
-                    dateRange = DateFilterState(
-                        type = dateState.type,
+                }
+                DateFilterType.TODAY -> {
+                    DateFilterState(
+                        type = DateFilterType.TODAY,
                         startDate = getStartOfDay(),
                         endDate = getEndOfDay()
                     )
-                )
-            }
-            DateFilterType.WEEK -> {
-                filters.value = filters.value.copy(
-                    dateRange = DateFilterState(
-                        type = dateState.type,
+                }
+                DateFilterType.WEEK -> {
+                    DateFilterState(
+                        type = DateFilterType.WEEK,
                         startDate = getStartOfDay(),
                         endDate = getEndOfWeek()
                     )
-                )
+                }
+                else -> {
+                    DateFilterState(
+                        type = null,
+                        startDate = null,
+                        endDate = null
+                    )
+                }
             }
-            else -> filters.value = filters.value.copy(
-                dateRange = DateFilterState(
-                    type = null,
-                    startDate = null,
-                    endDate = null
-                )
-            )
+            val newFilters = currentFilters.copy(dateRange = newDateRange)
+            val uid = userRepository.getUserData().firstOrNull()?.uid
+            uid?.let { settingsRepository.updateFilters(uid, newFilters) }
         }
     }
 
@@ -389,13 +432,18 @@ class MapViewModel @Inject constructor(
     }
 
     private fun onCategoryChanged(category: String) {
-        val currentCategories = filters.value.categories.toMutableList()
-        if (currentCategories.contains(category)) {
-            currentCategories.remove(category)
-        } else {
-            currentCategories.add(category)
+        viewModelScope.launch {
+            val currentCategories = filters.value.categories.toMutableList()
+            if (currentCategories.contains(category)) {
+                currentCategories.remove(category)
+            } else {
+                currentCategories.add(category)
+            }
+            val uid = userRepository.getUserData().firstOrNull()?.uid
+            uid?.let {
+                settingsRepository.updateFilters(uid, filters.value.copy(categories = currentCategories))
+            }
         }
-        filters.value = filters.value.copy(categories = currentCategories)
     }
 
     private fun updateCityIfChanged(newData: CityData) {

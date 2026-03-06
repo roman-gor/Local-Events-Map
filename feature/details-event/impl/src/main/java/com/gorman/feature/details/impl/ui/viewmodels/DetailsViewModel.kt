@@ -103,7 +103,7 @@ class DetailsViewModel @AssistedInject constructor(
         viewModelScope.launch {
             userRepository.getUserData().collect {
                 it?.uid?.let { uid ->
-                    bookmarksRepository.updateBookmark(uid, BookmarkData(id)).onFailure { e ->
+                    bookmarksRepository.updateBookmark(uid, BookmarkData(id, uid)).onFailure { e ->
                         Log.e("Details VM", "Error updating state of favourite: ${e.message}")
                     }
                 }

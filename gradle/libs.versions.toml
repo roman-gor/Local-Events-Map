@@ -11,6 +11,7 @@ composeBom = "2024.09.00"
 composeCompiler = "2.0.0"
 composeLintChecks = "1.4.2"
 coreKtx = "1.10.1"
+credentialsVersion = "1.5.0"
 datastoreCore = "1.1.1"
 detekt-version = "1.23.8"
 espressoCore = "3.5.1"
@@ -18,6 +19,7 @@ firebaseAuth = "22.3.1"
 firebaseBom = "34.1.0"
 foundation = "1.10.1"
 gms = "4.4.4"
+googleIdVersion = "1.2.0"
 hiltAndroid = "2.56.2"
 hiltAndroidGradlePlugin = "2.56.2"
 hiltCommon = "1.3.0"
@@ -81,6 +83,9 @@ androidx-work-ktx = { group = "androidx.work", name = "work-runtime-ktx", versio
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 compose-lint-checks = { module = "com.slack.lint.compose:compose-lint-checks", version.ref = "composeLintChecks" }
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentialsVersion" }
+androidx-credentials-play-services = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsVersion" }
+google-identity-googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleIdVersion" }
 detekt-formatting-plugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt-version" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
@@ -132,6 +137,11 @@ compose = [
     "androidx-activity-compose",
     "androidx-runtime",
     "androidx-compose-ui-tooling"
+]
+credentials = [
+    "androidx-credentials",
+    "androidx-credentials-play-services",
+    "google-identity-googleid"
 ]
 datastore = [
     "androidx-datastore",

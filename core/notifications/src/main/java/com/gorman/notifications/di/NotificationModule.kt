@@ -18,7 +18,7 @@ object NotificationModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface NotificatorModule {
+internal interface NotificatorModule {
     @Binds
     fun bindNotificator(impl: NotificationTokenDataSource): INotificationTokenDataSource
 }

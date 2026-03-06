@@ -1,6 +1,5 @@
 package com.gorman.feature.events.impl.ui.components
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -28,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,7 +36,6 @@ import com.gorman.common.constants.CityCoordinates
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 
-@SuppressLint("ComposeModifierMissing")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CitiesDropdownMenu(
@@ -47,13 +43,11 @@ fun CitiesDropdownMenu(
     currentCity: String,
     onExpandedChange: () -> Unit,
     onCityClick: (CityCoordinates) -> Unit,
-    citiesList: ImmutableList<CityCoordinates>
+    citiesList: ImmutableList<CityCoordinates>,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .systemBarsPadding()
-            .background(color = Color.Transparent),
+        modifier = modifier,
         contentAlignment = Alignment.TopCenter
     ) {
         ExposedDropdownMenuBox(
@@ -94,7 +88,8 @@ fun CitiesDropdownMenu(
                             ) {
                                 CityUiItem(
                                     city = city,
-                                    isSelected = stringResource(city.resource) == currentCity
+                                    isSelected = stringResource(city.resource) == currentCity,
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         },
@@ -145,14 +140,14 @@ fun CityDropdownHeader(
     }
 }
 
-@SuppressLint("ComposeModifierMissing")
 @Composable
 fun CityUiItem(
     city: CityCoordinates,
-    isSelected: Boolean
+    isSelected: Boolean,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {

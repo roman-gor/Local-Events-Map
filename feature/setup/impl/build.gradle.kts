@@ -12,12 +12,9 @@ android {
 
 dependencies {
     implementation(project(":feature"))
-    implementation(project(":feature:setup:api"))
+    api(project(":feature:setup:api"))
     implementation(project(":feature:auth:api"))
     implementation(project(":feature:events:api"))
-    implementation(project(":core:navigation"))
-    implementation(project(":core:ui"))
-    implementation(project(":core:cache"))
 
     implementation(libs.yandex.android)
     implementation(libs.kotlinx.serialization.json)

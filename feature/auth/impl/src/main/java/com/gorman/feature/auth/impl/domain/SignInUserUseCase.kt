@@ -10,7 +10,6 @@ class SignInUserUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(email: String, password: String): Result<Unit> {
         return authRepository.signIn(email, password).mapCatching { user ->
-            userRepository.clearUserData()
             userRepository.refreshUserData(user.uid)
             userRepository.saveTokenToUser(user.uid).getOrThrow()
         }

@@ -15,5 +15,6 @@ data class MapEventEntity(
     val link: String? = null,
     val photo: String? = null,
     val category: String? = null,
-    val price: Int? = null
+    val price: Int? = null,
+    val lastSyncTimestamp: Long? = null
 )

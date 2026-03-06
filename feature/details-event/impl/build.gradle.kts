@@ -13,7 +13,6 @@ android {
 dependencies {
     implementation(project(":feature"))
     api(project(":feature:details-event:api"))
-    implementation(project(":core:navigation"))
 
     implementation(libs.bundles.coil)
     implementation(libs.kotlinx.serialization.json)

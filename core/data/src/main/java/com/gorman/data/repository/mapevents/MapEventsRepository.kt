@@ -1,7 +1,6 @@
 package com.gorman.data.repository.mapevents
 
 import androidx.room.withTransaction
-import com.gorman.cache.data.DataStoreManager
 import com.gorman.database.data.datasource.LocalEventsDatabase
 import com.gorman.database.data.datasource.dao.MapEventsDao
 import com.gorman.database.mappers.toDomain
@@ -23,8 +22,7 @@ private const val TTL_MS = 24 * 60 * 60 * 1000L
 internal class MapEventsRepository @Inject constructor(
     private val mapEventsDao: MapEventsDao,
     private val mapEventRemoteDataSource: MapEventRemoteDataSource,
-    private val database: LocalEventsDatabase,
-    private val dataStoreManager: DataStoreManager
+    private val database: LocalEventsDatabase
 ) : IMapEventsRepository {
 
     override fun getAllEvents(): Flow<List<MapEvent>> {
@@ -33,54 +31,45 @@ internal class MapEventsRepository @Inject constructor(
         }
     }
 
-    override fun getEventById(id: String): Flow<MapEvent> {
-        return mapEventsDao.getEventById(id).map { it.toDomain() }
-    }
+    override fun getEventById(id: String): Flow<MapEvent> =
+        mapEventsDao.getEventById(id).map { it.toDomain() }
 
-    override fun getEventsByName(name: String): Flow<List<MapEvent>> {
-        return mapEventsDao.getEventsByName(name).map { list ->
+    override fun getEventsByName(name: String): Flow<List<MapEvent>> =
+        mapEventsDao.getEventsByName(name).map { list ->
             list.map { it.toDomain() }
         }
-    }
 
     override suspend fun syncEventById(id: String): Result<Unit> = runCatching {
         val remoteEventResult = mapEventRemoteDataSource.getSingleEvent(id)
         remoteEventResult.mapCatching { remoteEvent ->
-            mapEventsDao.upsertEvent(listOf(remoteEvent.toDomain().toEntity()))
+            mapEventsDao.upsertEvent(listOf(remoteEvent.toDomain().toEntity(getCurrentZoneTime())))
         }
     }
 
-    private suspend fun getAllRemoteEvents(): List<MapEvent>? {
-        return mapEventRemoteDataSource.getAllEventsOnce()?.map { event ->
+    private suspend fun getAllRemoteEvents(): List<MapEvent>? =
+        mapEventRemoteDataSource.getAllEventsOnce()?.map { event ->
             event.toDomain()
         }
-    }
 
     override suspend fun syncWith(): Result<Unit> = runCatching {
-        val remoteEvents = getAllRemoteEvents()
-        return if (remoteEvents != null) {
-            val entities = remoteEvents.map { it.toEntity() }
-            val remoteIds = entities.map { it.id }
-            database.withTransaction {
-                if (remoteIds.isNotEmpty()) {
-                    mapEventsDao.deleteEventsNotIn(remoteIds)
-                    mapEventsDao.upsertEvent(entities)
-                } else {
-                    mapEventsDao.clearAll()
-                }
+        val remoteEvents = getAllRemoteEvents() ?: error(IOException("Error network connection"))
+        val entities = remoteEvents.map { it.toEntity(getCurrentZoneTime()) }
+        val remoteIds = entities.map { it.id }
+        database.withTransaction {
+            if (remoteIds.isNotEmpty()) {
+                mapEventsDao.deleteEventsNotIn(remoteIds)
+                mapEventsDao.upsertEvent(entities)
+            } else {
+                mapEventsDao.clearAll()
             }
-            dataStoreManager.saveSyncTimestamp(System.currentTimeMillis())
-            Result.success(Unit)
-        } else {
-            Result.failure(IOException("Error network connection"))
         }
     }
 
     @OptIn(ExperimentalTime::class)
     override fun isOutdated(): Flow<Boolean> =
-        dataStoreManager.lastSyncTimestamp.map { lastSyncTime ->
-            val currentZone = ZoneId.systemDefault()
-            val currentTime = ZonedDateTime.now(currentZone).toEpochSecond()
-            lastSyncTime?.let { (currentTime - it) > TTL_MS } == true
+        mapEventsDao.getOldestSyncTimestamp().map { lastSyncTime ->
+            lastSyncTime?.let { (getCurrentZoneTime() - it) > TTL_MS } == true
         }
+
+    private fun getCurrentZoneTime() = ZonedDateTime.now(ZoneId.systemDefault()).toEpochSecond()
 }

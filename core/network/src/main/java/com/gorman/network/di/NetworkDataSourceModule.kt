@@ -17,7 +17,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface NetworkDataSourceModule {
+internal interface NetworkDataSourceModule {
     @Binds
     fun bindMapEventDataSource(impl: MapEventRemoteDataSourceImpl): MapEventRemoteDataSource
 

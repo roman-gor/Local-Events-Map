@@ -8,6 +8,8 @@ import com.gorman.data.repository.geo.GeoRepository
 import com.gorman.data.repository.geo.IGeoRepository
 import com.gorman.data.repository.mapevents.IMapEventsRepository
 import com.gorman.data.repository.mapevents.MapEventsRepository
+import com.gorman.data.repository.settings.IUserSettingsRepository
+import com.gorman.data.repository.settings.UserSettingsRepository
 import com.gorman.data.repository.user.IUserRepository
 import com.gorman.data.repository.user.UserRepository
 import com.yandex.mapkit.search.SearchFactory
@@ -18,6 +20,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import javax.inject.Qualifier
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -36,6 +42,9 @@ internal interface ModuleRepository {
 
     @Binds
     fun bindBookmarkRepository(impl: BookmarksRepository): IBookmarksRepository
+
+    @Binds
+    fun bindSettingsRepository(impl: UserSettingsRepository): IUserSettingsRepository
 }
 
 @Module
@@ -44,4 +53,12 @@ object SearchManagerModule {
     @Provides
     fun provideSearchManager(): SearchManager =
         SearchFactory.getInstance().createSearchManager(SearchManagerType.COMBINED)
+
+    @Provides
+    @BookmarksRepositoryScope
+    fun provideExternalScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 }
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+internal annotation class BookmarksRepositoryScope

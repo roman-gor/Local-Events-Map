@@ -130,7 +130,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
 @Composable
 private fun HandleEffects(
     stateFlow: Flow<MainUiState>,
@@ -149,4 +148,3 @@ private fun HandleEffects(
             }
     }
 }
-

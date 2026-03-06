@@ -1,8 +1,8 @@
-package com.gorman.feature.events.impl.ui.states
+package com.gorman.common.models
 
 import androidx.compose.runtime.Immutable
+import com.gorman.common.R
 import com.gorman.common.constants.Category
-import com.gorman.feature.events.impl.ui.components.DateFilterType
 
 @Immutable
 data class FiltersState(
@@ -26,7 +26,8 @@ data class FilterActions(
     val onDateRangeChange: (DateFilterState) -> Unit,
     val onDistanceChange: (Int?) -> Unit,
     val onCostChange: (Boolean) -> Unit,
-    val onNameChange: (String) -> Unit
+    val onNameChange: (String) -> Unit,
+    val onResetFilters: () -> Unit,
 )
 
 @Immutable
@@ -34,3 +35,9 @@ data class FilterOptions(
     val categoryItems: List<Category>,
     val costItems: List<String>
 )
+
+enum class DateFilterType(val title: Int) {
+    TODAY(R.string.today),
+    WEEK(R.string.week),
+    RANGE(R.string.range)
+}

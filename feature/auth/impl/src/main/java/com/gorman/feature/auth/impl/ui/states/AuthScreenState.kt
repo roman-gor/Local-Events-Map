@@ -3,13 +3,14 @@ package com.gorman.feature.auth.impl.ui.states
 import com.gorman.ui.states.UserUiState
 
 sealed interface AuthScreenState {
-    data class Idle(val user: UserUiState, val password: String) : AuthScreenState
+    data class Idle(val user: UserUiState = UserUiState(), val password: String = "") : AuthScreenState
     object Loading : AuthScreenState
 }
 
 sealed interface AuthScreenUiEvent {
     data class OnSignUpClick(val user: UserUiState, val password: String) : AuthScreenUiEvent
     data class OnSignInClick(val email: String, val password: String) : AuthScreenUiEvent
+    object OnSignInWithGoogleClick : AuthScreenUiEvent
     object OnGuestSignIn : AuthScreenUiEvent
     object OnNavigateToSignUpClicked : AuthScreenUiEvent
     object OnNavigateToSignInClicked : AuthScreenUiEvent

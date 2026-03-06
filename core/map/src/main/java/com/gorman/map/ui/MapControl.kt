@@ -12,7 +12,7 @@ interface MapControl {
     fun moveCamera(point: PointDomain, zoom: Float = 15f)
 }
 
-class MapControlImpl : MapControl {
+internal class MapControlImpl : MapControl {
     var mapView: MapView? = null
 
     override fun moveCamera(point: PointDomain, zoom: Float) {

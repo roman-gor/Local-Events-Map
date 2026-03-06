@@ -11,6 +11,7 @@
     <string name="incorrectEmail">Email is incorrect</string>
     <string name="incorrectPassword">Password is incorrect</string>
     <string name="networkErrorText">There is no network connection</string>
+    <string name="noCredentialsFound">Credentials were not found</string>
     <string name="incorrectUserData">Invalid email or password</string>
     <string name="emailInUseError">Email address is already in use</string>
 </resources>
