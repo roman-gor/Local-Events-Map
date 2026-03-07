@@ -31,6 +31,14 @@
           }
         },
         {
+          "client_id": "275529617174-q8ee6bmbshkuhoidth4h4jv4kkf8uqhr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gorman.localeventsmap",
+            "certificate_hash": "aff7e071f1ee023a8ca6d0d8ae9a30fbcd2e46e7"
+          }
+        },
+        {
           "client_id": "275529617174-j0bvdludnqh4chopvr9pm5s3ioipvc5i.apps.googleusercontent.com",
           "client_type": 3
         }

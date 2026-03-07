@@ -36,7 +36,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -89,7 +88,13 @@ class MapViewModel @Inject constructor(
     private val selectedEventId = MutableStateFlow<String?>(null)
     private var isInitialLocationFetched = false
     private var cameraMoveJob: Job? = null
-    private val cityData: Flow<CityData> = geoRepository.getSavedCity().map { it ?: CityData() }
+    private val cityData: StateFlow<CityData> = geoRepository.getSavedCity()
+        .map { it ?: CityData() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = CityData()
+        )
     private val isSyncLoading = MutableStateFlow<Boolean?>(null)
     private var isInitialized = false
     private val cameraState = MutableStateFlow<Pair<PointDomain, Float>?>(null)
@@ -295,16 +300,26 @@ class MapViewModel @Inject constructor(
     }
 
     private suspend fun fetchInitialLocation() {
-        if (isInitialLocationFetched || cameraState.value != null) return
+        val isCityMissing = cityData.value.cityName == null
+        val needsCameraMove = !isInitialLocationFetched && cameraState.value == null
+
+        if (!isCityMissing && !needsCameraMove) return
 
         isInitialLocationFetched = true
-        geoRepository.getUserLocation().onSuccess { location ->
-            val userCityData = getCityByPointUseCase(location)
 
-            userCityData?.let { geoRepository.saveCity(it) }
-            _sideEffect.send(ScreenSideEffect.MoveCamera(location.toUiState()))
+        geoRepository.getUserLocation().onSuccess { location ->
+            if (isCityMissing) {
+                val userCityData = getCityByPointUseCase(location)
+                userCityData?.let { geoRepository.saveCity(it) }
+            }
+
+            if (needsCameraMove) {
+                _sideEffect.send(ScreenSideEffect.MoveCamera(location.toUiState()))
+            }
         }.onFailure {
-            searchForCity(CityCoordinates.MINSK)
+            if (isCityMissing) {
+                searchForCity(CityCoordinates.MINSK)
+            }
         }
     }
 
@@ -313,7 +328,7 @@ class MapViewModel @Inject constructor(
             val current = filters.value
             val newFilters = transform(current)
             val uid = userRepository.getUserData().firstOrNull()?.uid
-            uid?.let { settingsRepository.updateFilters(uid, newFilters) }
+            uid?.let { settingsRepository.updateFilters(it, newFilters) }
         }
     }
 
