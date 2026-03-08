@@ -6,7 +6,7 @@ import androidx.navigation3.runtime.NavKey
 import com.gorman.feature.setup.api.SetupScreenNavKey
 import com.gorman.feature.setup.impl.screens.LocalEventsMapScreen
 import com.gorman.feature.setup.impl.viewmodel.LocalEventsMapViewModel
-import com.gorman.navigation.navigator.LocalNavigator
+import com.gorman.navigation.LocalNavigator
 
 fun EntryProviderScope<NavKey>.featureSetupEntryBuilder() {
     entry<SetupScreenNavKey> {

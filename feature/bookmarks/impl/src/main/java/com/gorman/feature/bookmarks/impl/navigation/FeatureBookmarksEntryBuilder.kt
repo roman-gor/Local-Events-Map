@@ -12,7 +12,7 @@ import androidx.navigation3.runtime.NavKey
 import com.gorman.feature.bookmarks.api.BookmarksScreenNavKey
 import com.gorman.feature.bookmarks.impl.ui.screens.BookmarksScreenEntry
 import com.gorman.feature.bookmarks.impl.ui.viewmodels.BookmarksViewModel
-import com.gorman.navigation.navigator.LocalNavigator
+import com.gorman.navigation.LocalNavigator
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 fun EntryProviderScope<NavKey>.featureBookmarksEntryBuilder() {

@@ -19,7 +19,7 @@ import com.gorman.feature.auth.api.SignUpScreenNavKey
 import com.gorman.feature.auth.impl.ui.screens.SignInScreenEntry
 import com.gorman.feature.auth.impl.ui.screens.SignUpScreenEntry
 import com.gorman.feature.auth.impl.ui.viewmodels.AuthViewModel
-import com.gorman.navigation.navigator.LocalNavigator
+import com.gorman.navigation.LocalNavigator
 import com.gorman.ui.theme.LocalEventsMapTheme
 
 fun EntryProviderScope<NavKey>.featureAuthEntryBuilder() {

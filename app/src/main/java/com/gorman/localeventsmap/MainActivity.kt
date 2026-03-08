@@ -39,10 +39,10 @@ import com.gorman.localeventsmap.states.MainUiState
 import com.gorman.localeventsmap.ui.bottombar.BottomNavigationBar
 import com.gorman.localeventsmap.ui.bottombar.shouldShowBottomBar
 import com.gorman.localeventsmap.viewmodels.MainViewModel
-import com.gorman.navigation.navigator.LocalNavigator
-import com.gorman.navigation.navigator.Navigator
-import com.gorman.navigation.state.rememberNavigationState
-import com.gorman.navigation.state.toEntries
+import com.gorman.navigation.LocalNavigator
+import com.gorman.navigation.Navigator
+import com.gorman.navigation.rememberNavigationState
+import com.gorman.navigation.toEntries
 import com.gorman.ui.theme.LocalEventsMapTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.toPersistentList
@@ -65,13 +65,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LocalEventsMapTheme {
-                val navState = rememberNavigationState(startRoute = SetupScreenNavKey)
+                val navState = rememberNavigationState(startKey = SetupScreenNavKey)
                 val navigator = remember(navState) { Navigator(navState) }
 
                 HandleEffects(
                     stateFlow = mainViewModel.mainUiState,
                     onNavigateToEvent = {
-                        navigator.navigateTo(DetailsScreenNavKey(it))
+                        navigator.navigate(DetailsScreenNavKey(it))
                         intent.data = null
                     },
                     showErrorToast = {
@@ -84,13 +84,13 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         bottomBar = {
                             AnimatedVisibility(
-                                visible = shouldShowBottomBar(navState.currentVisibleKey),
+                                visible = shouldShowBottomBar(navState.currentKey),
                                 enter = slideInVertically { it },
                                 exit = slideOutVertically { it }
                             ) {
                                 BottomNavigationBar(
-                                    currentKey = navState.currentTab,
-                                    onNavigateTo = { key -> navigator.switchTab(key) },
+                                    currentKey = navState.currentKey,
+                                    onNavigateTo = { key -> navigator.navigate(key) },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(

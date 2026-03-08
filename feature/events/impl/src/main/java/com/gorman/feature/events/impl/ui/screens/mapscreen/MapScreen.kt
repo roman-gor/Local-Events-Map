@@ -56,7 +56,7 @@ import com.gorman.map.ui.MapConfig
 import com.gorman.map.ui.MapControl
 import com.gorman.map.ui.MapMarker
 import com.gorman.map.ui.rememberMapControl
-import com.gorman.navigation.navigator.LocalNavigator
+import com.gorman.navigation.LocalNavigator
 import com.gorman.ui.components.ErrorDataScreen
 import com.gorman.ui.components.LoadingIndicator
 import com.gorman.ui.theme.LocalEventsMapTheme
