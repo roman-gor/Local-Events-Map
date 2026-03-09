@@ -1,5 +1,6 @@
 package com.gorman.feature.events.impl.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gorman.common.constants.CityCoordinates
@@ -442,7 +443,8 @@ class MapViewModel @Inject constructor(
             isSyncLoading.value = false
         }.onFailure { exception ->
             isSyncLoading.value = false
-            _sideEffect.send(ScreenSideEffect.ShowToast(exception.message ?: "Error when sync worked"))
+            Log.e("Sync Error", exception.toString())
+            _sideEffect.send(ScreenSideEffect.ShowToast(exception))
         }
     }
 

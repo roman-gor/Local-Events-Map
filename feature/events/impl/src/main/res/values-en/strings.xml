@@ -37,4 +37,5 @@
     <string name="offlineBanner">No network connection. Saved data is shown.</string>
     <string name="outdatedBanner">The data may be outdated. Please refresh the list.</string>
     <string name="km">km</string>
+    <string name="errorNetworkConnection">Error network connection</string>
 </resources>

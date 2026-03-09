@@ -52,7 +52,7 @@ internal class MapEventsRepository @Inject constructor(
         }
 
     override suspend fun syncWith(): Result<Unit> = runCatching {
-        val remoteEvents = getAllRemoteEvents() ?: error(IOException("Error network connection"))
+        val remoteEvents = getAllRemoteEvents() ?: throw IOException("Error network connection")
         val entities = remoteEvents.map { it.toEntity(getCurrentZoneTime()) }
         val remoteIds = entities.map { it.id }
         database.withTransaction {

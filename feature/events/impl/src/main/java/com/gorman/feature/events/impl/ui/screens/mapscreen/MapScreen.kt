@@ -27,6 +27,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,7 +63,9 @@ import com.gorman.ui.components.LoadingIndicator
 import com.gorman.ui.theme.LocalEventsMapTheme
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -70,8 +73,6 @@ fun MapScreenEntry(
     modifier: Modifier = Modifier,
     mapViewModel: MapViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-
     val locationPermissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -81,22 +82,10 @@ fun MapScreenEntry(
 
     val mapControl = rememberMapControl()
 
-    LaunchedEffect(mapViewModel.sideEffect) {
-        mapViewModel.sideEffect.collect { effect ->
-            when (effect) {
-                is ScreenSideEffect.MoveCamera -> {
-                    val zoom = effect.zoom
-                    mapControl.moveCamera(
-                        point = effect.point.toDomain(),
-                        zoom = zoom
-                    )
-                }
-                is ScreenSideEffect.ShowToast -> {
-                    Toast.makeText(context, effect.text, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
+    MapScreenSideEffects(
+        sideEffects = mapViewModel.sideEffect,
+        mapControl = mapControl
+    )
 
     BindPermissionLogic(
         permissionsState = locationPermissionsState,
@@ -360,6 +349,44 @@ private fun BindPermissionLogic(
     LaunchedEffect(permissionsState.allPermissionsGranted) {
         if (permissionsState.allPermissionsGranted) {
             onPermissionsGrantedState()
+        }
+    }
+}
+
+@Composable
+private fun MapScreenSideEffects(
+    sideEffects: Flow<ScreenSideEffect>,
+    mapControl: MapControl
+) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+
+    LaunchedEffect(sideEffects, mapControl) {
+        sideEffects.collect { effect ->
+            when (effect) {
+                is ScreenSideEffect.MoveCamera -> {
+                    val zoom = effect.zoom
+                    mapControl.moveCamera(effect.point.toDomain(), zoom)
+                }
+                is ScreenSideEffect.ShowToast -> {
+                    when (effect.throwable) {
+                        is IOException -> {
+                            Toast.makeText(
+                                context,
+                                resources.getString(R.string.errorNetworkConnection),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        else -> {
+                            Toast.makeText(
+                                context,
+                                resources.getString(com.gorman.ui.R.string.errorDataLoading),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            }
         }
     }
 }
